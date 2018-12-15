@@ -78,5 +78,5 @@ queue.onIdle().then( () => {
 			}
 		});
 	});
-	fs.writeFileSync( 'compiledData/data.json', JSON.stringify( data ), { encoding:'utf8'}  ); 
+	fs.writeFileSync( 'public/data.json', JSON.stringify( data ), { encoding:'utf8'}  ); 
 });
