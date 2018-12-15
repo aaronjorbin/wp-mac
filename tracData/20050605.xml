@@ -1,0 +1,293 @@
+<?xml version="1.0"?>
+<rss xmlns:dc="http://purl.org/dc/elements/1.1/" version="2.0">
+  <channel>
+    <title>WordPress Trac</title>
+    <link>http://core.trac.wordpress.org/timeline</link>
+    <description>Trac Timeline</description>
+    <language>en-US</language>
+    <generator>Trac 1.2.2</generator>
+    <image>
+      <title>WordPress Trac</title>
+      <url>http://core.trac.wordpress.org/chrome/site/your_project_logo.png</url>
+      <link>http://core.trac.wordpress.org/timeline</link>
+    </image>
+    <item>
+      <title>Ticket #1428 (Static pages break when two or more have the same title but different ...) created</title>
+      
+        <dc:creator>radgeek</dc:creator>
+
+      <pubDate>Sun, 05 Jun 2005 17:58:39 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/1428</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/1428/1117994319000000</guid>
+      <description>&lt;p&gt;
+Currently static pages do not work correctly if two or more pages have different parents but the same title. Instead, when you go to any of the pages, WordPress will display the contents of all the pages with the same title. (So, for example, if I have a page called "License" with parent "FeedWordPress" and another page called "License" with parent "PHPSimpleComments", when you go to either /feedwordpress/license or to /phpsimplecomments/license , WordPress will display the contents of &lt;em&gt;both&lt;/em&gt; licenses on the single page.)
+&lt;/p&gt;
+&lt;p&gt;
+Here's where the problem is, in the trunk version of classes.php:
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;                if ('' != $q['name']) {
+                        $q['name'] = sanitize_title($q['name']);
+                        $where .= " AND post_name = '" . $q['name'] . "'";
+                } else if ('' != $q['pagename']) {
+                        $q['pagename'] = sanitize_title(basename(str_replace('%2F', '/', urlencode($q['pagename']))));
+                        $q['name'] = $q['pagename'];
+                        $where .= " AND post_name = '" . $q['pagename'] . "'";
+                }
+&lt;/pre&gt;&lt;p&gt;
+If you know the parent of the current page, then you have a unique identifier even if the title is the same as the title of other pages in the database, but the use of basename() simply discards all the information about the parent. Thus, it matches against all pages with that title, regardless of which the user was trying to access.
+&lt;/p&gt;
+&lt;p&gt;
+I guess there are a couple of ways you could fix this:
+&lt;/p&gt;
+&lt;ol&gt;&lt;li&gt;You could use some MySQL voodoo by joining $wpdb-&amp;gt;posts with itself to reconstruct the path using post_parent. This would look something like this:
+&lt;/li&gt;&lt;/ol&gt;&lt;pre class="wiki"&gt;		if ('' != $q['name']) {
+			$q['name'] = sanitize_title($q['name']);
+			$where .= " AND post_name = '" . $q['name'] . "'";
+		} else if ('' != $q['pagename']) {
+			# -- CWJ
+			$path = explode('/', str_replace('%2F', '/', urlencode($q['pagename'])));
+			$q['pagename'] = sanitize_title(array_pop($path));
+			$where .= " AND {$wpdb-&amp;gt;posts}.post_name = '".$q['pagename']."'";
+			$child = $wpdb-&amp;gt;posts; $n=1;
+			while (!empty($path)) {
+				$parent = "p$n";
+				$parent_name = sanitize_title(array_pop($path));
+				$join .= " LEFT JOIN $wpdb-&amp;gt;posts as $parent ON ${child}.post_parent=${parent}.id";
+				$where .= " AND ${parent}.post_name = '".$parent_name."'";
+				$child = $parent; $n++;
+			}
+			# -- /CWJ
+			$q['name'] = $q['pagename'];
+		}
+&lt;/pre&gt;&lt;p&gt;
+This is an elegant data-basey way to do it which will work without any changes to the existing data in the database. There is a problem, though; it uses self-joins and so breaks the assumption (which is pervasive throughout get_posts() that there won't be any duplicate column names). So it would require prefixing all of the field names for the wpdb-&amp;gt;posts table with their appropriate table name, like this:
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;		// Apply post-paging filters on where and join.  Only plugins that
+		// manipulate paging queries should use these hooks.
+		$where = apply_filters('posts_where_paged', $where);
+		$where .= " GROUP BY $wpdb-&amp;gt;posts.ID";
+		$join = apply_filters('posts_join_paged', $join);
+		/*CWJ*/ $request = " SELECT $distinct {$wpdb-&amp;gt;posts}.* FROM $wpdb-&amp;gt;posts $join WHERE 1=1".$where." ORDER BY post_" . $q['orderby'] . " $limits";
+&lt;/pre&gt;&lt;p&gt;
+And I think there are about 5-6 other places in get_posts().
+&lt;/p&gt;
+&lt;p&gt;
+You might also worry about performance when the $wpdb-&amp;gt;posts table is very large. I haven't tested out this solution on anything with a large database, so I don't know how well it would or wouldn't work.
+&lt;/p&gt;
+&lt;ol start="2"&gt;&lt;li&gt;The other solution would be to use the whole path to the page as the slug for static pages, rather than just the title. Since any static pages that already existed when the user upgraded would have their slugs set according to the old rules, this would break old installations. But it would make the fix much simpler. Here you'd just do something like this in classes.php:
+&lt;/li&gt;&lt;/ol&gt;&lt;pre class="wiki"&gt;                if ('' != $q['name']) {
+                        $q['name'] = sanitize_title($q['name']);
+                        $where .= " AND post_name = '" . $q['name'] . "'";
+                } else if ('' != $q['pagename']) {
+                        # -- CWJ
+				$q['pagename'] = implode('/', array_map('sanitize_title', explode('/', str_replace('%2F', '/', urlencode($q['pagename'])))));
+                        # -- /CWJ
+                        $q['name'] = $q['pagename'];
+                        $where .= " AND post_name = '" . $q['pagename'] . "'";
+                }
+&lt;/pre&gt;&lt;p&gt;
+And then alter the code for generating the slug for a static page (in, e.g., wp_insert_post()) so that it creates a slug based on the full pathname to the page rather than just the title of the page.
+&lt;/p&gt;
+&lt;p&gt;
+This is a tricky problem and I know that I don't very much like either solution, but it really ought to be fixed if the static pages in WordPress are going to be useful to much of anyone at all.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #1415 (Pingback/trackback does not always send as permalink) updated</title>
+      
+        <dc:creator>mlinksva</dc:creator>
+
+      <pubDate>Sun, 05 Jun 2005 04:10:19 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/1415</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/1415/1117944619000000</guid>
+      <description>&lt;p&gt;
+I am having the exact same problem with 1.5.1.2. It always does not send permalink, but rather ?p=#.
+&lt;/p&gt;
+&lt;p&gt;
+I have the following structure enabled:
+/%year%/%monthnum%/%day%/%postname%/
+&lt;/p&gt;
+&lt;p&gt;
+You can see the bug in this post:
+&lt;a class="ext-link" href="http://gondwanaland.com/mlog/2005/06/02/sitaker-dominant-assurance-contracts/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;http://gondwanaland.com/mlog/2005/06/02/sitaker-dominant-assurance-contracts/&lt;/a&gt;
+&lt;/p&gt;
+&lt;p&gt;
+which sent a trackback to:
+&lt;a class="ext-link" href="http://www.marginalrevolution.com/marginalrevolution/2005/05/assurance_contr.html"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;http://www.marginalrevolution.com/marginalrevolution/2005/05/assurance_contr.html&lt;/a&gt;
+&lt;/p&gt;
+&lt;p&gt;
+where the url for my post appears as:
+&lt;a class="ext-link" href="http://gondwanaland.com/mlog/?p=130"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;http://gondwanaland.com/mlog/?p=130&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #1426 (postname(postslug) ending with "-" returns blank page, and such URLs ...) updated</title>
+      
+        <dc:creator>carthik</dc:creator>
+
+      <pubDate>Sat, 04 Jun 2005 18:25:39 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/1426</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/1426/1117909539000000</guid>
+      <description>&lt;p&gt;
+The problem is due to this line in functions-formatting.php :
+&lt;/p&gt;
+&lt;p&gt;
+$title = trim($title, '-');
+&lt;/p&gt;
+&lt;p&gt;
+(it is in the function sanitize-title-with-dashes )
+&lt;/p&gt;
+&lt;p&gt;
+Is this really neccessary? Removing this, or ensuring that trailing slashes in titles, will make migrations from typepad easier.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #1268 (new excerpt function suggestion) updated</title>
+      
+        <dc:creator>matt</dc:creator>
+
+      <pubDate>Sat, 04 Jun 2005 10:17:36 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/1268</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/1268/1117880256000000</guid>
+      <description>&lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #1268 (new excerpt function suggestion) closed</title>
+      
+        <dc:creator>matt</dc:creator>
+
+      <pubDate>Sat, 04 Jun 2005 10:16:07 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/1268</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/1268/1117880167000000</guid>
+      <description>fixed: &lt;p&gt;
+Rolled in some of this code and it seems to be working well. Thanks! :)
+&lt;/p&gt;
+</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Changeset [2619]: Better pingback extraction, fixes #1268</title>
+      
+        <dc:creator>matt</dc:creator>
+
+      <pubDate>Sat, 04 Jun 2005 10:15:36 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/2619</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/2619/1117880136058774</guid>
+      <description>&lt;p&gt;
+Better pingback extraction, fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/1268" title="#1268: enhancement: new excerpt function suggestion (closed: fixed)"&gt;#1268&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Ticket #1424 (Google SiteMap) updated</title>
+      
+        <dc:creator>chuyskywalker</dc:creator>
+
+      <pubDate>Sat, 04 Jun 2005 10:12:49 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/1424</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/1424/1117879969000000</guid>
+      <description>&lt;i&gt;Priority&lt;/i&gt;, &lt;i&gt;Component&lt;/i&gt;, &lt;i&gt;Severity&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Handled via plugins about 2 seconds after the announcement ;)
+&lt;/p&gt;
+&lt;p&gt;
+&lt;a class="ext-link" href="http://www.socialpatterns.com/search-engine-optimization/google-sitemaps-with-wordpress/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;http://www.socialpatterns.com/search-engine-optimization/google-sitemaps-with-wordpress/&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>import-require.diff attached to Ticket #1427</title>
+      
+        <dc:creator>chuyskywalker</dc:creator>
+
+      <pubDate>Sat, 04 Jun 2005 08:11:36 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/1427/import-require.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/1427/import-require.diff/1117872696000000</guid>
+      <description>&lt;p&gt;
+diff against wp-admin to fix up all the require's to require_once's
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #1427 (Import files should always use require_once()) created</title>
+      
+        <dc:creator>chuyskywalker</dc:creator>
+
+      <pubDate>Sat, 04 Jun 2005 08:10:59 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/1427</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/1427/1117872659000000</guid>
+      <description>&lt;p&gt;
+Some of the import files use require, while others use require_once. They should all be changed to require_once because if a plugin loads one of the files (as mine does one) then it conflicts and issues errors.
+&lt;/p&gt;
+&lt;p&gt;
+A diff (run agains the wp-admin folder) is attached.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #1422 (problems with utf support) closed</title>
+      
+        <dc:creator>carthik</dc:creator>
+
+      <pubDate>Sat, 04 Jun 2005 03:20:49 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/1422</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/1422/1117855249000000</guid>
+      <description>invalid: &lt;p&gt;
+I tried to help this user at #wordpress.
+It seems to be a issue specific to the user's environment, since the same issues could not be reproduced on three other blogs on other servers. I recommended some solutions to the user.
+&lt;/p&gt;
+&lt;p&gt;
+This is not a bug with WP.
+&lt;/p&gt;
+</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Ticket #1426 (postname(postslug) ending with "-" returns blank page, and such URLs ...) created</title>
+      
+        <dc:creator>carthik</dc:creator>
+
+      <pubDate>Sat, 04 Jun 2005 03:18:22 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/1426</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/1426/1117855102000000</guid>
+      <description>&lt;p&gt;
+WordPress seems to have issues with "postname"s ending with the "-" character. It will not allow me to save a postname that ends with the character, and the URLs return a 404 after I used a mysql to change the postname fields directly.
+&lt;/p&gt;
+&lt;p&gt;
+Steps to reproduce:
+&lt;/p&gt;
+&lt;ol&gt;&lt;li&gt;Use :
+&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;
+/%year%/%monthnum%/%postname%/
+as the permalink structure,
+&lt;/p&gt;
+&lt;ol start="2"&gt;&lt;li&gt;Edit an existing post, changing the postname (post slug), to one ending with the character "-", such as "browse-me-"
+&lt;/li&gt;&lt;/ol&gt;&lt;ol start="3"&gt;&lt;li&gt;Try to save the post.
+&lt;/li&gt;&lt;/ol&gt;&lt;ol start="4"&gt;&lt;li&gt;Observe the blank page after the save button is clicked.
+&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;
+Also:
+&lt;/p&gt;
+&lt;p&gt;
+I tried and modified the postnames to end with - in the database directly, after which the URLs were not accessible. I got 404 error when I tried to click through to such posts, which had URLs that ended with "-/".
+&lt;/p&gt;
+&lt;p&gt;
+All this happened in the course of trying to help someone move their typepad blog over to WordPress, though I cannot provide the URLs, since they may have changed by the time you try to access them, this behavior has been observed at three different blogs.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #1422 (problems with utf support) updated</title>
+      
+        <dc:creator>elerhc</dc:creator>
+
+      <pubDate>Sat, 04 Jun 2005 00:19:22 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/1422</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/1422/1117844362000000</guid>
+      <description>&lt;p&gt;
+example: &lt;a class="ext-link" href="http://ao.kyknos.org/kyklog/2005/06/01/gegl-the-gimp-future/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;http://ao.kyknos.org/kyklog/2005/06/01/gegl-the-gimp-future/&lt;/a&gt; (search for 'yvind')
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item>
+   </channel>
+</rss>

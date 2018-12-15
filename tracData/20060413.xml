@@ -1,0 +1,495 @@
+<?xml version="1.0"?>
+<rss xmlns:dc="http://purl.org/dc/elements/1.1/" version="2.0">
+  <channel>
+    <title>WordPress Trac</title>
+    <link>http://core.trac.wordpress.org/timeline</link>
+    <description>Trac Timeline</description>
+    <language>en-US</language>
+    <generator>Trac 1.2.2</generator>
+    <image>
+      <title>WordPress Trac</title>
+      <url>http://core.trac.wordpress.org/chrome/site/your_project_logo.png</url>
+      <link>http://core.trac.wordpress.org/timeline</link>
+    </image>
+    <item>
+      <title>Ticket #2660 (WordPress admin creates invalid ( netscape ) dbx-postmeta cookies on ...) created</title>
+      
+        <dc:creator>jvanasco</dc:creator>
+
+      <pubDate>Thu, 13 Apr 2006 23:06:55 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/2660</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/2660/1144969615000000</guid>
+      <description>&lt;p&gt;
+I came across this issue a while back, i thought it would be resolved as it was in the forums - but it wasn't, and theres no ticket either open or closed addressing it,  so here are my notes:
+&lt;/p&gt;
+&lt;p&gt;
+I wrote a web services module to incorporate the TrackBack protocol into my mod_perl application
+&lt;/p&gt;
+&lt;p&gt;
+I started testing it using WordPress - the php blog software
+&lt;/p&gt;
+&lt;p&gt;
+It seems to have set a cookie (see details below) , that causes an automatic error in libapreq (accessed via the perl bindings), which can segfault apache ( libapreq isn't just used in perl, its the general Apache API for parsing cookies )
+&lt;/p&gt;
+&lt;p&gt;
+The error in the logs is :"Expected token not present"
+&lt;/p&gt;
+&lt;p&gt;
+The issue seems to be definitively caused by an issue in the way that wordpress encodes the cookie and safari sends it
+&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;
+&lt;a class="ext-link" href="http://wordpress.org/support/topic/52813"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;http://wordpress.org/support/topic/52813&lt;/a&gt;
+&lt;a class="ext-link" href="http://www.darcynorman.net/2005/12/21/upgrading-blog-to-wp-20-rc3"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;http://www.darcynorman.net/2005/12/21/upgrading-blog-to-wp-20-rc3&lt;/a&gt;
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+From the headers_in , it seems that WordPress includes raw-php code (instead of executing it), and either wordpress or safari doesn't escape the , in the cookies.
+&lt;/p&gt;
+&lt;p&gt;
+re netscape cookie draft:
+( common standard - &lt;a class="ext-link" href="http://wp.netscape.com/newsref/std/cookie_spec.html"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;http://wp.netscape.com/newsref/std/cookie_spec.html&lt;/a&gt; )
+"NAME=VALUE
+This string is a sequence of characters excluding semi-colon, comma and white space. If there is a need to place such data in the name or value, some encoding method such as URL style %XX encoding is recommended, though no encoding is defined or required.
+This is the only required attribute on the Set-Cookie header."
+&lt;/p&gt;
+&lt;p&gt;
+The RFCs regarding cookies don't have the restriction , but do use , and ; as a delimiter -- and most libraries code to the netscape standard.
+&lt;/p&gt;
+&lt;p&gt;
+The fix would be to just encode/escape the , on reading/writing cookies.
+&lt;/p&gt;
+&lt;p&gt;
+In production I see little opportunities this will affect me or any other user -- its not often that people use multiple languages &amp;amp; projects on the same domain.
+&lt;/p&gt;
+&lt;p&gt;
+the segfault, natually, occurs whether or not the code is wrapped in an eval block.  an eval block didn't seem to catch the other  error either (sorry, but i can't discern what it is)
+&lt;/p&gt;
+&lt;p&gt;
+I've enclosed a Data::Dumper representation of the the APR::Table headers_in atfer the cookie info.  I'll be happy to pull it into any other format if needed
+&lt;/p&gt;
+&lt;p&gt;
+To recreate this, you can use:
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;wordpress 2.0 -&amp;gt; 2.1
+&lt;/li&gt;&lt;li&gt;mac osx 10.4.(5,6) + safari 2.0.3
+&lt;/li&gt;&lt;li&gt;libapreq 2.07
+&lt;/li&gt;&lt;li&gt;httpd 2.055
+&lt;/li&gt;&lt;/ul&gt;&lt;hr /&gt;
+&lt;ul&gt;&lt;li&gt;Created
+&lt;ul&gt;&lt;li&gt;193189633
+&lt;/li&gt;&lt;/ul&gt;&lt;/li&gt;&lt;li&gt;Domain
+&lt;ul&gt;&lt;li&gt;g5.local
+&lt;/li&gt;&lt;/ul&gt;&lt;/li&gt;&lt;li&gt;Expires
+&lt;ul&gt;&lt;li&gt;2007-02-14T23:47:13Z
+&lt;/li&gt;&lt;/ul&gt;&lt;/li&gt;&lt;li&gt;Name
+&lt;ul&gt;&lt;li&gt;dbx-postmeta
+&lt;/li&gt;&lt;/ul&gt;&lt;/li&gt;&lt;li&gt;Path
+&lt;ul&gt;&lt;li&gt;/
+&lt;/li&gt;&lt;/ul&gt;&lt;/li&gt;&lt;/ul&gt;&lt;ul&gt;&lt;li&gt;Value
+&lt;ul&gt;&lt;li&gt;grabit=0-,1-,2-,3-,4-,5-,6-&amp;amp;amp;advancedstuff=0-,1+,2-
+&lt;/li&gt;&lt;/ul&gt;&lt;/li&gt;&lt;/ul&gt;&lt;hr /&gt;
+&lt;p&gt;
+$headers_in = bless( {
+&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;
+'Accept' =&amp;gt; '*/*',
+'Accept-Language' =&amp;gt; 'en',
+'Accept-Encoding' =&amp;gt; 'gzip, deflate',
+'Cookie' =&amp;gt; 'wordpressuser_c580712eb86cad2660b3601ac04202b2=admin; wordpresspass_c580712eb86cad2660b3601ac04202b2=7ebeeed42ef50720940f5b8db2f9db49; rs_session=59ae9b8b503e3af7d17b97e7f77f7ea5; dbx-postmeta=grabit=0-,1-,2-,3-,4-,5-,6-&amp;amp;advancedstuff=0-,1+,2-',
+'User-Agent' =&amp;gt; 'Mozilla/5.0 (Macintosh; U; PPC Mac OS X; en) AppleWebKit/417.9 (KHTML, like Gecko) Safari/417.8',
+'Connection' =&amp;gt; 'keep-alive',
+'Host' =&amp;gt; 'g5.local:8082'
+}, 'APR::Table' );
+&lt;/p&gt;
+&lt;/blockquote&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #2659 (Comment meta) updated</title>
+      
+        <dc:creator>markjaquith</dc:creator>
+
+      <pubDate>Thu, 13 Apr 2006 14:39:17 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/2659</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/2659/1144939157000000</guid>
+      <description>&lt;p&gt;
+Take 2 adds automatic comment meta querying for all comments returned by comments_template()
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>comment_meta_002.diff attached to Ticket #2659</title>
+      
+        <dc:creator>markjaquith</dc:creator>
+
+      <pubDate>Thu, 13 Apr 2006 14:37:56 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/2659/comment_meta_002.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/2659/comment_meta_002.diff/1144939076000000</guid>
+      <description>&lt;p&gt;
+Take 2
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>WikiStart edited</title>
+      
+        <dc:creator>markjaquith</dc:creator>
+
+      <pubDate>Thu, 13 Apr 2006 14:00:38 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/wiki/WikiStart?version=13</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/wiki/WikiStart?version=13/1144936838000000</guid>
+      <description>&lt;p&gt;
+For those who like their Trac served up old school
+&lt;/p&gt;
+ (&lt;a href="http://core.trac.wordpress.org/wiki/WikiStart?action=diff&amp;amp;version=13"&gt;diff&lt;/a&gt;)</description>
+      <category>wiki</category>
+    </item><item>
+      <title>Ticket #2659 (Comment meta) updated</title>
+      
+        <dc:creator>markjaquith</dc:creator>
+
+      <pubDate>Thu, 13 Apr 2006 10:30:55 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/2659</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/2659/1144924255000000</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt;, &lt;i&gt;Status&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Take 1 is up.  I bumped the WP DB version to 3673, which is current+1 as of this posting.  After applying the patch, go to your wp-admin.  If it doesn't say your DB is out of date, you'll have to manually &lt;code&gt;UPDATE prefix_options SET option_value = '3672' WHERE option_name = 'db_version';&lt;/code&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Test it out by using add_comment_meta(), delete_comment_meta(), and get_comment_meta().  They work exactly like their 'post' brethren, except that they take a comment id.  In fact, the [add/delete/get]_[comment/post]_meta() functions are just pointers now to generic wp_[add/delete/get]_meta() functions whose last parameter is a string of 'comment' or 'post' ... these aren't meant to be used directly... they just save having 6 big functions when 3 flexible ones will do.
+&lt;/p&gt;
+&lt;p&gt;
+Things to test:
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;adding meta
+&lt;/li&gt;&lt;li&gt;updating meta
+&lt;/li&gt;&lt;li&gt;deleting meta
+&lt;/li&gt;&lt;li&gt;deleting a comment (make sure the meta goes too)
+&lt;/li&gt;&lt;li&gt;deleting a post (make sure all of its comments have their meta deleted)
+&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;
+Let me know how it goes.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>comment_meta_001.diff attached to Ticket #2659</title>
+      
+        <dc:creator>markjaquith</dc:creator>
+
+      <pubDate>Thu, 13 Apr 2006 10:22:58 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/2659/comment_meta_001.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/2659/comment_meta_001.diff/1144923778000000</guid>
+      <description>&lt;p&gt;
+Take 1
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #2659 (Comment meta) created</title>
+      
+        <dc:creator>markjaquith</dc:creator>
+
+      <pubDate>Thu, 13 Apr 2006 07:58:22 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/2659</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/2659/1144915102000000</guid>
+      <description>&lt;p&gt;
+There was some discussion about comment meta (I think in a wp-meetup), but I can't find a ticket, so here it is.
+&lt;/p&gt;
+&lt;p&gt;
+There should be a commentmeta table that stores metadata associated with specific comments.  This allows plugins to store data associated with specific comments, instead of trying to shoehorn it into postmeta somehow.  Some possible uses:
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;Geo data
+&lt;/li&gt;&lt;li&gt;Additional fields (like a quiz, or the commenter's age, etc)
+&lt;/li&gt;&lt;li&gt;A link to the commenter's CoComment feed
+&lt;/li&gt;&lt;li&gt;The name of the commenter's site
+&lt;/li&gt;&lt;li&gt;Comment subscription status (my plugin alters the comment table... something I wish could have been avoided)
+&lt;/li&gt;&lt;li&gt;Antispam plugin data related to the comment
+&lt;/li&gt;&lt;/ul&gt;</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Changeset [3707]: Default show description option to off for bookmarks list, for now.  ...</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Thu, 13 Apr 2006 05:02:08 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/3707</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/3707/1144904528903850</guid>
+      <description>&lt;p&gt;
+Default show description option to off for bookmarks list, for now.  This seems to be the preferred default.
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Ticket #2653 (Nested categories won't show up when using Archives.php template) closed</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Thu, 13 Apr 2006 04:51:48 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/2653</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/2653/1144903908000000</guid>
+      <description>fixed: &lt;p&gt;
+(In &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/3706" title="Default category lists to hierarchical.  Update default theme to use ..."&gt;[3706]&lt;/a&gt;) Default category lists to hierarchical.  Update default theme to use wp_list_categories(). Props David House. fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/2653" title="#2653: defect (bug): Nested categories won't show up when using Archives.php template (closed: fixed)"&gt;#2653&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Changeset [3706]: Default category lists to hierarchical.  Update default theme to use ...</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Thu, 13 Apr 2006 04:51:45 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/3706</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/3706/1144903905087532</guid>
+      <description>&lt;p&gt;
+Default category lists to hierarchical.  Update default theme to use wp_list_categories(). Props David House. fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/2653" title="#2653: defect (bug): Nested categories won't show up when using Archives.php template (closed: fixed)"&gt;#2653&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Changeset [3705]: Add wp_revoke_user() and WP_User::remove_all_caps() to help those ...</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Thu, 13 Apr 2006 04:49:38 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/3705</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/3705/1144903778457354</guid>
+      <description>&lt;p&gt;
+Add wp_revoke_user() and WP_User::remove_all_caps() to help those doing multi blog stuff.
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Ticket #2652 (category_exists() checks using slug) updated</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Thu, 13 Apr 2006 04:43:09 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/2652</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/2652/1144903389000000</guid>
+      <description>&lt;p&gt;
+Maybe add slug as an optional second arg and check both name and slug for uniqueness.
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;category_exists($cat_name, $cat_slug = '')
+&lt;/pre&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #2593 (The walk_tree family should be a class) closed</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Thu, 13 Apr 2006 04:40:53 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/2593</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/2593/1144903253000000</guid>
+      <description>fixed: &lt;p&gt;
+(In &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/3704" title="Move page walkers to classes.  Props David House. fixes #2593"&gt;[3704]&lt;/a&gt;) Move page walkers to classes.  Props David House. fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/2593" title="#2593: defect (bug): The walk_tree family should be a class (closed: fixed)"&gt;#2593&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Changeset [3704]: Move page walkers to classes.  Props David House. fixes #2593</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Thu, 13 Apr 2006 04:40:48 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/3704</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/3704/1144903248475457</guid>
+      <description>&lt;p&gt;
+Move page walkers to classes.  Props David House. fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/2593" title="#2593: defect (bug): The walk_tree family should be a class (closed: fixed)"&gt;#2593&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Ticket #2658 (Bumping TinyMCE Requires Refresh) closed</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Thu, 13 Apr 2006 02:57:29 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/2658</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/2658/1144897049000000</guid>
+      <description>fixed: &lt;p&gt;
+(In &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/3703" title="Thwart the browser cache by versioning tinyMCE. Props to that Andy ..."&gt;[3703]&lt;/a&gt;) Thwart the browser cache by versioning tinyMCE. Props to that Andy guy.  fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/2658" title="#2658: defect (bug): Bumping TinyMCE Requires Refresh (closed: fixed)"&gt;#2658&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Changeset [3703]: Thwart the browser cache by versioning tinyMCE. Props to that Andy ...</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Thu, 13 Apr 2006 02:57:25 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/3703</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/3703/1144897045151178</guid>
+      <description>&lt;p&gt;
+Thwart the browser cache by versioning tinyMCE. Props to that Andy guy.  fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/2658" title="#2658: defect (bug): Bumping TinyMCE Requires Refresh (closed: fixed)"&gt;#2658&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Ticket #2657 (No way to show next 20 comments in edit-comments.php) updated</title>
+      
+        <dc:creator>rwh</dc:creator>
+
+      <pubDate>Thu, 13 Apr 2006 01:55:31 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/2657</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/2657/1144893331000000</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #1148 (can't navigate beyond first 20 comments in edit-comments.php) updated</title>
+      
+        <dc:creator>rwh</dc:creator>
+
+      <pubDate>Thu, 13 Apr 2006 01:53:37 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/1148</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/1148/1144893217000000</guid>
+      <description>&lt;p&gt;
+I've submitted a patch against 2.1 for this.  See bug &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/2657" title="#2657: enhancement: No way to show next 20 comments in edit-comments.php (closed: fixed)"&gt;#2657&lt;/a&gt;.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>tinymce-versioning.diff attached to Ticket #2658</title>
+      
+        <dc:creator>skeltoac</dc:creator>
+
+      <pubDate>Thu, 13 Apr 2006 01:04:46 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/2658/tinymce-versioning.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/2658/tinymce-versioning.diff/1144890286000000</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #2658 (Bumping TinyMCE Requires Refresh) created</title>
+      
+        <dc:creator>skeltoac</dc:creator>
+
+      <pubDate>Thu, 13 Apr 2006 01:04:33 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/2658</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/2658/1144890273000000</guid>
+      <description>&lt;p&gt;
+Any change in TinyMCE code would usually go unloaded due to cached code. This resulted in people wondering why their editor toolbar was missing. NO MORE! With this patch, we can bump the version number in one place and it will propagate to all the JS and popup HTML URLs.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #2648 (PHPdoc effort for /wp-includes/comment-functions.php) updated</title>
+      
+        <dc:creator>ringmaster</dc:creator>
+
+      <pubDate>Wed, 12 Apr 2006 11:50:51 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/2648</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/2648/1144842651000000</guid>
+      <description>&lt;p&gt;
+Merged this patch with dev docs at &lt;a class="ext-link" href="http://redalt.com/fn/file/comment-functions.php"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;http://redalt.com/fn/file/comment-functions.php&lt;/a&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Thanks!
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>edit-comments.php.2.diff attached to Ticket #2657</title>
+      
+        <dc:creator>rwh</dc:creator>
+
+      <pubDate>Wed, 12 Apr 2006 09:10:55 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/2657/edit-comments.php.2.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/2657/edit-comments.php.2.diff/1144833055000000</guid>
+      <description>&lt;p&gt;
+this is the same patch, but using tabs instead of 4 spaces as this seems to be the standard.
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #2657 (No way to show next 20 comments in edit-comments.php) updated</title>
+      
+        <dc:creator>rwh</dc:creator>
+
+      <pubDate>Wed, 12 Apr 2006 08:59:54 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/2657</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/2657/1144832394000000</guid>
+      <description>&lt;p&gt;
+Added patch (edit-comments.php.diff) which implements next/previous links for editing and viewing comments in edit-comments.php.  Note that another bug was fixed where the offset in the ordered list was off by 1.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>edit-comments.php.diff attached to Ticket #2657</title>
+      
+        <dc:creator>rwh</dc:creator>
+
+      <pubDate>Wed, 12 Apr 2006 08:58:27 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/2657/edit-comments.php.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/2657/edit-comments.php.diff/1144832307000000</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #2657 (No way to show next 20 comments in edit-comments.php) created</title>
+      
+        <dc:creator>rwh</dc:creator>
+
+      <pubDate>Wed, 12 Apr 2006 08:55:13 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/2657</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/2657/1144832113000000</guid>
+      <description>&lt;p&gt;
+When editing comments, it is only possible to view the latest 20 comments.  We need to add links to the next/previous page of comments.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #2651 (404.php not implemented with different permalink structure) updated</title>
+      
+        <dc:creator>mikeleeorg</dc:creator>
+
+      <pubDate>Wed, 12 Apr 2006 05:46:14 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/2651</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/2651/1144820774000000</guid>
+      <description>&lt;p&gt;
+I just posted a report on this bug to the forum, at:&lt;br /&gt;
+&lt;a class="ext-link" href="http://wordpress.org/support/topic/68607"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;http://wordpress.org/support/topic/68607&lt;/a&gt;
+&lt;/p&gt;
+&lt;p&gt;
+It includes steps to reproduce it as well. My dump_env feedback, which I created with all plugins deactivated and the default theme selected, is here:&lt;br /&gt;
+&lt;a class="ext-link" href="http://mikelee.org/dump_env.html"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;http://mikelee.org/dump_env.html&lt;/a&gt; &lt;em&gt;(view the source of page)&lt;/em&gt;
+&lt;/p&gt;
+&lt;p&gt;
+To see the 404 error I'm currently receiving, visit:&lt;br /&gt;
+&lt;a class="ext-link" href="http://www.mikelee.org/404"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;http://www.mikelee.org/404&lt;/a&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Currently, the plugins I'm using are:
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;&lt;a class="ext-link" href="http://priyadi.net/archives/2005/02/27/wordpress-yahoomsn-messenger-style-smileys-plugin/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;Yahoo/MSN Style Smileys&lt;/a&gt;
+&lt;/li&gt;&lt;li&gt;&lt;a class="ext-link" href="http://www.buayacorp.com/archivos/plugin-rel-nofollow-para-wordpress/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;Links-NoFollow&lt;/a&gt;
+&lt;/li&gt;&lt;li&gt;&lt;a class="ext-link" href="http://www.semiologic.com/projects/unfancy-quote/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;Unfancy Quote&lt;/a&gt;
+&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;
+Please let me know if I can provide any more info. From what I've seen at the forum, there seem to be a number of users facing this bug. If there's any way I can persuade you to raise its priority, please let me know! Thanks!
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #2456 (Don't have /wp-admin/options.php screw up your options) updated</title>
+      
+        <dc:creator>Viper007Bond</dc:creator>
+
+      <pubDate>Wed, 12 Apr 2006 05:37:54 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/2456</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/2456/1144820274000000</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #2655 (Widget configuration box titlebar inaccessible with large box) updated</title>
+      
+        <dc:creator>Viper007Bond</dc:creator>
+
+      <pubDate>Wed, 12 Apr 2006 05:35:15 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/2655</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/2655/1144820115000000</guid>
+      <description>&lt;p&gt;
+westi is correct. The sidebar widgets code is a plugin and not a part of the WordPress core, at least at this point in time.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item>
+   </channel>
+</rss>

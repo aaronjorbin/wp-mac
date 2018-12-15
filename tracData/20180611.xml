@@ -1,0 +1,1896 @@
+<?xml version="1.0"?>
+<rss xmlns:dc="http://purl.org/dc/elements/1.1/" version="2.0">
+  <channel>
+    <title>WordPress Trac</title>
+    <link>http://core.trac.wordpress.org/timeline</link>
+    <description>Trac Timeline</description>
+    <language>en-US</language>
+    <generator>Trac 1.2.2</generator>
+    <image>
+      <title>WordPress Trac</title>
+      <url>http://core.trac.wordpress.org/chrome/site/your_project_logo.png</url>
+      <link>http://core.trac.wordpress.org/timeline</link>
+    </image>
+    <item>
+      <title>Ticket #44349 (Posts show up multiple times in backend, when imported with Import ...) updated</title>
+      
+        <dc:creator>pbiron</dc:creator>
+
+      <pubDate>Mon, 11 Jun 2018 22:53:06 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44349#comment:10</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44349#comment:10/1528757586057343</guid>
+      <description>&lt;p&gt;
+In pure-SQL terms, any query of the form:
+&lt;/p&gt;
+&lt;div class="wiki-code"&gt;&lt;div class="code"&gt;&lt;pre&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt; &lt;span class="k"&gt;column&lt;/span&gt; &lt;span class="k"&gt;FROM&lt;/span&gt; &lt;span class="k"&gt;table&lt;/span&gt; &lt;span class="k"&gt;ORDER&lt;/span&gt; &lt;span class="k"&gt;BY&lt;/span&gt; order_by_column &lt;span class="k"&gt;LIMIT&lt;/span&gt; x&lt;span class="p"&gt;,&lt;/span&gt;y
+&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;p&gt;
+where
+&lt;/p&gt;
+&lt;ol&gt;&lt;li&gt;&lt;code&gt;order_by_column&lt;/code&gt;is indexed, and
+&lt;/li&gt;&lt;li&gt;there are more than &lt;code&gt;y&lt;/code&gt; rows with the same value in &lt;code&gt;order_by_column&lt;/code&gt; that span the "pages" &lt;code&gt;x-1&lt;/code&gt; and &lt;code&gt;x&lt;/code&gt;
+&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;
+could result in some rows from "page" &lt;code&gt;x-1&lt;/code&gt; also appearing on "page" &lt;code&gt;x&lt;/code&gt;.
+&lt;/p&gt;
+&lt;p&gt;
+In &lt;code&gt;WP_Query&lt;/code&gt; terms, the above translates into any query of the form:
+&lt;/p&gt;
+&lt;div class="wiki-code"&gt;&lt;div class="code"&gt;&lt;pre&gt;&lt;span class="cp"&gt;&amp;lt;?php&lt;/span&gt;
+&lt;span class="nv"&gt;$args&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="k"&gt;array&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;
+    &lt;span class="c1"&gt;// the following are the indexed columns in the wp_posts table
+&lt;/span&gt;    &lt;span class="s1"&gt;'orderby'&lt;/span&gt; &lt;span class="o"&gt;=&amp;gt;&lt;/span&gt; &lt;span class="nx"&gt;any&lt;/span&gt; &lt;span class="nx"&gt;of&lt;/span&gt; &lt;span class="s1"&gt;'type'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;'date'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;'id'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;'parent'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;'author'&lt;/span&gt; &lt;span class="k"&gt;or&lt;/span&gt; &lt;span class="s1"&gt;'name'&lt;/span&gt;
+    &lt;span class="c1"&gt;// each of the below "pagination" args results in a LIMIT clause
+&lt;/span&gt;    &lt;span class="s1"&gt;'posts_per_page|showposts|posts_per_archive_page'&lt;/span&gt; &lt;span class="o"&gt;=&amp;gt;&lt;/span&gt; &lt;span class="nx"&gt;any&lt;/span&gt; &lt;span class="nx"&gt;value&lt;/span&gt; &lt;span class="nx"&gt;other&lt;/span&gt; &lt;span class="nx"&gt;than&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;
+&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;span class="nv"&gt;$query&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="k"&gt;new&lt;/span&gt; &lt;span class="nx"&gt;WP_Query&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="nv"&gt;$args&lt;/span&gt; &lt;span class="p"&gt;);&lt;/span&gt;&lt;span class="c1"&gt;// including get_posts( $args )
+&lt;/span&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;p&gt;
+There are other &lt;code&gt;WP_Query&lt;/code&gt; corner cases that will exhibit the non-deterministic behavior as well, including but probably not limited to, hooking into any of &lt;code&gt;posts_orderby&lt;/code&gt;, &lt;code&gt;posts_clauses&lt;/code&gt;, &lt;code&gt;posts_orderby_request&lt;/code&gt;, &lt;code&gt;posts_clauses_request&lt;/code&gt;, &lt;code&gt;posts_request&lt;/code&gt; to add any of the above (plus &lt;code&gt;wp_posts.post_status&lt;/code&gt;, which is not directly legal in the args to &lt;code&gt;new WP_Query()&lt;/code&gt;) to the "ORDER BY" clause of the SQL query that &lt;code&gt;WP_Query&lt;/code&gt; ultimately executes.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44343 (Add filter hook for parent dropdown arguments) updated</title>
+      
+        <dc:creator>obiplabon</dc:creator>
+
+      <pubDate>Mon, 11 Jun 2018 21:03:26 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44343#comment:5</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44343#comment:5/1528751006508378</guid>
+      <description>&lt;p&gt;
+@birgire Thanks, liked your second opinion idea.
+&lt;/p&gt;
+&lt;p&gt;
+Let's hear what other people say.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44179 (Use wp_update_comment instead of $wpdb-&gt;update $wpdb-&gt;comments when ...) updated</title>
+      
+        <dc:creator>desrosj</dc:creator>
+
+      <pubDate>Mon, 11 Jun 2018 20:44:06 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44179#comment:5</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44179#comment:5/1528749846599805</guid>
+      <description>&lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44179 (Use wp_update_comment instead of $wpdb-&gt;update $wpdb-&gt;comments when ...) updated</title>
+      
+        <dc:creator>desrosj</dc:creator>
+
+      <pubDate>Mon, 11 Jun 2018 20:35:16 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44179#comment:4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44179#comment:4/1528749316898530</guid>
+      <description>&lt;i&gt;Version&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+This looks good to me, @allendav! The &lt;code&gt;global $wpdb&lt;/code&gt; declaration can be also removed at the top of the function. I did not get to look into the unit tests that we have for this function, but there may be some additional assertions we could add.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44347 (WP allows creating username that is already used email address) updated</title>
+      
+        <dc:creator>phillipburger</dc:creator>
+
+      <pubDate>Mon, 11 Jun 2018 20:12:20 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44347#comment:5</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44347#comment:5/1528747940240123</guid>
+      <description>&lt;p&gt;
+As much input as possible is great, I think this seems to make sense when a new username comes in to make sure it is not already existing email address, but the other way too - what if a new email address is entered and it is already a username - that needs to be verified as well.
+&lt;/p&gt;
+&lt;p&gt;
+And as this is fixed, what should be a solution if these situations already exist in a deployment? Do they need to be flagged for updates somehow?
+&lt;/p&gt;
+&lt;p&gt;
+Replying to &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/44347#comment:4" title="Comment 4"&gt;subrataemfluence&lt;/a&gt;:
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+Good find!!
+Adding additional guard for checking the existence of username supplied in email field in core functionality should resolve the issue.
+&lt;/p&gt;
+&lt;p&gt;
+Possible solution:
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;File name: includes/user.php.
+Function: edit_user
+&lt;/pre&gt;&lt;p&gt;
+Addition:
+&lt;/p&gt;
+&lt;div class="wiki-code"&gt;&lt;div class="code"&gt;&lt;pre&gt;&lt;span class="cp"&gt;&amp;lt;?php&lt;/span&gt;
+&lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="o"&gt;!&lt;/span&gt; &lt;span class="nv"&gt;$update&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class="nx"&gt;email_exists&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="nv"&gt;$user&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="na"&gt;user_login&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+   &lt;span class="nv"&gt;$errors&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="na"&gt;add&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="s1"&gt;'user_login'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;__&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="s1"&gt;'&amp;lt;strong&amp;gt;ERROR&amp;lt;/strong&amp;gt;: This username is invalid because it is already in use as email address of another account.'&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;);&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;pre class="wiki"&gt;File: wp-includes/user.php
+Function: register_new_user
+&lt;/pre&gt;&lt;p&gt;
+Addition:
+&lt;/p&gt;
+&lt;div class="wiki-code"&gt;&lt;div class="code"&gt;&lt;pre&gt;&lt;span class="cp"&gt;&amp;lt;?php&lt;/span&gt;
+&lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="nv"&gt;$user_email&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="s1"&gt;''&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+   &lt;span class="o"&gt;...&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt; &lt;span class="k"&gt;elseif&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="o"&gt;!&lt;/span&gt; &lt;span class="nx"&gt;is_email&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="nv"&gt;$user_email&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+   &lt;span class="o"&gt;...&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt; &lt;span class="k"&gt;elseif&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="nx"&gt;email_exists&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="nv"&gt;$user_email&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+   &lt;span class="o"&gt;...&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt; &lt;span class="k"&gt;elseif&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="nx"&gt;email_exists&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="nv"&gt;$sanitized_user_login&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+   &lt;span class="nv"&gt;$errors&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="na"&gt;add&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="s1"&gt;'email_exists'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;__&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="s1"&gt;'&amp;lt;strong&amp;gt;ERROR&amp;lt;/strong&amp;gt;: This username is invalid because it is already in use as email address of another account.'&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;);&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;p&gt;
+I think adding the check into the core itself will prevent additional filter and functions.
+&lt;/p&gt;
+&lt;p&gt;
+Please let me know if this makes some sense.
+&lt;/p&gt;
+&lt;/blockquote&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>wontclose.mp4 attached to Ticket #44352</title>
+      
+        <dc:creator>dimeco</dc:creator>
+
+      <pubDate>Mon, 11 Jun 2018 19:41:00 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/44352/wontclose.mp4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/44352/wontclose.mp4/1528746060142979</guid>
+      <description>&lt;p&gt;
+screencast of not closing
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #44352 (Personal data box won't dismiss) created</title>
+      
+        <dc:creator>dimeco</dc:creator>
+
+      <pubDate>Mon, 11 Jun 2018 19:40:43 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44352</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44352/1528746043219300</guid>
+      <description>&lt;p&gt;
+I've tried this in both Firefox and Chrome.
+&lt;/p&gt;
+&lt;p&gt;
+The "personal data export and erasure" box will NOT dismiss.
+&lt;/p&gt;
+&lt;p&gt;
+It overlays my admin panel and there's no way to get rid of it until I hit something like plugins... It is "possible" that it's being blocked by my antivirus software, but that would only happen if it's using some sort of javascript that is a red flag.
+&lt;/p&gt;
+&lt;p&gt;
+Could you *PLEASE* make sure it works, and even better - give us a "don't show this again" option? It's quite annoying that when we've already set our privacy policy correctly, that we keep seeing this EVERY time we log in.
+&lt;/p&gt;
+&lt;p&gt;
+Thanks.
+&lt;a class="ext-link" href="https://www.mycustomjournal.com/wontclose.mp4"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://www.mycustomjournal.com/wontclose.mp4&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #44349 (Posts show up multiple times in backend, when imported with Import ...) updated</title>
+      
+        <dc:creator>wzshop</dc:creator>
+
+      <pubDate>Mon, 11 Jun 2018 19:39:32 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44349#comment:9</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44349#comment:9/1528745972176120</guid>
+      <description>&lt;p&gt;
+Ok, 1 more question to understand the MySQL's LIMIT Query Optimization;
+It seems like posts are showing up multiple times, because of the posts are randomly ordered when browsing the pagination, but they don't actually show up multiple times?
+&lt;/p&gt;
+&lt;p&gt;
+Thanks
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #33833 (Quick/Bulk Edit are not visually consistent) closed</title>
+      
+        <dc:creator>antpb</dc:creator>
+
+      <pubDate>Mon, 11 Jun 2018 19:26:09 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/33833#comment:4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/33833#comment:4/1528745169618771</guid>
+      <description>fixed</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>33833.PNG attached to Ticket #33833</title>
+      
+        <dc:creator>antpb</dc:creator>
+
+      <pubDate>Mon, 11 Jun 2018 19:25:15 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/33833/33833.PNG</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/33833/33833.PNG/1528745115034890</guid>
+      <description>&lt;p&gt;
+This looks to be fixed in &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/33596" title="#33596: defect (bug): Bug in Comment Quick Edit in smaller screen (closed: fixed)"&gt;#33596&lt;/a&gt;.   Screenshot to verify below. Closing this as I am finding tickets for WCEU Contributor day.
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #33795 (Table alignment in WordPress 4.1.7) closed</title>
+      
+        <dc:creator>antpb</dc:creator>
+
+      <pubDate>Mon, 11 Jun 2018 19:17:43 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/33795#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/33795#comment:3/1528744663974709</guid>
+      <description>invalid: &lt;p&gt;
+Agreed with @knutsp from 3 years ago... haha Closing this as invalid as it is not Core WordPress.
+&lt;/p&gt;
+</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Ticket #33343 (Insert/edit link modal text overlaps if title is long. Also should be ...) closed</title>
+      
+        <dc:creator>antpb</dc:creator>
+
+      <pubDate>Mon, 11 Jun 2018 19:07:09 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/33343#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/33343#comment:2/1528744029028278</guid>
+      <description>worksforme: &lt;p&gt;
+This looks to be fixed now as mentioned above. I've confirmed with screenshot below in latest Chrome. Closing :)
+&lt;/p&gt;
+&lt;p&gt;
+&lt;a style="padding:0; border:none" href="http://www.antpb.com/wp-content/uploads/2018/06/33343.png"&gt;&lt;img src="http://www.antpb.com/wp-content/uploads/2018/06/33343.png" alt="http://www.antpb.com/wp-content/uploads/2018/06/33343.png" crossorigin="anonymous" title="http://www.antpb.com/wp-content/uploads/2018/06/33343.png" /&gt;&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Ticket #44349 (Posts show up multiple times in backend, when imported with Import ...) updated</title>
+      
+        <dc:creator>pbiron</dc:creator>
+
+      <pubDate>Mon, 11 Jun 2018 18:52:42 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44349#comment:8</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44349#comment:8/1528743162238650</guid>
+      <description>&lt;p&gt;
+Isn't non-determinisum fun :-)
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+Is there any way to 'fix' this seemingly buggy behavior
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+As trac is not the place for support questions, I'd suggest you ask that that question on &lt;a class="ext-link" href="https://wordpress.stackexchange.com/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://wordpress.stackexchange.com/&lt;/a&gt; (feel free to reference this ticket when you do).
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44349 (Posts show up multiple times in backend, when imported with Import ...) updated</title>
+      
+        <dc:creator>wzshop</dc:creator>
+
+      <pubDate>Mon, 11 Jun 2018 18:27:28 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44349#comment:7</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44349#comment:7/1528741648603495</guid>
+      <description>&lt;p&gt;
+Thank you very much for the broad explanation.
+Is there any way to 'fix' this seemingly buggy behavior or a workaround, since it also has its effect on the frontend, when browsing the posts per category for instance. This is not something I would like to present to my visitors.
+&lt;/p&gt;
+&lt;p&gt;
+I can however comfirm that this problem won't occur when setting different dates.
+Thanks again.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #38323 (Reconsider $object_subtype handling in `register_meta()`) updated</title>
+      
+        <dc:creator>flixos90</dc:creator>
+
+      <pubDate>Mon, 11 Jun 2018 18:25:33 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/38323#comment:72</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/38323#comment:72/1528741533372464</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt;, &lt;i&gt;Status&lt;/i&gt;, &lt;i&gt;Owner&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+&lt;a class="attachment" href="http://core.trac.wordpress.org/attachment/ticket/38323/38323.11.diff" title="Attachment '38323.11.diff' in Ticket #38323"&gt;38323.11.diff&lt;/a&gt;&lt;a class="trac-rawlink" href="http://core.trac.wordpress.org/raw-attachment/ticket/38323/38323.11.diff" title="Download"&gt;​&lt;/a&gt; is an updated patch, with the following adjustments:
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;Move the filter in &lt;code&gt;get_object_subtype()&lt;/code&gt; to fire at the very end, in order to always filter the returned value.
+&lt;/li&gt;&lt;li&gt;Simplify tests for subtype post meta in the REST API by using data providers.
+&lt;/li&gt;&lt;li&gt;Add tests for subtype term meta in the REST API.
+&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;
+I think this is good to go in. Handing it over to you @kadamwhite for final review. We can also discuss at WCEU as necessary.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>38323.11.diff attached to Ticket #38323</title>
+      
+        <dc:creator>flixos90</dc:creator>
+
+      <pubDate>Mon, 11 Jun 2018 18:22:15 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/38323/38323.11.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/38323/38323.11.diff/1528741335287686</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>38323.8.diff attached to Ticket #38323</title>
+      
+        <dc:creator>flixos90</dc:creator>
+
+      <pubDate>Mon, 11 Jun 2018 18:21:58 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/38323/38323.8.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/38323/38323.8.diff/1528741318128549</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #38323 (Reconsider $object_subtype handling in `register_meta()`) updated</title>
+      
+        <dc:creator>flixos90</dc:creator>
+
+      <pubDate>Mon, 11 Jun 2018 18:21:05 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/38323#comment:71</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/38323#comment:71/1528741265725364</guid>
+      <description>&lt;p&gt;
+Replying to &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/38323#comment:69" title="Comment 69"&gt;spacedmonkey&lt;/a&gt;:
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+My worry is about loading the main object in &lt;code&gt;get_object_subtype&lt;/code&gt;. There have been times where I have not loaded meta using a list of ids (from say the options table) and haven't run the normal query class, like &lt;code&gt;WP_Query&lt;/code&gt;. For custom migration code, where the whole object is not required is an example. This change may have massive performance effects on high end users, this change will not be massively sign posted and well documented.
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+I don't think we should take this into account, for the following reasons:
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;When reading metadata, this only matters if you use the new function &lt;code&gt;get_registered_metadata()&lt;/code&gt;, which is not commonly used by plugins at this point. &lt;code&gt;get_metadata()&lt;/code&gt; (plus the wrappers) stays unaffected.
+&lt;/li&gt;&lt;li&gt;When writing metadata, the function &lt;em&gt;is&lt;/em&gt; called, but at this point you are already making DB queries, usually many at the same time (since metadata values are always updated one by one). One extra query here doesn't do significant harm, furthermore in most cases there won't even be the extra query since the current object is usually loaded already.
+&lt;/li&gt;&lt;/ul&gt;&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+I disagree with the comment about comment types, as core supports pingback and trackbacks, which are well known. I also don't understand why to limit the functionality? You are already loading the comment.
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+People know that pingbacks and trackbacks exist, that's true for sure, but people don't commonly know the term "comment type" or what that is. To be honest, WordPress core doesn't fully know what it is itself, that's why I think we shouldn't include them. The REST API ignores comment types completely for that very reason.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44349 (Posts show up multiple times in backend, when imported with Import ...) updated</title>
+      
+        <dc:creator>slackbot</dc:creator>
+
+      <pubDate>Mon, 11 Jun 2018 18:16:00 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44349#comment:6</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44349#comment:6/1528740960575637</guid>
+      <description>&lt;p&gt;
+&lt;em&gt;This ticket was mentioned in &lt;a class="ext-link" href="https://make.wordpress.org/chat/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;Slack&lt;/a&gt; in #core by pbiron. &lt;a class="ext-link" href="https://wordpress.slack.com/archives/core/p1528740959000153"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;View the logs&lt;/a&gt;.&lt;/em&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44349 (Posts show up multiple times in backend, when imported with Import ...) updated</title>
+      
+        <dc:creator>pbiron</dc:creator>
+
+      <pubDate>Mon, 11 Jun 2018 18:14:05 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44349#comment:5</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44349#comment:5/1528740845790965</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt;, &lt;i&gt;Component&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Thanx for the video!  Now that I understand what you are reporting, I can confirm that I'm seeing what you are seeing.  At first sight this appears to be a bug in the importer, but it is not.  The explanation is a little complicated, but I'll do my best.
+&lt;/p&gt;
+&lt;p&gt;
+First, you can confirm that "Post 129" was only imported once by searching for "Post 129" and seeing that it only appears once in the search results.
+&lt;/p&gt;
+&lt;p&gt;
+The reason it appears on page 1 &amp;amp; page 2 is the result of 2 factors:
+&lt;/p&gt;
+&lt;ol&gt;&lt;li&gt;more than one post in the WXR file being imported have the same value in the &lt;code&gt;&amp;lt;wp:post_date&amp;gt;&lt;/code&gt; element, thus more than one of the imported posts have the same value in the &lt;code&gt;post_date&lt;/code&gt; field.
+&lt;/li&gt;&lt;li&gt;the pagination on &lt;code&gt;/wp-admin/edit.php&lt;/code&gt; is accomplished via &lt;code&gt;LIMIT&lt;/code&gt; and &lt;code&gt;ORDER BY&lt;/code&gt; clauses in the SQL request.  MySQL performs certain optimizations on queries that include a &lt;code&gt;LIMIT&lt;/code&gt; and those optimizations are what is producing the seemingly buggy behavior you're seeing.
+&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;
+As explained in MySQL's &lt;a class="ext-link" href="https://dev.mysql.com/doc/refman/5.7/en/limit-optimization.html"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;LIMIT Query Optimization&lt;/a&gt;,
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+If you combine LIMIT row_count with ORDER BY, MySQL stops sorting as soon as it has found the first row_count rows of the sorted result, rather than sorting the entire result. If ordering is done by using an index, this is very fast. If a filesort must be done, all rows that match the query without the LIMIT clause are selected, and most or all of them are sorted, before the first row_count are found. After the initial rows have been found, MySQL does not sort any remainder of the result set.
+&lt;/p&gt;
+&lt;p&gt;
+One manifestation of this behavior is that an ORDER BY query with and without LIMIT may return rows in different order, as described later in this section.
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+and more importantly
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+If multiple rows have identical values in the ORDER BY columns, the server is free to return those rows in any order, and may do so differently depending on the overall execution plan. In other words, the sort order of those rows is nondeterministic with respect to the nonordered columns.
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+So, with the posts imported from &lt;code&gt;post export demo.xml&lt;/code&gt;, the 1st page of posts when &lt;code&gt;Number of items per page = 20&lt;/code&gt; (in &lt;code&gt;Screen Options&lt;/code&gt;) contains some posts with &lt;code&gt;post_date = 2018-06-11 15:51:54&lt;/code&gt; and some with &lt;code&gt;post_date = 2018-06-11 15:51:53&lt;/code&gt; (the later including "Post 129") with the order of posts within each "group" being "random".  The 2nd page contains some posts with &lt;code&gt;post_date = 2018-06-11 15:51:53&lt;/code&gt; (including "Post 129") and some with &lt;code&gt;post_date = 2018-06-11 15:51:52&lt;/code&gt;.
+&lt;/p&gt;
+&lt;p&gt;
+If you change &lt;code&gt;Number of items per page = 30&lt;/code&gt; all of the posts with &lt;code&gt;post_date = 2018-06-11 15:51:53&lt;/code&gt; will appear on the 1st page (again in a "random" order) and thus "Post 129" will only appear on that 1st page.
+&lt;/p&gt;
+&lt;p&gt;
+Alternatively, if the posts in the site you exported (to produce &lt;code&gt;post export demo.xml&lt;/code&gt;) all had unique &lt;code&gt;post_date&lt;/code&gt;'s, then when you import them into another site you will not see this behavior.
+&lt;/p&gt;
+&lt;p&gt;
+Yes, this is behavior is confusing, but it is a result of MySQL's "Limit Query Optimization" and is not a bug in the Importer nor in &lt;code&gt;WP_Query&lt;/code&gt;.
+&lt;/p&gt;
+&lt;p&gt;
+Thus, I believe this ticket should be closed as "invalid", but I will leave it to one of the SQL gurus on the team to confirm my analysis and close it accordingly.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44179 (Use wp_update_comment instead of $wpdb-&gt;update $wpdb-&gt;comments when ...) updated</title>
+      
+        <dc:creator>allendav</dc:creator>
+
+      <pubDate>Mon, 11 Jun 2018 18:13:17 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44179#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44179#comment:3/1528740797262210</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44179 (Use wp_update_comment instead of $wpdb-&gt;update $wpdb-&gt;comments when ...) updated</title>
+      
+        <dc:creator>allendav</dc:creator>
+
+      <pubDate>Mon, 11 Jun 2018 18:12:59 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44179#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44179#comment:2/1528740779949995</guid>
+      <description>&lt;p&gt;
+To test:
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;Apply the patch
+&lt;/li&gt;&lt;li&gt;Generate lots of comments (e.g. 500) for some email address (bonus: I put a plugin here to make that easier: &lt;a class="ext-link" href="https://github.com/allendav/commentariat"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://github.com/allendav/commentariat&lt;/a&gt; )
+&lt;/li&gt;&lt;li&gt;Use wp-admin &amp;gt; Tools &amp;gt; Erase Personal Data to anonymize that email address's comments
+&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;
+Note: During my testing I saw the old method take &amp;lt; 1 second to directly update the table for 500 comments and &amp;lt; 2 seconds to use this hookable method. Yes, it is slower but not horribly so and it allows plugins that hook comment updates (like Jetpack) to stay involved and aware of the now anonymized comment.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>38323.7.diff attached to Ticket #38323</title>
+      
+        <dc:creator>flixos90</dc:creator>
+
+      <pubDate>Mon, 11 Jun 2018 18:12:37 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/38323/38323.7.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/38323/38323.7.diff/1528740757806853</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>44179.diff attached to Ticket #44179</title>
+      
+        <dc:creator>allendav</dc:creator>
+
+      <pubDate>Mon, 11 Jun 2018 18:10:11 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/44179/44179.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/44179/44179.diff/1528740611166672</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #38323 (Reconsider $object_subtype handling in `register_meta()`) updated</title>
+      
+        <dc:creator>flixos90</dc:creator>
+
+      <pubDate>Mon, 11 Jun 2018 17:54:20 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/38323#comment:70</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/38323#comment:70/1528739660275131</guid>
+      <description>&lt;p&gt;
+In &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/43340" title="REST API: Improve test coverage by providing tests for term meta.
+See ..."&gt;43340&lt;/a&gt;:
+&lt;/p&gt;
+&lt;div class="message"&gt;&lt;p&gt;
+REST API: Improve test coverage by providing tests for term meta.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+See &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/38323" title="#38323: enhancement: Reconsider $object_subtype handling in `register_meta()` (closed: fixed)"&gt;#38323&lt;/a&gt;.&lt;br /&gt;
+&lt;/p&gt;
+&lt;/div&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Changeset [43340]: REST API: Improve test coverage by providing tests for term meta.  See ...</title>
+      
+        <dc:creator>flixos90</dc:creator>
+
+      <pubDate>Mon, 11 Jun 2018 17:54:19 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/43340</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/43340/1528739659213443</guid>
+      <description>&lt;p&gt;
+REST API: Improve test coverage by providing tests for term meta.
+&lt;/p&gt;
+&lt;p&gt;
+See &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/38323" title="#38323: enhancement: Reconsider $object_subtype handling in `register_meta()` (closed: fixed)"&gt;#38323&lt;/a&gt;.
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Ticket #44350 (Block plugin updates if required PHP version is not supported - ...) updated</title>
+      
+        <dc:creator>afragen</dc:creator>
+
+      <pubDate>Mon, 11 Jun 2018 17:35:10 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44350#comment:4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44350#comment:4/1528738510087992</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Are we also looking to disable updates if the WP version is not supported?
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44350 (Block plugin updates if required PHP version is not supported - ...) updated</title>
+      
+        <dc:creator>afragen</dc:creator>
+
+      <pubDate>Mon, 11 Jun 2018 17:34:08 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44350#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44350#comment:3/1528738448928519</guid>
+      <description>&lt;p&gt;
+&lt;a class="attachment" href="http://core.trac.wordpress.org/attachment/ticket/44350/44350.diff" title="Attachment '44350.diff' in Ticket #44350"&gt;44350.diff&lt;/a&gt;&lt;a class="trac-rawlink" href="http://core.trac.wordpress.org/raw-attachment/ticket/44350/44350.diff" title="Download"&gt;​&lt;/a&gt; for removing ability to update from &lt;code&gt;update-core.php&lt;/code&gt; page.
+&lt;/p&gt;
+&lt;p&gt;
+The following screenshot shows the checkbox missing and therefore not possible to update along with a notice regarding PHP updating.
+&lt;/p&gt;
+&lt;p&gt;
+&lt;a style="padding:0; border:none" href="http://core.trac.wordpress.org/attachment/ticket/44350/screenshot_06.png"&gt;&lt;img src="http://core.trac.wordpress.org/raw-attachment/ticket/44350/screenshot_06.png" alt="Checkbox gone and notice listed." crossorigin="anonymous" title="Checkbox gone and notice listed." /&gt;&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>screenshot_06.png attached to Ticket #44350</title>
+      
+        <dc:creator>afragen</dc:creator>
+
+      <pubDate>Mon, 11 Jun 2018 17:31:06 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/44350/screenshot_06.png</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/44350/screenshot_06.png/1528738266642158</guid>
+      <description>&lt;p&gt;
+Checkbox gone and notice listed.
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>44350.diff attached to Ticket #44350</title>
+      
+        <dc:creator>afragen</dc:creator>
+
+      <pubDate>Mon, 11 Jun 2018 17:30:24 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/44350/44350.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/44350/44350.diff/1528738224270206</guid>
+      <description>&lt;p&gt;
+For update-core.php
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #44351 (Fix "Foreign key constraint is incorrectly formed" when running unit tests) created</title>
+      
+        <dc:creator>conner_bw</dc:creator>
+
+      <pubDate>Mon, 11 Jun 2018 17:09:19 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44351</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44351/1528736959435823</guid>
+      <description>&lt;p&gt;
+I kept getting "Foreign key constraint is incorrectly formed" when running tests on my plugin. This drove me nuts for a few hours. The reason is &lt;a class="ext-link" href="https://github.com/WordPress/wordpress-develop/blob/9e38c2847e5f3b94785378094d17f09577215d3c/tests/phpunit/includes/testcase.php#L335"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;WP_UnitTestCase::start_transaction()&lt;/a&gt;
+&lt;/p&gt;
+&lt;p&gt;
+The WordPress testing framework changes all 'CREATE TABLE' queries to 'CREATE TEMPORARY TABLE'.
+&lt;/p&gt;
+&lt;p&gt;
+&lt;a class="ext-link" href="https://dev.mysql.com/doc/refman/5.5/en/create-table-foreign-keys.html"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;From the MYSQL manual&lt;/a&gt;:
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+Foreign key relationships involve a parent table that holds the central data values, and a child table with identical values pointing back to its parent. The FOREIGN KEY clause is specified in the child table. The parent and child tables must use the same storage engine. &lt;strong&gt;They must not be TEMPORARY tables&lt;/strong&gt;.
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+Please add something like:
+&lt;/p&gt;
+&lt;div class="wiki-code"&gt;&lt;div class="code"&gt;&lt;pre&gt;&lt;span class="cp"&gt;&amp;lt;?php&lt;/span&gt;
+&lt;span class="nx"&gt;add_filter&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="s1"&gt;'query'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt; &lt;span class="nv"&gt;$this&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;'_alter_temporary_tables'&lt;/span&gt; &lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="p"&gt;);&lt;/span&gt;
+&lt;span class="c1"&gt;// ... snip ...
+&lt;/span&gt;&lt;span class="k"&gt;public&lt;/span&gt; &lt;span class="k"&gt;function&lt;/span&gt; &lt;span class="nf"&gt;_alter_temporary_tables&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="nv"&gt;$query&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="s1"&gt;'ALTER TABLE'&lt;/span&gt; &lt;span class="o"&gt;===&lt;/span&gt; &lt;span class="nx"&gt;substr&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="nx"&gt;trim&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="nv"&gt;$query&lt;/span&gt; &lt;span class="p"&gt;),&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;11&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class="nb"&gt;strpos&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="nv"&gt;$query&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;'ADD CONSTRAINT'&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;!==&lt;/span&gt; &lt;span class="k"&gt;false&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class="nb"&gt;strpos&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="nv"&gt;$query&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;'FOREIGN KEY'&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;!==&lt;/span&gt; &lt;span class="k"&gt;false&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+        &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="s1"&gt;'SELECT 1'&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="c1"&gt;// Replace borken foreign key query with a fake query
+&lt;/span&gt;    &lt;span class="p"&gt;}&lt;/span&gt;
+    &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="nv"&gt;$query&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;p&gt;
+To &lt;code&gt;WP_UnitTestCase::start_transaction()&lt;/code&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Thank you for your consideration.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #19859 ("Bulk Edit" Missing The Ability To Edit Tags) updated</title>
+      
+        <dc:creator>boemedia</dc:creator>
+
+      <pubDate>Mon, 11 Jun 2018 16:54:46 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/19859#comment:27</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/19859#comment:27/1528736086678568</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+With design contributors now having access to Invision, this ticket would be a good one to draft up a prototype to be able to click around. I’ve added a new keyword ‘needs-design’ and will note this down for contributor day at WordCamp Europe this Thursday in Belgrade. Hopefully we have people wanting to pick this up to move it forward.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #38323 (Reconsider $object_subtype handling in `register_meta()`) updated</title>
+      
+        <dc:creator>spacedmonkey</dc:creator>
+
+      <pubDate>Mon, 11 Jun 2018 16:51:59 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/38323#comment:69</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/38323#comment:69/1528735919630739</guid>
+      <description>&lt;p&gt;
+My worry is about loading the main object in &lt;code&gt;get_object_subtype&lt;/code&gt;. There have been times where I have not loaded meta using a list of ids (from say the options table) and haven't run the normal query class, like &lt;code&gt;WP_Query&lt;/code&gt;. For custom migration code, where the whole object is not required is an example. This change may have massive performance effects on high end users, this change will not be massively sign posted and well documented.
+&lt;/p&gt;
+&lt;p&gt;
+I disagree with the comment about comment types, as core supports pingback and trackbacks, which are well known. I also don't understand why to limit the functionality? You are already loading the comment.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #19859 ("Bulk Edit" Missing The Ability To Edit Tags) updated</title>
+      
+        <dc:creator>slackbot</dc:creator>
+
+      <pubDate>Mon, 11 Jun 2018 16:48:02 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/19859#comment:26</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/19859#comment:26/1528735682835295</guid>
+      <description>&lt;p&gt;
+&lt;em&gt;This ticket was mentioned in &lt;a class="ext-link" href="https://make.wordpress.org/chat/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;Slack&lt;/a&gt; in #design by boemedia. &lt;a class="ext-link" href="https://wordpress.slack.com/archives/design/p1528735681000574"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;View the logs&lt;/a&gt;.&lt;/em&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #26562 (Remove title attributes: class-wp-admin-bar.php) updated</title>
+      
+        <dc:creator>boemedia</dc:creator>
+
+      <pubDate>Mon, 11 Jun 2018 16:42:24 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/26562#comment:24</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/26562#comment:24/1528735344928234</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+@afercia  does this ticket still need design input? Or can we merge it with &lt;a class="assigned ticket" href="http://core.trac.wordpress.org/ticket/33030" title="#33030: defect (bug): Admin menu update/comment count notification accessibility (assigned)"&gt;#33030&lt;/a&gt; for the notification alternative? Would this be something to brainstorm on at upcoming Contributor Day in Belgrade? If so, I can note this down for a group of people to work on some mockups.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #43986 (Disable "Install Plugin" button for PHP required version mismatch) updated</title>
+      
+        <dc:creator>slackbot</dc:creator>
+
+      <pubDate>Mon, 11 Jun 2018 16:41:12 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43986#comment:75</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43986#comment:75/1528735272048575</guid>
+      <description>&lt;p&gt;
+&lt;em&gt;This ticket was mentioned in &lt;a class="ext-link" href="https://make.wordpress.org/chat/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;Slack&lt;/a&gt; in #design by afragen. &lt;a class="ext-link" href="https://wordpress.slack.com/archives/design/p1528735271000266"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;View the logs&lt;/a&gt;.&lt;/em&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #43986 (Disable "Install Plugin" button for PHP required version mismatch) updated</title>
+      
+        <dc:creator>afragen</dc:creator>
+
+      <pubDate>Mon, 11 Jun 2018 16:39:36 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43986#comment:74</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43986#comment:74/1528735176113737</guid>
+      <description>&lt;p&gt;
+Based upon feedback from today's meeting &lt;a class="ext-link" href="https://wordpress.slack.com/archives/C60K3MP2Q/p1528729248000798"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://wordpress.slack.com/archives/C60K3MP2Q/p1528729248000798&lt;/a&gt; the following patch is submitted &lt;a class="attachment" href="http://core.trac.wordpress.org/attachment/ticket/43986/43986-final.diff" title="Attachment '43986-final.diff' in Ticket #43986"&gt;43986-final.diff&lt;/a&gt;&lt;a class="trac-rawlink" href="http://core.trac.wordpress.org/raw-attachment/ticket/43986/43986-final.diff" title="Download"&gt;​&lt;/a&gt; .
+&lt;/p&gt;
+&lt;p&gt;
+It is based upon @melchoyce's final mockup. &lt;a class="ext-link" href="https://wordpress.slack.com/files/U02QJMG7R/FB48T5W7M/image.png"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://wordpress.slack.com/files/U02QJMG7R/FB48T5W7M/image.png&lt;/a&gt;
+&lt;/p&gt;
+&lt;p&gt;
+The following shows the plugin card with each type of message.
+&lt;/p&gt;
+&lt;p&gt;
+&lt;a style="padding:0; border:none" href="http://core.trac.wordpress.org/attachment/ticket/43986/screenshot_02.6.png"&gt;&lt;img src="http://core.trac.wordpress.org/raw-attachment/ticket/43986/screenshot_02.6.png" alt="Plugin card view - 11 Jun 2018 meeting" crossorigin="anonymous" title="Plugin card view - 11 Jun 2018 meeting" /&gt;&lt;/a&gt;
+&lt;/p&gt;
+&lt;p&gt;
+The following shows the &lt;em&gt;More Details&lt;/em&gt; window.
+&lt;/p&gt;
+&lt;p&gt;
+&lt;a style="padding:0; border:none" href="http://core.trac.wordpress.org/attachment/ticket/43986/screenshot_05.2.png"&gt;&lt;img src="http://core.trac.wordpress.org/raw-attachment/ticket/43986/screenshot_05.2.png" alt="More Details view - 11 June 2018" crossorigin="anonymous" title="More Details view - 11 June 2018" /&gt;&lt;/a&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Message precedence is for the WordPress message over the PHP message.
+&lt;/p&gt;
+&lt;p&gt;
+Please review and comment.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #33030 (Admin menu update/comment count notification accessibility) updated</title>
+      
+        <dc:creator>slackbot</dc:creator>
+
+      <pubDate>Mon, 11 Jun 2018 16:34:28 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/33030#comment:18</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/33030#comment:18/1528734868301758</guid>
+      <description>&lt;p&gt;
+&lt;em&gt;This ticket was mentioned in &lt;a class="ext-link" href="https://make.wordpress.org/chat/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;Slack&lt;/a&gt; in #design by boemedia. &lt;a class="ext-link" href="https://wordpress.slack.com/archives/design/p1528734867000507"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;View the logs&lt;/a&gt;.&lt;/em&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>screenshot_05.2.png attached to Ticket #43986</title>
+      
+        <dc:creator>afragen</dc:creator>
+
+      <pubDate>Mon, 11 Jun 2018 16:33:31 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/43986/screenshot_05.2.png</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/43986/screenshot_05.2.png/1528734811630227</guid>
+      <description>&lt;p&gt;
+More Details view - 11 June 2018
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>screenshot_02.6.png attached to Ticket #43986</title>
+      
+        <dc:creator>afragen</dc:creator>
+
+      <pubDate>Mon, 11 Jun 2018 16:33:07 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/43986/screenshot_02.6.png</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/43986/screenshot_02.6.png/1528734787298573</guid>
+      <description>&lt;p&gt;
+Plugin card view - 11 Jun 2018 meeting
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #38323 (Reconsider $object_subtype handling in `register_meta()`) updated</title>
+      
+        <dc:creator>flixos90</dc:creator>
+
+      <pubDate>Mon, 11 Jun 2018 16:32:33 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/38323#comment:68</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/38323#comment:68/1528734753840624</guid>
+      <description>&lt;p&gt;
+In &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/43339" title="Tests: Improve performance of post meta tests.
+See #38323.
+"&gt;43339&lt;/a&gt;:
+&lt;/p&gt;
+&lt;div class="message"&gt;&lt;p&gt;
+Tests: Improve performance of post meta tests.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+See &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/38323" title="#38323: enhancement: Reconsider $object_subtype handling in `register_meta()` (closed: fixed)"&gt;#38323&lt;/a&gt;.&lt;br /&gt;
+&lt;/p&gt;
+&lt;/div&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Changeset [43339]: Tests: Improve performance of post meta tests.  See #38323. </title>
+      
+        <dc:creator>flixos90</dc:creator>
+
+      <pubDate>Mon, 11 Jun 2018 16:32:32 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/43339</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/43339/1528734752787710</guid>
+      <description>&lt;p&gt;
+Tests: Improve performance of post meta tests.
+&lt;/p&gt;
+&lt;p&gt;
+See &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/38323" title="#38323: enhancement: Reconsider $object_subtype handling in `register_meta()` (closed: fixed)"&gt;#38323&lt;/a&gt;.
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Ticket #44349 (Posts show up multiple times in backend, when imported with Import ...) updated</title>
+      
+        <dc:creator>wzshop</dc:creator>
+
+      <pubDate>Mon, 11 Jun 2018 16:32:29 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44349#comment:4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44349#comment:4/1528734749889489</guid>
+      <description>&lt;p&gt;
+Sorry, meant 149 posts.
+See the vid here: &lt;a class="ext-link" href="https://youtu.be/IK84U3ERCi4"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://youtu.be/IK84U3ERCi4&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>43986-final.diff attached to Ticket #43986</title>
+      
+        <dc:creator>afragen</dc:creator>
+
+      <pubDate>Mon, 11 Jun 2018 16:32:13 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/43986/43986-final.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/43986/43986-final.diff/1528734733307196</guid>
+      <description>&lt;p&gt;
+This patch based upon #core-php meeting of 11 June 2018
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #26562 (Remove title attributes: class-wp-admin-bar.php) updated</title>
+      
+        <dc:creator>slackbot</dc:creator>
+
+      <pubDate>Mon, 11 Jun 2018 16:31:52 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/26562#comment:23</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/26562#comment:23/1528734712300178</guid>
+      <description>&lt;p&gt;
+&lt;em&gt;This ticket was mentioned in &lt;a class="ext-link" href="https://make.wordpress.org/chat/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;Slack&lt;/a&gt; in #design by boemedia. &lt;a class="ext-link" href="https://wordpress.slack.com/archives/design/p1528734711000511"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;View the logs&lt;/a&gt;.&lt;/em&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #38323 (Reconsider $object_subtype handling in `register_meta()`) updated</title>
+      
+        <dc:creator>flixos90</dc:creator>
+
+      <pubDate>Mon, 11 Jun 2018 16:26:45 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/38323#comment:67</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/38323#comment:67/1528734405770715</guid>
+      <description>&lt;p&gt;
+Replying to &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/38323#comment:66" title="Comment 66"&gt;spacedmonkey&lt;/a&gt;:
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+I think we should return the comment_types back in as sub type. This is how the code currently works in capabilities.php and see is no good reason to change it and break any existing filters. There is a big difference between a comment, pingback and trackback. That is  value is having that as a sub type.
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+I generally would agree with this for the sake of BC, but since the REST API doesn't consider comment types at all and since it is generally not really defined what comment types are, I think we should keep them out for now. The vast majority of developers has no idea that comment types are a thing (contrary to post types and taxonomies), so I doubt the filter is used in that way, also given that it has not been around for a long time and been undocumented, as it was an accidental remainder of &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/35658" title="#35658: task (blessed): Provide additional data for registered meta through register_meta() (closed: fixed)"&gt;#35658&lt;/a&gt;. There is no benefit from supporting comment subtypes at this point.
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+The new filter &lt;code&gt;$object_subtype = apply_filters( "get_object_subtype_{$object_type}", $object_subtype, $object_id );&lt;/code&gt; should be moved to the return value and not just be there for the default. All subtypes should be filterable. Also, should sites (blogs) meta be in this switch statement?
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+I agree with this, let's move the filter to work for every return value. I have thought about site meta here too, but I'd prefer if we add support for that in a follow-up ticket after this is merged.
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+I also have some worries about performance, as every time subtype is loaded, it now loads the parent object is it related. If post meta for example was loaded, outside of a WP_Query, it would do a single query (if the user is not using object caching) to post object for every different id. I have just loaded post meta outside of WP_Query, becuase I didnt want to overhead of getting the whole object. But now it is loading the whole object. I would like to see some profiling data before merge.
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+To what functionality exactly are you referring? If it's about getting the parent object in &lt;code&gt;get_object_subtype()&lt;/code&gt;, I don't think that is an issue. When a query is used, all objects are already in cache anyway. And when a singular result is accessed, this applies as well.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44349 (Posts show up multiple times in backend, when imported with Import ...) updated</title>
+      
+        <dc:creator>pbiron</dc:creator>
+
+      <pubDate>Mon, 11 Jun 2018 16:23:33 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44349#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44349#comment:3/1528734213700646</guid>
+      <description>&lt;p&gt;
+Thank you for the version # and for attaching a sample export to test with.
+&lt;/p&gt;
+&lt;p&gt;
+I'm not seeing the behavior you report when I import &lt;code&gt;post export demo.xml&lt;/code&gt; into a fresh install (no plugins other than &lt;code&gt;WordPress Importer v 0.6.4&lt;/code&gt; and &lt;code&gt;twentyseventeen&lt;/code&gt; theme).
+&lt;/p&gt;
+&lt;p&gt;
+Also, &lt;code&gt;post export demo.xml&lt;/code&gt; only has 149 posts (confirmed by evaluating the xpath expression &lt;code&gt;//input&lt;/code&gt; on it, as well as the number of posts that get imported in my test site) and not the 200 you mention in this ticket's description.  Could that be why "Seems like others are left out"?
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44350 (Block plugin updates if required PHP version is not supported - ...) updated</title>
+      
+        <dc:creator>flixos90</dc:creator>
+
+      <pubDate>Mon, 11 Jun 2018 16:08:38 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44350#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44350#comment:2/1528733318303999</guid>
+      <description>&lt;i&gt;Status&lt;/i&gt;, &lt;i&gt;Owner&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #43987 (Block plugin updates if required PHP version is not supported - ...) updated</title>
+      
+        <dc:creator>flixos90</dc:creator>
+
+      <pubDate>Mon, 11 Jun 2018 16:08:24 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43987#comment:18</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43987#comment:18/1528733304280241</guid>
+      <description>&lt;i&gt;Status&lt;/i&gt;, &lt;i&gt;Owner&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #43986 (Disable "Install Plugin" button for PHP required version mismatch) updated</title>
+      
+        <dc:creator>flixos90</dc:creator>
+
+      <pubDate>Mon, 11 Jun 2018 16:08:08 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43986#comment:73</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43986#comment:73/1528733288071638</guid>
+      <description>&lt;i&gt;Status&lt;/i&gt;, &lt;i&gt;Owner&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44350 (Block plugin updates if required PHP version is not supported - ...) updated</title>
+      
+        <dc:creator>slackbot</dc:creator>
+
+      <pubDate>Mon, 11 Jun 2018 16:04:40 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44350#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44350#comment:1/1528733080339645</guid>
+      <description>&lt;p&gt;
+&lt;em&gt;This ticket was mentioned in &lt;a class="ext-link" href="https://make.wordpress.org/chat/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;Slack&lt;/a&gt; in #core-php by flixos90. &lt;a class="ext-link" href="https://wordpress.slack.com/archives/core-php/p1528733079000470"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;View the logs&lt;/a&gt;.&lt;/em&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #43987 (Block plugin updates if required PHP version is not supported - ...) updated</title>
+      
+        <dc:creator>flixos90</dc:creator>
+
+      <pubDate>Mon, 11 Jun 2018 16:03:10 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43987#comment:17</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43987#comment:17/1528732990249927</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt;, &lt;i&gt;Description&lt;/i&gt;, &lt;i&gt;Summary&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44350 (Block plugin updates if required PHP version is not supported - ...) created</title>
+      
+        <dc:creator>flixos90</dc:creator>
+
+      <pubDate>Mon, 11 Jun 2018 16:02:14 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44350</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44350/1528732934622947</guid>
+      <description>&lt;p&gt;
+&lt;strong&gt;Note: This ticket is a subtask for the overarching &lt;a class="assigned ticket" href="http://core.trac.wordpress.org/ticket/40934" title="#40934: task (blessed): Allow PHP version requirements for plugins &amp;amp; themes (assigned)"&gt;#40934&lt;/a&gt; ticket.&lt;/strong&gt;
+&lt;/p&gt;
+&lt;p&gt;
+When a plugin states it requires a specific minimum PHP version through its "Requires PHP" header information and the server does not support this PHP version, WordPress should block any possibility to update the plugin. This way, plugins will stay at the latest release that still supports the server's PHP version.
+&lt;/p&gt;
+&lt;p&gt;
+This ticket's goal is to prevent plugin updates from the general "Updates" admin screen. With that, it complements &lt;a class="assigned ticket" href="http://core.trac.wordpress.org/ticket/43987" title="#43987: task (blessed): Block plugin updates if required PHP version is not supported - ... (assigned)"&gt;#43987&lt;/a&gt;, which deals with preventing plugins from the "Plugins" admin screen.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>post export demo.xml attached to Ticket #44349</title>
+      
+        <dc:creator>wzshop</dc:creator>
+
+      <pubDate>Mon, 11 Jun 2018 15:58:09 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/44349/post%20export%20demo.xml</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/44349/post%20export%20demo.xml/1528732689767993</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #44349 (Posts show up multiple times in backend, when imported with Import ...) updated</title>
+      
+        <dc:creator>wzshop</dc:creator>
+
+      <pubDate>Mon, 11 Jun 2018 15:54:40 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44349#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44349#comment:2/1528732480904819</guid>
+      <description>&lt;p&gt;
+Replying to &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/44349#comment:1" title="Comment 1"&gt;pbiron&lt;/a&gt;:
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+Welcome to trac!
+&lt;/p&gt;
+&lt;p&gt;
+Can you please let us know which version of the &lt;code&gt;WordPress Importer&lt;/code&gt; plugin you are using?
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+Version 0.6.4
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44349 (Posts show up multiple times in backend, when imported with Import ...) updated</title>
+      
+        <dc:creator>pbiron</dc:creator>
+
+      <pubDate>Mon, 11 Jun 2018 15:53:14 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44349#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44349#comment:1/1528732394701530</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt;, &lt;i&gt;Component&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Welcome to trac!
+&lt;/p&gt;
+&lt;p&gt;
+Can you please let us know which version of the &lt;code&gt;WordPress Importer&lt;/code&gt; plugin you are using?
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44349 (Posts show up multiple times in backend, when imported with Import ...) created</title>
+      
+        <dc:creator>wzshop</dc:creator>
+
+      <pubDate>Mon, 11 Jun 2018 15:46:38 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44349</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44349/1528731998835826</guid>
+      <description>&lt;p&gt;
+When I import for example 200 posts with the Import WordPress tool and then go to wp-admin&amp;gt;posts, the posts show up in the query multiple times (for instance on page 1 and page 2). Seems like others are left out.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #43986 (Disable "Install Plugin" button for PHP required version mismatch) updated</title>
+      
+        <dc:creator>slackbot</dc:creator>
+
+      <pubDate>Mon, 11 Jun 2018 15:25:31 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43986#comment:72</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43986#comment:72/1528730731894888</guid>
+      <description>&lt;p&gt;
+&lt;em&gt;This ticket was mentioned in &lt;a class="ext-link" href="https://make.wordpress.org/chat/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;Slack&lt;/a&gt; in #core-php by flixos90. &lt;a class="ext-link" href="https://wordpress.slack.com/archives/core-php/p1528730731000105"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;View the logs&lt;/a&gt;.&lt;/em&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #43987 (Block plugin updates if required PHP version is not supported - ...) updated</title>
+      
+        <dc:creator>slackbot</dc:creator>
+
+      <pubDate>Mon, 11 Jun 2018 15:23:15 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43987#comment:16</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43987#comment:16/1528730595934032</guid>
+      <description>&lt;p&gt;
+&lt;em&gt;This ticket was mentioned in &lt;a class="ext-link" href="https://make.wordpress.org/chat/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;Slack&lt;/a&gt; in #core-php by afragen. &lt;a class="ext-link" href="https://wordpress.slack.com/archives/core-php/p1528730594000845"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;View the logs&lt;/a&gt;.&lt;/em&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44343 (Add filter hook for parent dropdown arguments) updated</title>
+      
+        <dc:creator>birgire</dc:creator>
+
+      <pubDate>Mon, 11 Jun 2018 14:34:14 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44343#comment:4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44343#comment:4/1528727654098243</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+It might be good to have a second opinion regarding reusing the &lt;code&gt;post_edit_category_parent_dropdown_args&lt;/code&gt; filter in ajax, before writing the patch.
+&lt;/p&gt;
+&lt;p&gt;
+At the moment I would favor reusing that filter for ajax too, instead of introducing a new one.
+&lt;/p&gt;
+&lt;p&gt;
+So I tag the question for that.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44347 (WP allows creating username that is already used email address) updated</title>
+      
+        <dc:creator>subrataemfluence</dc:creator>
+
+      <pubDate>Mon, 11 Jun 2018 14:25:37 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44347#comment:4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44347#comment:4/1528727137199090</guid>
+      <description>&lt;p&gt;
+Good find!!
+Adding additional guard for checking the existence of username supplied in email field in core functionality should resolve the issue.
+&lt;/p&gt;
+&lt;p&gt;
+Possible solution:
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;File name: includes/user.php.
+Function: edit_user
+&lt;/pre&gt;&lt;p&gt;
+Addition:
+&lt;/p&gt;
+&lt;div class="wiki-code"&gt;&lt;div class="code"&gt;&lt;pre&gt;&lt;span class="cp"&gt;&amp;lt;?php&lt;/span&gt;
+&lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="o"&gt;!&lt;/span&gt; &lt;span class="nv"&gt;$update&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class="nx"&gt;email_exists&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="nv"&gt;$user&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="na"&gt;user_login&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+   &lt;span class="nv"&gt;$errors&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="na"&gt;add&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="s1"&gt;'user_login'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;__&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="s1"&gt;'&amp;lt;strong&amp;gt;ERROR&amp;lt;/strong&amp;gt;: This username is invalid because it is already in use as email address of another account.'&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;);&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;pre class="wiki"&gt;File: wp-includes/user.php
+Function: register_new_user
+&lt;/pre&gt;&lt;p&gt;
+Addition:
+&lt;/p&gt;
+&lt;div class="wiki-code"&gt;&lt;div class="code"&gt;&lt;pre&gt;&lt;span class="cp"&gt;&amp;lt;?php&lt;/span&gt;
+&lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="nv"&gt;$user_email&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="s1"&gt;''&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+   &lt;span class="o"&gt;...&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt; &lt;span class="k"&gt;elseif&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="o"&gt;!&lt;/span&gt; &lt;span class="nx"&gt;is_email&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="nv"&gt;$user_email&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+   &lt;span class="o"&gt;...&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt; &lt;span class="k"&gt;elseif&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="nx"&gt;email_exists&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="nv"&gt;$user_email&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+   &lt;span class="o"&gt;...&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt; &lt;span class="k"&gt;elseif&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="nx"&gt;email_exists&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="nv"&gt;$sanitized_user_login&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+   &lt;span class="nv"&gt;$errors&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="na"&gt;add&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="s1"&gt;'email_exists'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;__&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="s1"&gt;'&amp;lt;strong&amp;gt;ERROR&amp;lt;/strong&amp;gt;: This username is invalid because it is already in use as email address of another account.'&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;);&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;p&gt;
+I think adding the check into the core itself will prevent additional filter and functions.
+&lt;/p&gt;
+&lt;p&gt;
+Please let me know if this makes some sense.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #42888 (Add a "Show" button next to password fields on mobile) updated</title>
+      
+        <dc:creator>adamsilverstein</dc:creator>
+
+      <pubDate>Mon, 11 Jun 2018 13:06:44 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/42888#comment:20</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/42888#comment:20/1528722404388706</guid>
+      <description>&lt;p&gt;
+@boemedia can you please give this another test following the steps @Iceable outlined? notably, use grunt patch and grunt build to make sure the patch applies to the correct code and is built into the build directory.. Also, since &lt;a href="https://core.trac.wordpress.org/changeset/43309"&gt;https://core.trac.wordpress.org/changeset/43309&lt;/a&gt; you'll need to be testing by running WordPress from the build directory as well.
+&lt;/p&gt;
+&lt;p&gt;
+Thanks!
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #32017 (Fix class name typo from 'hndle' to 'handle') updated</title>
+      
+        <dc:creator>antpb</dc:creator>
+
+      <pubDate>Mon, 11 Jun 2018 12:26:59 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/32017#comment:4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/32017#comment:4/1528720019760338</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #38741 (Introduce the concept of a large site in order to speed up the Users ...) updated</title>
+      
+        <dc:creator>spacedmonkey</dc:creator>
+
+      <pubDate>Mon, 11 Jun 2018 11:25:45 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/38741#comment:42</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/38741#comment:42/1528716345553374</guid>
+      <description>&lt;p&gt;
+As of &lt;a href="https://core.trac.wordpress.org/attachment/ticket/38741/38741.9.diff"&gt;38741.9.diff&lt;/a&gt; there are the following changes
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;Added &lt;code&gt;wp_get_user_count&lt;/code&gt; function, with the logic contained in &lt;code&gt;get_user_count&lt;/code&gt; but no network id param
+&lt;/li&gt;&lt;li&gt;Deprecated  &lt;code&gt;get_user_count&lt;/code&gt;
+&lt;/li&gt;&lt;li&gt;Deprecated &lt;code&gt;$network_id&lt;/code&gt; in &lt;code&gt;wp_is_large_network&lt;/code&gt; as unable to pass to &lt;code&gt;get_user_count&lt;/code&gt; as &lt;code&gt;wp_get_user_count&lt;/code&gt; now in use.
+&lt;/li&gt;&lt;li&gt;Removed all references to &lt;code&gt;get_user_count&lt;/code&gt; in code.
+&lt;/li&gt;&lt;/ul&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>38741.9.diff attached to Ticket #38741</title>
+      
+        <dc:creator>spacedmonkey</dc:creator>
+
+      <pubDate>Mon, 11 Jun 2018 11:20:44 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/38741/38741.9.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/38741/38741.9.diff/1528716044735881</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #44348 (Editor: Bold and Insert Anchor Link Bug) updated</title>
+      
+        <dc:creator>atelierlabo</dc:creator>
+
+      <pubDate>Mon, 11 Jun 2018 09:43:05 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44348#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44348#comment:2/1528710185979289</guid>
+      <description>&lt;p&gt;
+Replying to &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/44348#comment:1" title="Comment 1"&gt;subrataemfluence&lt;/a&gt;:
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+Welcome to Trac!
+I confirm that I could reproduce the issue using a fresh WordPress install.
+&lt;/p&gt;
+&lt;p&gt;
+However, the interesting part is I could reproduce it only once. After this I tried many a times but everything worked normally and the issue did not show up any more!
+&lt;/p&gt;
+&lt;p&gt;
+Screen cast: &lt;a class="ext-link" href="https://goo.gl/cRcNSp"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://goo.gl/cRcNSp&lt;/a&gt;
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+I can reproduce this issue every time...
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44348 (Editor: Bold and Insert Anchor Link Bug) updated</title>
+      
+        <dc:creator>subrataemfluence</dc:creator>
+
+      <pubDate>Mon, 11 Jun 2018 09:37:48 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44348#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44348#comment:1/1528709868931012</guid>
+      <description>&lt;p&gt;
+Welcome to Trac!
+I confirm that I could reproduce the issue using a fresh WordPress install.
+&lt;/p&gt;
+&lt;p&gt;
+However, the interesting part is I could reproduce it only once. After this I tried many a times but everything worked normally and the issue did not show up any more!
+&lt;/p&gt;
+&lt;p&gt;
+Screen cast: &lt;a class="ext-link" href="https://goo.gl/cRcNSp"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://goo.gl/cRcNSp&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44332 (Hook retreive_password (depricated) should be removed) updated</title>
+      
+        <dc:creator>subrataemfluence</dc:creator>
+
+      <pubDate>Mon, 11 Jun 2018 09:14:06 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44332#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44332#comment:3/1528708446531717</guid>
+      <description>&lt;p&gt;
+Perfect! I love the idea. Still a learner :)
+&lt;/p&gt;
+&lt;p&gt;
+Replying to &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/44332#comment:1" title="Comment 1"&gt;birgire&lt;/a&gt;:
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+There's also the &lt;a class="ext-link" href="https://developer.wordpress.org/reference/functions/do_action_deprecated/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;do_action_deprecated()&lt;/a&gt; function introduced in 4.6:
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+When an action hook is deprecated, the &lt;code&gt;do_action()&lt;/code&gt; call is replaced with &lt;code&gt;do_action_deprecated()&lt;/code&gt;, which triggers a deprecation notice and then fires the original hook.
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+Similarly the &lt;a class="ext-link" href="https://developer.wordpress.org/reference/functions/apply_filters_deprecated/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;apply_filters_deprecated()&lt;/a&gt; function for deprecated filters.
+&lt;/p&gt;
+&lt;p&gt;
+So in this case it might be replaced with:
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;do_action_deprecated( 'retreive_password', array( $user-&amp;gt;user_login ), '1.5.1', 'retrieve_password' );
+&lt;/pre&gt;&lt;p&gt;
+It would be interesting to scan the wordpress.org plugin repository to see if any plugin is using this deprecated filter.
+&lt;/p&gt;
+&lt;p&gt;
+@subrataemfluence, what do you think about this kind of approach, before removing?
+&lt;/p&gt;
+&lt;/blockquote&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44348 (Editor: Bold and Insert Anchor Link Bug) created</title>
+      
+        <dc:creator>atelierlabo</dc:creator>
+
+      <pubDate>Mon, 11 Jun 2018 07:51:46 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44348</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44348/1528703506148127</guid>
+      <description>&lt;ol&gt;&lt;li&gt;In blank editor, type a few words
+&lt;/li&gt;&lt;li&gt;Click "B" (bold) button and type a few words in bold.
+&lt;/li&gt;&lt;li&gt;Click "B" (bold) button again to disable bold. Now, type a few words again.
+&lt;/li&gt;&lt;li&gt;Select/highlight the last few words (after the bolded words). Click "Insert/edit link" button. Click "Link options" and then insert the URL by typing or select an existing post/page. Click "Add Link" to insert the anchor link.
+&lt;/li&gt;&lt;li&gt;The hyperlinked words will be moved to behind the bolded text automatically.
+&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;
+&lt;a class="ext-link" href="https://imgur.com/a/OEi2HIa"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://imgur.com/a/OEi2HIa&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #44343 (Add filter hook for parent dropdown arguments) updated</title>
+      
+        <dc:creator>obiplabon</dc:creator>
+
+      <pubDate>Mon, 11 Jun 2018 06:38:32 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44343#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44343#comment:3/1528699112048016</guid>
+      <description>&lt;p&gt;
+Hi &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/44343#comment:2" title="Comment 2"&gt;birgire&lt;/a&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Thanks for your valuable review. It's my first patch that's why I was a bit confused about what to add and what to not. I'll add those stuffs from now on.
+&lt;/p&gt;
+&lt;p&gt;
+Thanks for the workaround. I didn't even think about that, somehow slipped my mind.
+&lt;/p&gt;
+&lt;p&gt;
+&lt;code&gt;post_edit_category_parent_dropdown_args&lt;/code&gt; works only when the page reloads, this filter hook doesn't work for ajax call. And yes, the ajax callback is only used for the post edit screen.
+&lt;/p&gt;
+&lt;p&gt;
+When we add hierarchical terms from post edit screen the dropdown changes and there's no convenient filter hook to change the &lt;code&gt;wp_dropdown_categories()&lt;/code&gt; arguments. It'd be better if there's a easy filter hook.
+&lt;/p&gt;
+&lt;p&gt;
+What do you think? Should I upload an updated patch?
+&lt;/p&gt;
+&lt;p&gt;
+Thanks
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44052 (Missing parameter type for `login_header()`) updated</title>
+      
+        <author>sebastien@…</author>
+
+      <pubDate>Mon, 11 Jun 2018 05:41:13 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44052#comment:7</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44052#comment:7/1528695673632984</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44344 (Extending from WP_Widget_Media_Image not work) closed</title>
+      
+        <dc:creator>westonruter</dc:creator>
+
+      <pubDate>Mon, 11 Jun 2018 01:04:02 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44344#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44344#comment:3/1528679042158783</guid>
+      <description>maybelater</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Ticket #44347 (WP allows creating username that is already used email address) updated</title>
+      
+        <dc:creator>phillipburger</dc:creator>
+
+      <pubDate>Mon, 11 Jun 2018 00:46:58 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44347#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44347#comment:3/1528678018004525</guid>
+      <description>&lt;p&gt;
+As I thought more about this one, it might actually be a bigger problem. Lets say that a user (maybe the only admin of a site) has an account like:
+&lt;/p&gt;
+&lt;p&gt;
+username: my_admin_username (clearly a poor username)
+email: websiteadmin@…
+&lt;/p&gt;
+&lt;p&gt;
+If a bad person happens to know that email address and they have a way to register a new user on that website and they decide to create an account with:
+&lt;/p&gt;
+&lt;p&gt;
+username: websiteadmin@…
+email: mypersonalemail@…
+&lt;/p&gt;
+&lt;p&gt;
+The problem I realized is, hopefully the admin knows their username and does not always log in with email address because the lost email and other login dialogs that use "username or email address" seem to check the email address against username first - so that admin user may be locked out of the site.
+&lt;/p&gt;
+&lt;p&gt;
+Thanks again, hope this helps.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44344 (Extending from WP_Widget_Media_Image not work) updated</title>
+      
+        <dc:creator>hamedmoodi</dc:creator>
+
+      <pubDate>Sun, 10 Jun 2018 23:42:14 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44344#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44344#comment:2/1528674134054402</guid>
+      <description>&lt;p&gt;
+Thanks. its work. its my fault.
+Replying to &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/44344#comment:1" title="Comment 1"&gt;westonruter&lt;/a&gt;:
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+@hamedmoodi Take a look at the &lt;code&gt;WP_Widget_Media_Image&lt;/code&gt; class's constructor:
+&lt;/p&gt;
+&lt;p&gt;
+&lt;a class="ext-link" href="https://github.com/WordPress/wordpress-develop/blob/4.9.6/src/wp-includes/widgets/class-wp-widget-media-image.php#L24-L28"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://github.com/WordPress/wordpress-develop/blob/4.9.6/src/wp-includes/widgets/class-wp-widget-media-image.php#L24-L28&lt;/a&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Note that it does not pass along any arguments it takes. Maybe this is a bug, but it should be easy to work around. In your constructor, just try setting the class variables manually after calling the parent constructor. For example:
+&lt;/p&gt;
+&lt;div class="wiki-code"&gt;&lt;div class="code"&gt;&lt;pre&gt;&lt;span class="cp"&gt;&amp;lt;?php&lt;/span&gt;
+&lt;span class="c1"&gt;// ...
+&lt;/span&gt;        &lt;span class="k"&gt;public&lt;/span&gt; &lt;span class="k"&gt;function&lt;/span&gt; &lt;span class="nf"&gt;__construct&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+                &lt;span class="k"&gt;parent&lt;/span&gt;&lt;span class="o"&gt;::&lt;/span&gt;&lt;span class="na"&gt;__construct&lt;/span&gt;&lt;span class="p"&gt;();&lt;/span&gt;
+                &lt;span class="nv"&gt;$this&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="na"&gt;id_base&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s1"&gt;'custom_image'&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+                &lt;span class="nv"&gt;$this&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="na"&gt;name&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nx"&gt;__&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="s1"&gt;'Custom Image'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;'custom'&lt;/span&gt; &lt;span class="p"&gt;);&lt;/span&gt;
+&lt;span class="c1"&gt;// ...
+&lt;/span&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;/blockquote&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>44305.diff attached to Ticket #44305</title>
+      
+        <dc:creator>palmiak</dc:creator>
+
+      <pubDate>Sun, 10 Jun 2018 23:33:25 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/44305/44305.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/44305/44305.diff/1528673605039053</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>44274.3.diff attached to Ticket #44274</title>
+      
+        <dc:creator>palmiak</dc:creator>
+
+      <pubDate>Sun, 10 Jun 2018 23:23:44 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/44274/44274.3.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/44274/44274.3.diff/1528673024675368</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #44347 (WP allows creating username that is already used email address) updated</title>
+      
+        <dc:creator>phillipburger</dc:creator>
+
+      <pubDate>Sun, 10 Jun 2018 23:20:34 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44347#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44347#comment:2/1528672834666192</guid>
+      <description>&lt;p&gt;
+Thanks! Yeah, I guess when you allow end users to input information, they will find the bugs.
+&lt;/p&gt;
+&lt;p&gt;
+I was using a check similar to the example on &lt;a class="ext-link" href="https://developer.wordpress.org/reference/functions/wp_create_user/#user-contributed-notes"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://developer.wordpress.org/reference/functions/wp_create_user/#user-contributed-notes&lt;/a&gt; which checks:
+&lt;/p&gt;
+&lt;ol&gt;&lt;li&gt;does the username entered exist as a username
+&lt;/li&gt;&lt;li&gt;does the email entered exist as an email address
+&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;
+but it forgot to check the other 2 ways of:
+&lt;/p&gt;
+&lt;ol start="3"&gt;&lt;li&gt;does the username exist as an email address (the problem I had in this case)
+&lt;/li&gt;&lt;li&gt;does the email address exist as a username (a reverse problem that would cause the same issue)
+&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;
+I just over coded my side to do checks of username and email address both in username_exists() and email_exists() and then make sure all 4 checks brought back false before processing.
+&lt;/p&gt;
+&lt;p&gt;
+I have been using filters already but I did not think of it here.
+&lt;/p&gt;
+&lt;p&gt;
+Let me know any more info needed.
+&lt;/p&gt;
+&lt;p&gt;
+Replying to &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/44347#comment:1" title="Comment 1"&gt;pbiron&lt;/a&gt;:
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+Welcome to trac!!!
+&lt;/p&gt;
+&lt;p&gt;
+Nice catch...in all my years building WP sites I never thought to use email addresses as usernames :-)
+&lt;/p&gt;
+&lt;p&gt;
+In the support topic you reference you say,
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+I have since added a check in my code to stop this
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+I'm not sure how you implemented that check, but I would suggest you do so using the &lt;a class="ext-link" href="https://developer.wordpress.org/reference/hooks/username_exists/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;username_exists&lt;/a&gt; filter, as follows:
+&lt;/p&gt;
+&lt;div class="wiki-code"&gt;&lt;div class="code"&gt;&lt;pre&gt;&lt;span class="cp"&gt;&amp;lt;?php&lt;/span&gt;
+&lt;span class="nx"&gt;add_filter&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="s1"&gt;'username_exists'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;'my_username_exists_filter_func'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;10&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;2&lt;/span&gt; &lt;span class="p"&gt;);&lt;/span&gt;
+&lt;span class="k"&gt;function&lt;/span&gt; &lt;span class="nf"&gt;my_username_exists_filter_func&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="nv"&gt;$user_id&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nv"&gt;$username&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+        &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="nv"&gt;$user_id&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+                &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="nv"&gt;$user_id&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+        &lt;span class="p"&gt;}&lt;/span&gt;
+        &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="nx"&gt;get_user_by&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="s1"&gt;'email'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nv"&gt;$username&lt;/span&gt; &lt;span class="p"&gt;);&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;p&gt;
+This will cause &lt;a class="ext-link" href="https://developer.wordpress.org/reference/functions/wp_create_user/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;wp_create_user()&lt;/a&gt; to return a &lt;code&gt;WP_Error&lt;/code&gt; and the new user will not be created.
+&lt;/p&gt;
+&lt;/blockquote&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44347 (WP allows creating username that is already used email address) updated</title>
+      
+        <dc:creator>pbiron</dc:creator>
+
+      <pubDate>Sun, 10 Jun 2018 23:15:17 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44347#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44347#comment:1/1528672517017219</guid>
+      <description>&lt;i&gt;Component&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Welcome to trac!!!
+&lt;/p&gt;
+&lt;p&gt;
+Nice catch...in all my years building WP sites I never thought to use email addresses as usernames :-)
+&lt;/p&gt;
+&lt;p&gt;
+In the support topic you reference you say,
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+I have since added a check in my code to stop this
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+I'm not sure how you implemented that check, but I would suggest you do so using the &lt;a class="ext-link" href="https://developer.wordpress.org/reference/hooks/username_exists/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;username_exists&lt;/a&gt; filter, as follows:
+&lt;/p&gt;
+&lt;div class="wiki-code"&gt;&lt;div class="code"&gt;&lt;pre&gt;&lt;span class="cp"&gt;&amp;lt;?php&lt;/span&gt;
+&lt;span class="nx"&gt;add_filter&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="s1"&gt;'username_exists'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;'my_username_exists_filter_func'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;10&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;2&lt;/span&gt; &lt;span class="p"&gt;);&lt;/span&gt;
+&lt;span class="k"&gt;function&lt;/span&gt; &lt;span class="nf"&gt;my_username_exists_filter_func&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="nv"&gt;$user_id&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nv"&gt;$username&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+        &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="nv"&gt;$user_id&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+                &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="nv"&gt;$user_id&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+        &lt;span class="p"&gt;}&lt;/span&gt;
+        &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="nx"&gt;get_user_by&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="s1"&gt;'email'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nv"&gt;$username&lt;/span&gt; &lt;span class="p"&gt;);&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;p&gt;
+This will cause &lt;a class="ext-link" href="https://developer.wordpress.org/reference/functions/wp_create_user/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;wp_create_user()&lt;/a&gt; to return a &lt;code&gt;WP_Error&lt;/code&gt; and the new user will not be created.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44347 (WP allows creating username that is already used email address) created</title>
+      
+        <dc:creator>phillipburger</dc:creator>
+
+      <pubDate>Sun, 10 Jun 2018 22:43:02 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44347</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44347/1528670582634728</guid>
+      <description>&lt;p&gt;
+As reported in Support Forum (&lt;a class="ext-link" href="https://wordpress.org/support/topic/wp-allows-creating-username-that-is-already-used-email-address/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://wordpress.org/support/topic/wp-allows-creating-username-that-is-already-used-email-address/&lt;/a&gt;) it seems I can create a user with wp_create_user where the user's "username" is set as a value that is an existing Email Address for another user in the WordPress system.
+&lt;/p&gt;
+&lt;p&gt;
+(I have not submitted a bug here before, so let me know if more info is needed on this and what to do next).
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #44346 (instant publish not possible) created</title>
+      
+        <dc:creator>mrsteelminer</dc:creator>
+
+      <pubDate>Sun, 10 Jun 2018 21:23:39 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44346</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44346/1528665819049649</guid>
+      <description>&lt;p&gt;
+it's no longer possible (since the privacy-update a couple of weeks ago) to instantly publish a post, a site or whatever has a "publish"-Button. I need to schedule it and with luck, some hours later, the change (in themes for example) or the page/post is published. It's very annoying, so please fix it as soon as possible :)
+&lt;/p&gt;
+&lt;p&gt;
+There are different "types" of the bug:
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;post editor: click on "publish" → it's scheduled
+&lt;/li&gt;&lt;li&gt;customizer: click on "publish" → nothing happens. You have to schedule it to get it saved.
+&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;
+PS: I'm German, so sorry for any mistake :)
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>rest-pages-controller.diff attached to Ticket #40538</title>
+      
+        <dc:creator>tomepajk</dc:creator>
+
+      <pubDate>Sun, 10 Jun 2018 20:25:17 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/40538/rest-pages-controller.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/40538/rest-pages-controller.diff/1528662317137360</guid>
+      <description>&lt;p&gt;
+tests for WP_Test_REST_Pages_Controller::test_create_item and WP_Test_REST_Pages_Controller::test_get_item
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #40538 (Fix or remove useless PHPUnit tests) updated</title>
+      
+        <dc:creator>slackbot</dc:creator>
+
+      <pubDate>Sun, 10 Jun 2018 20:19:40 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/40538#comment:11</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/40538#comment:11/1528661980460298</guid>
+      <description>&lt;p&gt;
+&lt;em&gt;This ticket was mentioned in &lt;a class="ext-link" href="https://make.wordpress.org/chat/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;Slack&lt;/a&gt; in #core by tomepajk. &lt;a class="ext-link" href="https://wordpress.slack.com/archives/core/p1528661979000039"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;View the logs&lt;/a&gt;.&lt;/em&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44274 (htmlspecialchars call in template.php needs to be update) updated</title>
+      
+        <dc:creator>leanderiversen</dc:creator>
+
+      <pubDate>Sun, 10 Jun 2018 19:08:24 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44274#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44274#comment:3/1528657704270181</guid>
+      <description>&lt;p&gt;
+Like @SergeyBiryukov mentioned, esc_attr() only accepts 1 parameter.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #43545 (Helper functions: Anonymizing data in a standardized way) updated</title>
+      
+        <dc:creator>pputzer</dc:creator>
+
+      <pubDate>Sun, 10 Jun 2018 18:02:47 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43545#comment:48</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43545#comment:48/1528653767181863</guid>
+      <description>&lt;p&gt;
+Replying to &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/43545#comment:47" title="Comment 47"&gt;sgreger&lt;/a&gt;:
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+This is the opinion of public advisory bodies on data protection, not binding law; deleting the last octet appears to indeed be common practice in Germany, though some sources (legal blogs, mainly) tend to recommend deleting two. Since privacy compliance is always about minimising risk, not absolute rules, I believe that at least a filter to set a higher anonymization level could be worth considering?
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+Thanks, now we at least know where that is coming from. While I still think that removing the last octet is fine, having a filter hook seems like a good idea.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44344 (Extending from WP_Widget_Media_Image not work) updated</title>
+      
+        <dc:creator>westonruter</dc:creator>
+
+      <pubDate>Sun, 10 Jun 2018 16:00:20 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44344#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44344#comment:1/1528646420754461</guid>
+      <description>&lt;p&gt;
+@hamedmoodi Take a look at the &lt;code&gt;WP_Widget_Media_Image&lt;/code&gt; class's constructor:
+&lt;/p&gt;
+&lt;p&gt;
+&lt;a class="ext-link" href="https://github.com/WordPress/wordpress-develop/blob/4.9.6/src/wp-includes/widgets/class-wp-widget-media-image.php#L24-L28"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://github.com/WordPress/wordpress-develop/blob/4.9.6/src/wp-includes/widgets/class-wp-widget-media-image.php#L24-L28&lt;/a&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Note that it does not pass along any arguments it takes. Maybe this is a bug, but it should be easy to work around. In your constructor, just try setting the class variables manually after calling the parent constructor. For example:
+&lt;/p&gt;
+&lt;div class="wiki-code"&gt;&lt;div class="code"&gt;&lt;pre&gt;&lt;span class="cp"&gt;&amp;lt;?php&lt;/span&gt;
+&lt;span class="c1"&gt;// ...
+&lt;/span&gt;        &lt;span class="k"&gt;public&lt;/span&gt; &lt;span class="k"&gt;function&lt;/span&gt; &lt;span class="nf"&gt;__construct&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+                &lt;span class="k"&gt;parent&lt;/span&gt;&lt;span class="o"&gt;::&lt;/span&gt;&lt;span class="na"&gt;__construct&lt;/span&gt;&lt;span class="p"&gt;();&lt;/span&gt;
+                &lt;span class="nv"&gt;$this&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="na"&gt;id_base&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s1"&gt;'custom_image'&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+                &lt;span class="nv"&gt;$this&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="na"&gt;name&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nx"&gt;__&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="s1"&gt;'Custom Image'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;'custom'&lt;/span&gt; &lt;span class="p"&gt;);&lt;/span&gt;
+&lt;span class="c1"&gt;// ...
+&lt;/span&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44345 (Error in handbook) created</title>
+      
+        <dc:creator>Old_fart</dc:creator>
+
+      <pubDate>Sun, 10 Jun 2018 15:53:35 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44345</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44345/1528646015706884</guid>
+      <description>&lt;p&gt;
+Page: &lt;a class="ext-link" href="https://developer.wordpress.org/plugins/cron/hooking-into-the-system-task-scheduler/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://developer.wordpress.org/plugins/cron/hooking-into-the-system-task-scheduler/&lt;/a&gt;
+&lt;/p&gt;
+&lt;p&gt;
+1.)
+Phrase:
+"For example if you wanted to run a command every 15 minutes regardless of the hour, day, or month it would look like:
+&lt;/p&gt;
+&lt;p&gt;
+15 * * * * command"
+&lt;/p&gt;
+&lt;p&gt;
+is incorrect. This command will runs once per hour. To run cron every 15 minutes such cron job should be:
+&lt;/p&gt;
+&lt;p&gt;
+*/15 * * * * command
+&lt;/p&gt;
+&lt;p&gt;
+2.)
+Offering people to use command in cron:
+wget &lt;a class="ext-link" href="http://YOUR_SITE_URL/wp-cron.php"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;http://YOUR_SITE_URL/wp-cron.php&lt;/a&gt;
+&lt;/p&gt;
+&lt;p&gt;
+will flood system log with useless messages.
+wget in such use case should run in quiet mode as:
+&lt;/p&gt;
+&lt;p&gt;
+wget -q -O - &lt;a class="ext-link" href="http://YOUR_SITE_URL/wp-cron.php"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;http://YOUR_SITE_URL/wp-cron.php&lt;/a&gt; &amp;gt;/dev/null 2&amp;gt;&amp;amp;1
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #44343 (Add filter hook for parent dropdown arguments) updated</title>
+      
+        <dc:creator>birgire</dc:creator>
+
+      <pubDate>Sun, 10 Jun 2018 15:34:07 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44343#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44343#comment:2/1528644847885870</guid>
+      <description>&lt;i&gt;Version&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Thanks for the ticket and the patch @obiplabon.
+&lt;/p&gt;
+&lt;p&gt;
+That seems to make sense to have it easily filterable too, though I think one could use the &lt;code&gt;get_terms_args&lt;/code&gt; filter, with a &lt;code&gt;doing_action()&lt;/code&gt;/&lt;code&gt;did_action()&lt;/code&gt; check for the corresponding ajax action hook, as a workaround.
+&lt;/p&gt;
+&lt;p&gt;
+Some notes regarding &lt;a class="attachment" href="http://core.trac.wordpress.org/attachment/ticket/44343/44343.diff" title="Attachment '44343.diff' in Ticket #44343"&gt;44343.diff&lt;/a&gt;&lt;a class="trac-rawlink" href="http://core.trac.wordpress.org/raw-attachment/ticket/44343/44343.diff" title="Download"&gt;​&lt;/a&gt;:
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;Missing &lt;code&gt;@since&lt;/code&gt; in the filter's docblock.
+&lt;/li&gt;&lt;li&gt;It would be nice to have the description for the input &lt;code&gt;@param&lt;/code&gt;.
+&lt;/li&gt;&lt;li&gt;It would be nice to have the default elements of the &lt;code&gt;$args&lt;/code&gt; input documented.
+&lt;/li&gt;&lt;li&gt;Would we ever need to only change the ajax output of &lt;code&gt;wp_dropdown_categories()&lt;/code&gt;? What about using the existing &lt;code&gt;post_edit_category_parent_dropdown_args&lt;/code&gt; filter, for the ajax &lt;code&gt;wp_dropdown_categories()&lt;/code&gt; arguments, as well, since those two outputs are so related? In that case, we can refer to the existing inline filter documentation. Here I'm assuming the ajax callback is only used for the post edit screen (we might have to verify that). Thoughts?
+&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;
+I attached the screenshot &lt;a class="attachment" href="http://core.trac.wordpress.org/attachment/ticket/44343/1528614160.png" title="Attachment '1528614160.png' in Ticket #44343"&gt;1528614160.png&lt;/a&gt;&lt;a class="trac-rawlink" href="http://core.trac.wordpress.org/raw-attachment/ticket/44343/1528614160.png" title="Download"&gt;​&lt;/a&gt;, just in case the external link goes down or changes.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>1528614160.png attached to Ticket #44343</title>
+      
+        <dc:creator>birgire</dc:creator>
+
+      <pubDate>Sun, 10 Jun 2018 15:06:41 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/44343/1528614160.png</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/44343/1528614160.png/1528643201092990</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>44296_2.patch attached to Ticket #44296</title>
+      
+        <dc:creator>ryotsun</dc:creator>
+
+      <pubDate>Sun, 10 Jun 2018 09:33:18 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/44296/44296_2.patch</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/44296/44296_2.patch/1528623198047856</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #44296 (Enable double-width space works as a separator in search query) updated</title>
+      
+        <dc:creator>ryotsun</dc:creator>
+
+      <pubDate>Sun, 10 Jun 2018 09:32:42 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44296#comment:5</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44296#comment:5/1528623162631048</guid>
+      <description>&lt;p&gt;
+@tenpura Thank you for your advice.
+&lt;/p&gt;
+&lt;p&gt;
+I should not have used mbstring. So, I've changed codes to use &lt;code&gt;str_replace&lt;/code&gt; instead.
+&lt;/p&gt;
+&lt;p&gt;
+Replying to &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/44296#comment:2" title="Comment 2"&gt;tenpura&lt;/a&gt;:
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+The mbstring PHP extension might be unavailable, so &lt;code&gt;mb_convert_kana()&lt;/code&gt; needs &lt;code&gt;function_exists()&lt;/code&gt; check.
+&lt;/p&gt;
+&lt;p&gt;
+I'm sure that ideographic space is legitimate as a search word separator in Japanese, but I'm not sure that it is treated exactly the same when it comes to search in other CJK or similar languages. If you are 100% certain about it, fine. If not, it might be safer to confirm it to &lt;a class="ext-link" href="https://make.wordpress.org/polyglots/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;polyglots community&lt;/a&gt; to minimize possibilities of breaking something.
+&lt;/p&gt;
+&lt;/blockquote&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>sampleClass.JPG attached to Ticket #44344</title>
+      
+        <dc:creator>hamedmoodi</dc:creator>
+
+      <pubDate>Sun, 10 Jun 2018 09:09:55 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/44344/sampleClass.JPG</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/44344/sampleClass.JPG/1528621795290387</guid>
+      <description>&lt;p&gt;
+Sampe class that extends from WP_Widget_Media_Image
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #44344 (Extending from WP_Widget_Media_Image not work) created</title>
+      
+        <dc:creator>hamedmoodi</dc:creator>
+
+      <pubDate>Sun, 10 Jun 2018 09:08:44 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44344</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44344/1528621724016600</guid>
+      <description>&lt;p&gt;
+Hi
+i am writing widget that just some change in WP_Widget_Media_Image class. so i extends WP_Widget_Media_Image and call 'register_widget()' in 'widgets_init' action.
+but id do not see my widget in widgets area.
+is that a bug? or not posible in wordpress development?
+thanks
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #44343 (Add filter hook for parent dropdown arguments) updated</title>
+      
+        <dc:creator>obiplabon</dc:creator>
+
+      <pubDate>Sun, 10 Jun 2018 07:39:45 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44343#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44343#comment:1/1528616385368105</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>44343.diff attached to Ticket #44343</title>
+      
+        <dc:creator>obiplabon</dc:creator>
+
+      <pubDate>Sun, 10 Jun 2018 07:39:21 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/44343/44343.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/44343/44343.diff/1528616361798579</guid>
+      <description>&lt;p&gt;
+Patch for this feature
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #44343 (Add filter hook for parent dropdown arguments) created</title>
+      
+        <dc:creator>obiplabon</dc:creator>
+
+      <pubDate>Sun, 10 Jun 2018 07:10:21 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44343</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44343/1528614621894096</guid>
+      <description>&lt;p&gt;
+We can easily control parent dropdown arguments on taxonomy screen and post edit screen (1). But on post edit screen it's not possible to control the parent dropdown arguments for ajax call (2). So we need a filter hook for that.
+&lt;/p&gt;
+&lt;p&gt;
+&lt;a style="padding:0; border:none" href="http://pix.toile-libre.org/upload/original/1528614160.png"&gt;&lt;img src="http://pix.toile-libre.org/upload/original/1528614160.png" alt="http://pix.toile-libre.org/upload/original/1528614160.png" crossorigin="anonymous" title="http://pix.toile-libre.org/upload/original/1528614160.png" /&gt;&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #44339 (Emoji: Update Twemoji to 11.0) updated</title>
+      
+        <dc:creator>kraftbj</dc:creator>
+
+      <pubDate>Sun, 10 Jun 2018 03:34:29 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44339#comment:5</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44339#comment:5/1528601669935523</guid>
+      <description>&lt;p&gt;
+The test works for me on OS X in Chrome and Firefox, but is not catching Safari's lack of support.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>44339.2.diff attached to Ticket #44339</title>
+      
+        <dc:creator>kraftbj</dc:creator>
+
+      <pubDate>Sun, 10 Jun 2018 03:27:28 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/44339/44339.2.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/44339/44339.2.diff/1528601248954250</guid>
+      <description>&lt;p&gt;
+Add test for superhero+ZWJ+female
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #44339 (Emoji: Update Twemoji to 11.0) updated</title>
+      
+        <dc:creator>kraftbj</dc:creator>
+
+      <pubDate>Sun, 10 Jun 2018 03:10:09 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44339#comment:4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44339#comment:4/1528600209597129</guid>
+      <description>&lt;p&gt;
+Female superhero works for me. I'm giving that a go now and will push up an updated patch shortly.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44339 (Emoji: Update Twemoji to 11.0) updated</title>
+      
+        <dc:creator>peterwilsoncc</dc:creator>
+
+      <pubDate>Sun, 10 Jun 2018 02:58:57 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44339#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44339#comment:3/1528599537521371</guid>
+      <description>&lt;p&gt;
+I’ve got a jsbin I use to test the tests that might help with writing them at &lt;a class="ext-link" href="https://jsbin.com/palagay/4/edit?js,output"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://jsbin.com/palagay/4/edit?js,output&lt;/a&gt;
+&lt;/p&gt;
+&lt;p&gt;
+In the past we’ve hit a bug with skin tone modifiers returning false positives in safari that I’m worried we might hit with hair colour modifiers. I suspect it’s because they’re modifiers not intended to be displayed on their own.
+&lt;/p&gt;
+&lt;p&gt;
+Gender modifiers test correctly so is it possible to use superhero + ZWJ + a gender?
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44342 (Commenter cookie consent message should not be displayed if the cookie ...) updated</title>
+      
+        <dc:creator>felipeelia</dc:creator>
+
+      <pubDate>Sun, 10 Jun 2018 02:01:20 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44342#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44342#comment:1/1528596080718602</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>44342.diff attached to Ticket #44342</title>
+      
+        <dc:creator>felipeelia</dc:creator>
+
+      <pubDate>Sun, 10 Jun 2018 02:00:47 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/44342/44342.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/44342/44342.diff/1528596047059539</guid>
+      <description></description>
+      <category>attachment</category>
+    </item>
+   </channel>
+</rss>

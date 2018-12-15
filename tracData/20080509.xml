@@ -1,0 +1,1930 @@
+<?xml version="1.0"?>
+<rss xmlns:dc="http://purl.org/dc/elements/1.1/" version="2.0">
+  <channel>
+    <title>WordPress Trac</title>
+    <link>http://core.trac.wordpress.org/timeline</link>
+    <description>Trac Timeline</description>
+    <language>en-US</language>
+    <generator>Trac 1.2.2</generator>
+    <image>
+      <title>WordPress Trac</title>
+      <url>http://core.trac.wordpress.org/chrome/site/your_project_logo.png</url>
+      <link>http://core.trac.wordpress.org/timeline</link>
+    </image>
+    <item>
+      <title>Ticket #6094 ("Action" links on Edit Comments) reopened</title>
+      
+        <dc:creator>Pinoy.ca</dc:creator>
+
+      <pubDate>Fri, 09 May 2008 23:47:18 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/6094#comment:8</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/6094#comment:8/1210376838000000</guid>
+      <description>&lt;p&gt;
+Reopening this because I too would like the 'Edit' among the actions.  Have a nice day.
+&lt;/p&gt;
+</description>
+      <category>reopenedticket</category>
+    </item><item>
+      <title>may9-category-sorting.diff attached to Ticket #6952</title>
+      
+        <dc:creator>jeremyclarke</dc:creator>
+
+      <pubDate>Fri, 09 May 2008 22:32:49 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/6952/may9-category-sorting.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/6952/may9-category-sorting.diff/1210372369000000</guid>
+      <description>&lt;p&gt;
+add php alpha sorting to get_terms() in taxonomy.php
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #6952 (non-latin category names not alpha sorted (broken in 2.5.1)) created</title>
+      
+        <dc:creator>jeremyclarke</dc:creator>
+
+      <pubDate>Fri, 09 May 2008 22:32:12 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/6952</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/6952/1210372332000000</guid>
+      <description>&lt;p&gt;
+This is a wierd one, but the revamping of the category code to use the Walker class in 2.5.1 broke the alphabetical sorting of categories for my arabic editor (seperate site in arabic with translations of english content). We have more than 200 categories in a hierarchy, so it is vital that authors be able to scan quickly to find categories without reading each one.
+&lt;/p&gt;
+&lt;p&gt;
+In all previous versions it worked fine, but at 2.5.1 there was no discernible sorting of category names. I tracked it down to the removal of the sort_cats() function, which was used with usort() to sort the categories array alphabetically inside the get_nested_categories() function. It uses the strcasecmp() php function to compare the names which seems to work in all cases at sorting Arabic (my Bangla editor confirmed that Bangla is also affected, there must also be others).
+&lt;/p&gt;
+&lt;p&gt;
+Right now the get_terms() function is supposed to deal with the sorting using the 'orderby' argument and feeding that to the SQL so that the results are already sorted (~line 595 wp-includes/taxonomy.php).
+&lt;/p&gt;
+&lt;p&gt;
+Unfortunately, for my setup (which worked before), Arabic category names just don't get sorted by name. I am using mysql version 5.0.22 and the collation of the whole DB is utf8_unicode_ci, it's possible that a different setup would fix the problem, but I think that having it work on a standard setup by default it a very good idea (tested it on a centos private server and on Dreamhost with same results).
+&lt;/p&gt;
+&lt;p&gt;
+Now, I can write a quick bit of plugin code to hook into
+&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;
+apply_filters('get_terms', $terms, $taxonomies, $args);
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+and run the sorting function myself on the categories, but it seems to me that it would be a lot more user-friendly to make this part of core so that users (especially Arabic users, who are way less likely to be able to wade through forums and trac to find out why their categories are randomly sorted) don't even have to think about it, it should just work.
+&lt;/p&gt;
+&lt;p&gt;
+As a point of consideration, I think it would be foolish to let a plugin called "Make Non-Latin Category Names be Sorted on Write Screen" even exist.
+&lt;/p&gt;
+&lt;p&gt;
+My patch creates the _usort_terms_by_name() function to do the sorting. It seems to be exactly what is needed. I set the actual sorting to happen near the end of &amp;amp;get_terms() before the $terms array is reset but after empty terms are removed, obviously it only does the sorting if the $args&lt;a class="missing wiki"&gt;orderby?&lt;/a&gt; value is 'name'. If you guys think it should happen elsewhere no beef by me, though it seems that somewhere in get_terms() is the best idea so that other times when it's called the same effect is felt (like a sidebar list, which should also be alphabetical if that was requested). If the position of the sort in get_terms() seems unelegant we could instead do an add_filter('get_terms') around line 595 when we're already going through the $orderby value, but the effect will be the exact same (let me know if you'd like another patch in that format). Here's the basic code:
+&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;
+&lt;em&gt; Resort by name in PHP in case SQL didn't (for non-latin alphabets)
+if ( 'name' == $args&lt;a class="missing wiki"&gt;orderby?&lt;/a&gt; )
+&lt;/em&gt;&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;
+usort( $terms, '_usort_terms_by_name' );
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+Any thougts, scoldings welcome. Sorry to reintroduce bloat, but I think it would be valuable for all the international WP users.
+&lt;/p&gt;
+&lt;p&gt;
+(it would be great if this could go into 2.5.2 as it's pretty non-destructive and basically reverts a behavior from &amp;lt;2.3.3
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #6709 (Usability changes to write post and write page panels) updated</title>
+      
+        <dc:creator>MichaelH</dc:creator>
+
+      <pubDate>Fri, 09 May 2008 21:20:32 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/6709#comment:8</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/6709#comment:8/1210368032000000</guid>
+      <description>&lt;p&gt;
+Pointing to extend idea:
+&lt;a class="ext-link" href="http://wordpress.org/extend/ideas/topic.php?id=1354"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;http://wordpress.org/extend/ideas/topic.php?id=1354&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #6942 (typing two spaces in visual editor creates Â characters in displayed post) updated</title>
+      
+        <dc:creator>azaozz</dc:creator>
+
+      <pubDate>Fri, 09 May 2008 21:01:57 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/6942#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/6942#comment:1/1210366917000000</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Can you clarify: this happens in new posts only or in old, or both (old meaning published before upgrading to WordPress 2.5)? Also the workaround is to edit the post in TinyMCE or the HTML editor?
+&lt;/p&gt;
+&lt;p&gt;
+Looking at the source of the example page, it seems that the Unicode nbsp character U+00A0 is split in two ascii characters \xC2\xA0 and then converted to html entities: &amp;amp;Acirc &amp;amp;nbsp. There's no code in WordPress that would do this.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>theme_l10n_directory.diff attached to Ticket #6951</title>
+      
+        <dc:creator>filosofo</dc:creator>
+
+      <pubDate>Fri, 09 May 2008 20:26:00 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/6951/theme_l10n_directory.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/6951/theme_l10n_directory.diff/1210364760000000</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #6951 (load_theme_textdomain should allow one to specify directory) created</title>
+      
+        <dc:creator>filosofo</dc:creator>
+
+      <pubDate>Fri, 09 May 2008 20:25:52 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/6951</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/6951/1210364752000000</guid>
+      <description>&lt;p&gt;
+Currently, you have to put .mo files in the top-most part of the theme directory, which can make things kind of crowded.  It would be good to be able to specify another directory, so one could organize them in a sub-directory.
+&lt;/p&gt;
+&lt;p&gt;
+My patch preserves existing behavior by default, but adds an extra argument for load_theme_textdomain for the directory path.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #6950 (2.5.1 install ignores table_prefix for multiple blog/single database) created</title>
+      
+        <dc:creator>ssinn</dc:creator>
+
+      <pubDate>Fri, 09 May 2008 19:36:53 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/6950</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/6950/1210361813000000</guid>
+      <description>&lt;p&gt;
+&lt;a class="ext-link" href="http://wordpress.org/support/topic/174688?replies=9"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;http://wordpress.org/support/topic/174688?replies=9&lt;/a&gt;
+We are installing multiple instances or WP using a single database. table_prefix in wp-config.php is used to isolate each installation.
+The primary installation of WP 2.5.1 works fine, using the table_prefix in wp-config.php. The second or later installation seems to ignore the table_prefix and returns the error "Already Installed" when accessing &lt;a class="ext-link" href="http://blog.domain2.tld/wp-admin/install.php"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;http://blog.domain2.tld/wp-admin/install.php&lt;/a&gt;.
+The setup we are using worked correctly in 2.3.3. I suspect wp-db.php is doing something differently between versions.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #6485 (TinyMCE strips br tags/empty paragraphs in table cells) updated</title>
+      
+        <dc:creator>Jairus</dc:creator>
+
+      <pubDate>Fri, 09 May 2008 19:02:36 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/6485#comment:5</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/6485#comment:5/1210359756000000</guid>
+      <description>&lt;p&gt;
+Replying to &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/6485#comment:4" title="Comment 4"&gt;azaozz&lt;/a&gt;:
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+The only error here seems to be that wpautop removes the closing &amp;lt;/p&amp;gt; tag when an empty paragraph is immediately above a table, which is a very rare case as tables are not supported by default in the WYSIWYG editor and empty paragraphs are considered bad html coding practice.
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+Linebreaks within table cells are being removed. That's a pretty big deal.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #6947 (Add the Generator element in feeds through the ...) updated</title>
+      
+        <dc:creator>markjaquith</dc:creator>
+
+      <pubDate>Fri, 09 May 2008 18:26:13 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/6947#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/6947#comment:1/1210357573000000</guid>
+      <description>&lt;p&gt;
+I agree.  Let's see the patch!
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #6890 (Canonical redirection broken for empty host in 'home' option) closed</title>
+      
+        <dc:creator>markjaquith</dc:creator>
+
+      <pubDate>Fri, 09 May 2008 18:23:06 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/6890#comment:7</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/6890#comment:7/1210357386000000</guid>
+      <description>fixed: &lt;p&gt;
+(In &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/7916" title="Do not use the &amp;#34;home&amp;#34;-supplied host for canonical redirects if no host ..."&gt;[7916]&lt;/a&gt;) Do not use the "home"-supplied host for canonical redirects if no host is there specified. props thenlich. fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/6890" title="#6890: defect (bug): Canonical redirection broken for empty host in 'home' option (closed: fixed)"&gt;#6890&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Changeset [7916]: Do not use the "home"-supplied host for canonical redirects if no host ...</title>
+      
+        <dc:creator>markjaquith</dc:creator>
+
+      <pubDate>Fri, 09 May 2008 18:23:05 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/7916</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/7916/1210357385576852</guid>
+      <description>&lt;p&gt;
+Do not use the "home"-supplied host for canonical redirects if no host is there specified. props thenlich. fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/6890" title="#6890: defect (bug): Canonical redirection broken for empty host in 'home' option (closed: fixed)"&gt;#6890&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Ticket #6890 (Canonical redirection broken for empty host in 'home' option) updated</title>
+      
+        <dc:creator>markjaquith</dc:creator>
+
+      <pubDate>Fri, 09 May 2008 18:14:28 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/6890#comment:6</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/6890#comment:6/1210356868000000</guid>
+      <description>&lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+if siteurl does not contain a hostname, we cannot rewrite to it
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+True.  So it's a good patch from a CYA perspective, even if your intended use is unorthodox.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #6943 (Published Pages are set to private after saving) updated</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Fri, 09 May 2008 18:07:58 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/6943#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/6943#comment:1/1210356478000000</guid>
+      <description>&lt;p&gt;
+With the post revisioning changes in 2.6, separate edit_published_pages and publish_pages capabilities actually make sense.  I think we need to fix this by decoupling private from publish.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #6938 (Allow wp-content directory to exist in a custom location (not relative ...) updated</title>
+      
+        <dc:creator>sambauers</dc:creator>
+
+      <pubDate>Fri, 09 May 2008 17:28:24 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/6938#comment:5</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/6938#comment:5/1210354104000000</guid>
+      <description>&lt;p&gt;
+Replying to &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/6938#comment:4" title="Comment 4"&gt;ryan&lt;/a&gt;:
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+Can we make WP_CONTENT_DIR be an absolute path so that we don't have to worry with ".."?
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+Sounds good and I was already looking at doing this based on some conversations with mdawaffe.
+&lt;/p&gt;
+&lt;p&gt;
+I was also uncomfortable with the dotted relative paths. I'll produce another patch which does this in a more complete and clean fashion.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #6938 (Allow wp-content directory to exist in a custom location (not relative ...) updated</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Fri, 09 May 2008 17:16:47 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/6938#comment:4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/6938#comment:4/1210353407000000</guid>
+      <description>&lt;p&gt;
+Can we make WP_CONTENT_DIR be an absolute path so that we don't have to worry with ".."?  Things like PLUGINDIR that expect it to be relative to root will need to be changed around.  Something like:
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;define( 'WP_CONTENT_DIR', ABSPATH . 'wp-content' );
+define( 'WP_CONTENT_URL', 'wp-content'); // Relative to get_option('home'), not ABSPATH
+define( 'WP_PLUGIN_DIR', WP_CONTENT_DIR . '/plugins');
+define( 'WP_PLUGIN_URL', WP_CONTENT_URL . '/plugins'); // Used for plugin_basename()
+define( 'PLUGINDIR', 'wp-content/plugins'); // Relative to ABSPATH.  For back compat.
+&lt;/pre&gt;&lt;p&gt;
+Calculating WP_CONTENT_URL will require stripping get_home_path() from ABSPATH to get a path relative to home rather than siteurl.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #6949 (Widget IDs need to be made lowercase) closed</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Fri, 09 May 2008 16:29:18 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/6949#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/6949#comment:1/1210350558000000</guid>
+      <description>fixed: &lt;p&gt;
+(In &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/7915" title="strtolower widget id. Props filosofo. fixes #6949"&gt;[7915]&lt;/a&gt;) strtolower widget id. Props filosofo. fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/6949" title="#6949: defect (bug): Widget IDs need to be made lowercase (closed: fixed)"&gt;#6949&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Changeset [7915]: strtolower widget id. Props filosofo. fixes #6949</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Fri, 09 May 2008 16:29:17 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/7915</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/7915/1210350557671921</guid>
+      <description>&lt;p&gt;
+strtolower widget id. Props filosofo. fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/6949" title="#6949: defect (bug): Widget IDs need to be made lowercase (closed: fixed)"&gt;#6949&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Ticket #6941 (Update wp.getCommentCount XML-RPC method to use wp_count_comments() ...) closed</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Fri, 09 May 2008 16:02:45 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/6941#comment:4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/6941#comment:4/1210348965000000</guid>
+      <description>fixed: &lt;p&gt;
+(In &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/7914" title="Use wp_count_comments() in wp.getCommentCount. Props josephscott. ..."&gt;[7914]&lt;/a&gt;) Use wp_count_comments() in wp.getCommentCount. Props josephscott. fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/6941" title="#6941: defect (bug): Update wp.getCommentCount XML-RPC method to use wp_count_comments() ... (closed: fixed)"&gt;#6941&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Changeset [7914]: Use wp_count_comments() in wp.getCommentCount. Props josephscott. ...</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Fri, 09 May 2008 16:02:44 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/7914</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/7914/1210348964864221</guid>
+      <description>&lt;p&gt;
+Use wp_count_comments() in wp.getCommentCount. Props josephscott. fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/6941" title="#6941: defect (bug): Update wp.getCommentCount XML-RPC method to use wp_count_comments() ... (closed: fixed)"&gt;#6941&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Changeset [7913]: Revisioning for pages from mdawaffe. see #6775</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Fri, 09 May 2008 15:59:17 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/7913</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/7913/1210348757075375</guid>
+      <description>&lt;p&gt;
+Revisioning for pages from mdawaffe. see &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/6775" title="#6775: enhancement: Post Revisions (closed: fixed)"&gt;#6775&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Ticket #6775 (Post Revisions) updated</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Fri, 09 May 2008 15:59:17 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/6775#comment:23</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/6775#comment:23/1210348757000000</guid>
+      <description>&lt;p&gt;
+(In &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/7913" title="Revisioning for pages from mdawaffe. see #6775"&gt;[7913]&lt;/a&gt;) Revisioning for pages from mdawaffe. see &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/6775" title="#6775: enhancement: Post Revisions (closed: fixed)"&gt;#6775&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>widget_id.diff attached to Ticket #6949</title>
+      
+        <dc:creator>filosofo</dc:creator>
+
+      <pubDate>Fri, 09 May 2008 15:47:04 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/6949/widget_id.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/6949/widget_id.diff/1210348024000000</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #6949 (Widget IDs need to be made lowercase) created</title>
+      
+        <dc:creator>filosofo</dc:creator>
+
+      <pubDate>Fri, 09 May 2008 15:46:54 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/6949</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/6949/1210348014000000</guid>
+      <description>&lt;p&gt;
+I've been beating my head against a wall trying to figure out why my multi-widget refused to save.  It turns out that it was because I was using !camelCase in the id argument of the wp_register_sidebar_widget function call. wp_get_sidebars_widgets checks whether the name matches the strtolower version of itself, so without my patch, an id of varied case will fail the check every time.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #6948 (add_meta_box sample code has syntax error) closed</title>
+      
+        <dc:creator>filosofo</dc:creator>
+
+      <pubDate>Fri, 09 May 2008 15:20:33 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/6948#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/6948#comment:1/1210346433000000</guid>
+      <description>invalid: &lt;p&gt;
+The codex is a wiki, so you can edit it yourself, using the same username you used to create this ticket.
+&lt;/p&gt;
+</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Ticket #6948 (add_meta_box sample code has syntax error) created</title>
+      
+        <dc:creator>ithinkihaveacat</dc:creator>
+
+      <pubDate>Fri, 09 May 2008 15:18:39 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/6948</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/6948/1210346319000000</guid>
+      <description>&lt;p&gt;
+The sample code at:
+&lt;/p&gt;
+&lt;p&gt;
+&lt;a class="ext-link" href="http://codex.wordpress.org/Function_Reference/add_meta_box"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;http://codex.wordpress.org/Function_Reference/add_meta_box&lt;/a&gt;
+&lt;/p&gt;
+&lt;p&gt;
+has a small syntax error: there's a semi-colon missing from the line:
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;$mydata = $_POST['myplugin_new_field']
+&lt;/pre&gt;&lt;p&gt;
+(Near the bottom.)
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #6947 (Add the Generator element in feeds through the ...) created</title>
+      
+        <dc:creator>gnot</dc:creator>
+
+      <pubDate>Fri, 09 May 2008 14:06:43 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/6947</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/6947/1210342003000000</guid>
+      <description>&lt;p&gt;
+The &lt;em&gt;generator&lt;/em&gt; metatag is added to the HTML pages through the &lt;code&gt;wp_head()&lt;/code&gt; hook.
+&lt;/p&gt;
+&lt;p&gt;
+I think it would be more useful to do the same in the feeds. The &lt;em&gt;generator&lt;/em&gt; element could be added through the &lt;code&gt;{rss2|atom|rdf|rss}_head&lt;/code&gt; hook.
+&lt;/p&gt;
+&lt;p&gt;
+This way it would be easier for plugin authors to totally remove the &lt;em&gt;generator&lt;/em&gt; tags for security reasons or make modifications to the &lt;em&gt;generator&lt;/em&gt; string.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #6946 (Aksimet plugin hast XHMTL bug - does not validate) updated</title>
+      
+        <dc:creator>DD32</dc:creator>
+
+      <pubDate>Fri, 09 May 2008 10:56:19 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/6946#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/6946#comment:1/1210330579000000</guid>
+      <description>&lt;p&gt;
+You probably should file a bug on the Akismet bug tracker instead&lt;br /&gt;
+&lt;a class="ext-link" href="http://dev.wp-plugins.org/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;http://dev.wp-plugins.org/&lt;/a&gt; -&amp;gt; Component: Akismet
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #6946 (Aksimet plugin hast XHMTL bug - does not validate) created</title>
+      
+        <dc:creator>tin68</dc:creator>
+
+      <pubDate>Fri, 09 May 2008 10:49:44 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/6946</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/6946/1210330184000000</guid>
+      <description>&lt;p&gt;
+Akismet plugin has a XHTML bug - does not validate (all realeases, long time ago).
+&lt;/p&gt;
+&lt;p&gt;
+Line 780 in version 2.5.1 should be:
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;&amp;lt;div id="akismetwrap"&amp;gt;&amp;lt;div id="akismetstats"&amp;gt;&amp;lt;a id="aka" href="http://akismet.com" title=""&amp;gt;&amp;lt;?php printf( __( '%1$s %2$sspam comments%3$s %4$sblocked by%5$s&amp;lt;br /&amp;gt;%6$sAkismet%7$s' ), '&amp;lt;span id="akismet1"&amp;gt;&amp;lt;span id="akismetcount"&amp;gt;' . $count . '&amp;lt;/span&amp;gt;', '&amp;lt;span id="akismetsc"&amp;gt;', '&amp;lt;/span&amp;gt;&amp;lt;/span&amp;gt;', '&amp;lt;span id="akismet2"&amp;gt;&amp;lt;span id="akismetbb"&amp;gt;', '&amp;lt;/span&amp;gt;', '&amp;lt;span id="akismeta"&amp;gt;', '&amp;lt;/span&amp;gt;&amp;lt;/span&amp;gt;' ); ?&amp;gt;&amp;lt;/a&amp;gt;&amp;lt;/div&amp;gt;&amp;lt;/div&amp;gt;
+&lt;/pre&gt;&lt;p&gt;
+Bug: I the original plugin there is a &amp;lt;div&amp;gt; after an opened &amp;lt;a&amp;gt; - this is not valid.
+&lt;/p&gt;
+&lt;p&gt;
+Martin
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #6368 (Gallery display enhancements) updated</title>
+      
+        <dc:creator>thee17</dc:creator>
+
+      <pubDate>Fri, 09 May 2008 10:37:31 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/6368#comment:7</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/6368#comment:7/1210329451000000</guid>
+      <description>&lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #6945 (Add wp_header hook) created</title>
+      
+        <dc:creator>sirzooro</dc:creator>
+
+      <pubDate>Fri, 09 May 2008 09:06:07 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/6945</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/6945/1210323967000000</guid>
+      <description>&lt;p&gt;
+This new hook should be called just after &amp;lt;body&amp;gt; tag is printed. I am going to print some HTML code at the very beginning of every page, without the need to change every theme I use.
+This new function will be a great addition for Header-Footer plugin (&lt;a class="ext-link" href="http://wordpress.org/extend/plugins/header-footer/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;http://wordpress.org/extend/plugins/header-footer/&lt;/a&gt;) too.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #6890 (Canonical redirection broken for empty host in 'home' option) updated</title>
+      
+        <dc:creator>jergendutch</dc:creator>
+
+      <pubDate>Fri, 09 May 2008 08:30:04 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/6890#comment:5</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/6890#comment:5/1210321804000000</guid>
+      <description>&lt;i&gt;Cc&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+This feature is sorely needed by people using wordpress in a development/staging versus live environment where the same config must be used in both places, and so live should not get a development hostname by accident.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #6944 (Blog URLs should not require hostname) closed</title>
+      
+        <dc:creator>jergendutch</dc:creator>
+
+      <pubDate>Fri, 09 May 2008 08:28:30 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/6944#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/6944#comment:3/1210321710000000</guid>
+      <description>duplicate: &lt;p&gt;
+Let's mark it as a duplicate.
+&lt;/p&gt;
+</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Ticket #6944 (Blog URLs should not require hostname) updated</title>
+      
+        <dc:creator>DD32</dc:creator>
+
+      <pubDate>Fri, 09 May 2008 07:39:40 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/6944#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/6944#comment:2/1210318780000000</guid>
+      <description>&lt;p&gt;
+See &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/6890" title="#6890: defect (bug): Canonical redirection broken for empty host in 'home' option (closed: fixed)"&gt;#6890&lt;/a&gt;, I'm pretty sure this is basically a duplicate, but not strictly sure as this could be referencing other uses of urls around the place.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #6944 (Blog URLs should not require hostname) updated</title>
+      
+        <dc:creator>jergendutch</dc:creator>
+
+      <pubDate>Fri, 09 May 2008 07:30:07 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/6944#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/6944#comment:1/1210318207000000</guid>
+      <description>&lt;i&gt;Version&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #6944 (Blog URLs should not require hostname) created</title>
+      
+        <dc:creator>jergendutch</dc:creator>
+
+      <pubDate>Fri, 09 May 2008 07:30:00 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/6944</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/6944/1210318200000000</guid>
+      <description>&lt;p&gt;
+Wordpress 2.5.1 (and probably other versions) requires a hostname in the Blog URL configuration field.
+&lt;/p&gt;
+&lt;p&gt;
+Wordpress should behave gracefully if the hostname is missing by substituting $_SERVER[SERVER_NAME] instead.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #6938 (Allow wp-content directory to exist in a custom location (not relative ...) updated</title>
+      
+        <dc:creator>sambauers</dc:creator>
+
+      <pubDate>Fri, 09 May 2008 07:21:23 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/6938#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/6938#comment:3/1210317683000000</guid>
+      <description>&lt;p&gt;
+Missed some hard-coded references in the previous patch.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>allow-wp-content-directory-outside-of-webroot.patch attached to Ticket #6938</title>
+      
+        <dc:creator>sambauers</dc:creator>
+
+      <pubDate>Fri, 09 May 2008 07:20:36 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/6938/allow-wp-content-directory-outside-of-webroot.patch</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/6938/allow-wp-content-directory-outside-of-webroot.patch/1210317636000000</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>post.diff attached to Ticket #6943</title>
+      
+        <dc:creator>imwebgefunden</dc:creator>
+
+      <pubDate>Fri, 09 May 2008 07:06:02 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/6943/post.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/6943/post.diff/1210316762000000</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>edit-page-form.diff attached to Ticket #6943</title>
+      
+        <dc:creator>imwebgefunden</dc:creator>
+
+      <pubDate>Fri, 09 May 2008 07:05:32 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/6943/edit-page-form.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/6943/edit-page-form.diff/1210316732000000</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #6943 (Published Pages are set to private after saving) created</title>
+      
+        <dc:creator>imwebgefunden</dc:creator>
+
+      <pubDate>Fri, 09 May 2008 07:05:12 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/6943</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/6943/1210316712000000</guid>
+      <description>&lt;p&gt;
+First time this is reported by ticket &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/6777" title="#6777: defect (bug): Published Pages are set to private after saving (closed: fixed)"&gt;#6777&lt;/a&gt;. A partial fix is in changesets &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/7750" title="Check publish_pages capability, not publish_posts.  Props matthijs. ..."&gt;[7750]&lt;/a&gt; and &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/7751" title="Check publish_pages capability, not publish_posts.  Props matthijs. ..."&gt;[7751]&lt;/a&gt;
+&lt;/p&gt;
+&lt;p&gt;
+To solve the final problem, further changes necessary. The attached patches for wp-admin/edit-page-form.php and wp-admin/includes/post.php expand the tests and eliminate the reported problem.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #6942 (typing two spaces in visual editor creates Â characters in displayed post) created</title>
+      
+        <dc:creator>meonkeys</dc:creator>
+
+      <pubDate>Fri, 09 May 2008 06:04:01 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/6942</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/6942/1210313041000000</guid>
+      <description>&lt;p&gt;
+Typing two spaces after a period causes Â characters to be displayed when post is viewed on live Web site. Database upgraded to UTF-8, problem persists. Example: monsenfamily.com/?p=1378
+&lt;/p&gt;
+&lt;p&gt;
+Repros in Firefox 2 on Windows and Linux as well as IE 6 on Windows.
+&lt;/p&gt;
+&lt;p&gt;
+Workaround: after spotting a post with spurious characters, visit "Manage -&amp;gt; Posts" after logging in, click on the offending post and click "Save". The Âs should disappear.
+&lt;/p&gt;
+&lt;p&gt;
+Possibly related to ticket 6562.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #6938 (Allow wp-content directory to exist in a custom location (not relative ...) updated</title>
+      
+        <dc:creator>sambauers</dc:creator>
+
+      <pubDate>Fri, 09 May 2008 04:22:04 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/6938#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/6938#comment:2/1210306924000000</guid>
+      <description>&lt;p&gt;
+mdawaffe raised a point on IRC that some file path sanitisation function may not like the idea of relative paths i.e. the ".." in the paths. This would need checking.
+&lt;/p&gt;
+&lt;p&gt;
+Also, directory traversal may not be allowed on some hosts in PHP safe mode, but I think it's OK to have a feature that isn't available to PHP safe mode users. IN any case, this change doesn't alter or break the default behaviour.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #6933 (Allow wp-config.php to exist one level up from WordPress root directory) updated</title>
+      
+        <dc:creator>mdawaffe</dc:creator>
+
+      <pubDate>Fri, 09 May 2008 04:13:05 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/6933#comment:10</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/6933#comment:10/1210306385000000</guid>
+      <description>&lt;p&gt;
++1.  Clean checkouts are awesome.
+&lt;/p&gt;
+&lt;p&gt;
+It doesn't cause any problems for anyone who wants to keep wp-config.php where it is.
+&lt;/p&gt;
+&lt;p&gt;
+The only hassle it generates is for the people who &lt;em&gt;do&lt;/em&gt; want to move wp-config.php up a directory since some plugins call wp-config.php directly (with varying degrees of success even at the moment, I might add), as has been noted.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #6938 (Allow wp-content directory to exist in a custom location (not relative ...) updated</title>
+      
+        <dc:creator>mdawaffe</dc:creator>
+
+      <pubDate>Fri, 09 May 2008 04:08:21 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/6938#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/6938#comment:1/1210306101000000</guid>
+      <description>&lt;p&gt;
++1
+&lt;/p&gt;
+&lt;p&gt;
+There were some false starts to allow the plugins dir, themes dir, languages dir to be defined individually: &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/4039" title="#4039: enhancement: Allow Plugins and themes to come from user definable dirs (closed: wontfix)"&gt;#4039&lt;/a&gt; (and maybe others).
+&lt;/p&gt;
+&lt;p&gt;
+Note that you'll also need to define &lt;code&gt;WP_CONTENT_URL&lt;/code&gt; or something similar and have the various plugin and theme functions reference that instead of &lt;code&gt;get_option( 'wp_url' )&lt;/code&gt; (or whatever it is).
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #6941 (Update wp.getCommentCount XML-RPC method to use wp_count_comments() ...) updated</title>
+      
+        <dc:creator>josephscott</dc:creator>
+
+      <pubDate>Fri, 09 May 2008 01:09:15 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/6941#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/6941#comment:3/1210295355000000</guid>
+      <description>&lt;p&gt;
+Can't type either:
+&lt;/p&gt;
+&lt;p&gt;
+"Updated patch so that it isn't truncated"
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #6941 (Update wp.getCommentCount XML-RPC method to use wp_count_comments() ...) updated</title>
+      
+        <dc:creator>josephscott</dc:creator>
+
+      <pubDate>Fri, 09 May 2008 01:08:29 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/6941#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/6941#comment:2/1210295309000000</guid>
+      <description>&lt;p&gt;
+Updated patch so the it isn't truncated :-(
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>xmlrpc.php.diff attached to Ticket #6941</title>
+      
+        <dc:creator>josephscott</dc:creator>
+
+      <pubDate>Fri, 09 May 2008 01:08:05 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/6941/xmlrpc.php.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/6941/xmlrpc.php.diff/1210295285000000</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #6941 (Update wp.getCommentCount XML-RPC method to use wp_count_comments() ...) updated</title>
+      
+        <dc:creator>markjaquith</dc:creator>
+
+      <pubDate>Fri, 09 May 2008 01:02:26 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/6941#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/6941#comment:1/1210294946000000</guid>
+      <description>&lt;p&gt;
+Patch is malformed.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #6941 (Update wp.getCommentCount XML-RPC method to use wp_count_comments() ...) created</title>
+      
+        <dc:creator>josephscott</dc:creator>
+
+      <pubDate>Fri, 09 May 2008 00:58:54 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/6941</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/6941/1210294734000000</guid>
+      <description>&lt;p&gt;
+The get_comment_count() function that the wp.getCommentCount method should be replaced by the wp_count_comments().  The included patch makes this happen.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Changeset [7912]: Remove last remaining user level checks in favor of capabilities ...</title>
+      
+        <dc:creator>markjaquith</dc:creator>
+
+      <pubDate>Fri, 09 May 2008 00:45:17 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/7912</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/7912/1210293917326822</guid>
+      <description>&lt;p&gt;
+Remove last remaining user level checks in favor of capabilities checks. props filosofo. fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/6940" title="#6940: defect (bug): User user caps instead of levels (closed: fixed)"&gt;#6940&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Ticket #6940 (User user caps instead of levels) closed</title>
+      
+        <dc:creator>markjaquith</dc:creator>
+
+      <pubDate>Fri, 09 May 2008 00:45:17 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/6940#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/6940#comment:1/1210293917000000</guid>
+      <description>fixed: &lt;p&gt;
+(In &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/7912" title="Remove last remaining user level checks in favor of capabilities ..."&gt;[7912]&lt;/a&gt;) Remove last remaining user level checks in favor of capabilities checks. props filosofo. fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/6940" title="#6940: defect (bug): User user caps instead of levels (closed: fixed)"&gt;#6940&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>6775.5.diff attached to Ticket #6775</title>
+      
+        <dc:creator>mdawaffe</dc:creator>
+
+      <pubDate>Thu, 08 May 2008 23:09:44 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/6775/6775.5.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/6775/6775.5.diff/1210288184000000</guid>
+      <description>&lt;p&gt;
+delete deleted post's revisions, constant for turning off revisions
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #6775 (Post Revisions) updated</title>
+      
+        <dc:creator>mdawaffe</dc:creator>
+
+      <pubDate>Thu, 08 May 2008 23:01:22 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/6775#comment:22</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/6775#comment:22/1210287682000000</guid>
+      <description>&lt;p&gt;
+All the above backend TODOs are now done with patches .3.diff, .4.diff and .5.diff.
+&lt;/p&gt;
+&lt;p&gt;
+We need to decide if we want to be able to display revisions and/or diffs blog-side.
+&lt;/p&gt;
+&lt;p&gt;
+The admin-side UI needs a general going over.
+&lt;/p&gt;
+&lt;p&gt;
+UI for deleting revisions?
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #6933 (Allow wp-config.php to exist one level up from WordPress root directory) updated</title>
+      
+        <dc:creator>sambauers</dc:creator>
+
+      <pubDate>Thu, 08 May 2008 22:53:29 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/6933#comment:9</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/6933#comment:9/1210287209000000</guid>
+      <description>&lt;p&gt;
+Basically I want to do this... (when this enhancement is combined with &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/6938" title="#6938: enhancement: Allow wp-content directory to exist in a custom location (not relative ... (closed: fixed)"&gt;#6938&lt;/a&gt;)
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;webroot
+ |
+ +- .htaccess (for rewrites)
+ |
+ +- index.php (copied from wordpress/index.php)
+ |
+ +- wordpress (svn:external)
+ |
+ +- wp-content
+ |    |
+ |    +- plugins
+ |    |
+ |    +- themes
+ |
+ +- wp-config.php
+&lt;/pre&gt;&lt;p&gt;
+And throw the lot into my own SVN repository.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #6775 (Post Revisions) updated</title>
+      
+        <dc:creator>mdawaffe</dc:creator>
+
+      <pubDate>Thu, 08 May 2008 22:51:44 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/6775#comment:21</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/6775#comment:21/1210287104000000</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+6775.diff (independent of .3.diff and .4.diff)
+&lt;/p&gt;
+&lt;ol&gt;&lt;li&gt;Delete post revisions of deleted post.
+&lt;/li&gt;&lt;li&gt;Turn off post revisions with &lt;code&gt;WP_POST_REVISIONS&lt;/code&gt; constant in wp-config.php or during &lt;code&gt;plugins_loaded&lt;/code&gt; action.
+&lt;/li&gt;&lt;/ol&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #6933 (Allow wp-config.php to exist one level up from WordPress root directory) updated</title>
+      
+        <dc:creator>sambauers</dc:creator>
+
+      <pubDate>Thu, 08 May 2008 22:46:21 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/6933#comment:8</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/6933#comment:8/1210286781000000</guid>
+      <description>&lt;p&gt;
+Replying to &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/6933#comment:7" title="Comment 7"&gt;westi&lt;/a&gt;:
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+I am not sure how much benefit this provides for end users.
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+It depends on the level of user. If I want to create my own SVN repository of my WordPress install (and at the moment I do) which includes all my plugins and themes and my wp-config, within which there is an external repository containing WordPress, then I can't do it at the moment without keeping local modifications.
+&lt;/p&gt;
+&lt;p&gt;
+People have also asked for the ability to keep configs/plugins outside of the webroot previously.
+&lt;/p&gt;
+&lt;p&gt;
+(I'm combining here into my argument the application of &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/6938" title="#6938: enhancement: Allow wp-content directory to exist in a custom location (not relative ... (closed: fixed)"&gt;#6938&lt;/a&gt; as well)
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+And doesn't this break any plugins that pull in wp-config.php.
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+If they refer to it directly then yes. The fix is to replace inclusion of wp-config.php with wp-load.php. For the small number of people who take advantage of this option, that is a trivial fix, even if the plugin authors don't fix it themselves.
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+Surely the best solution for the enduser is to just pull in the config settings from another file within the stock wp-config.php instead of specifing them directly.
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+This still requires keeping a file inside the WordPress root directory, which can't be kept in an a Subversion repository.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>6775.4.diff attached to Ticket #6775</title>
+      
+        <dc:creator>mdawaffe</dc:creator>
+
+      <pubDate>Thu, 08 May 2008 21:44:12 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/6775/6775.4.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/6775/6775.4.diff/1210283052000000</guid>
+      <description>&lt;p&gt;
+cap tweaks (independent of 6775.3.diff)
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #6775 (Post Revisions) updated</title>
+      
+        <dc:creator>mdawaffe</dc:creator>
+
+      <pubDate>Thu, 08 May 2008 21:43:45 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/6775#comment:20</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/6775#comment:20/1210283025000000</guid>
+      <description>&lt;p&gt;
+6775.4.diff (independent of .3.diff)
+&lt;/p&gt;
+&lt;ol&gt;&lt;li&gt;Tweak some caps.
+&lt;/li&gt;&lt;/ol&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #6851 (Can't insert image in Safari 3.1.1) updated</title>
+      
+        <dc:creator>mattyrob</dc:creator>
+
+      <pubDate>Thu, 08 May 2008 21:27:02 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/6851#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/6851#comment:2/1210282022000000</guid>
+      <description>&lt;i&gt;Priority&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Also tested now on Safari 3.1.1(4525.18) which is the Tiger version and I still can't re-produce the error.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #6775 (Post Revisions) updated</title>
+      
+        <dc:creator>mdawaffe</dc:creator>
+
+      <pubDate>Thu, 08 May 2008 21:12:11 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/6775#comment:19</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/6775#comment:19/1210281131000000</guid>
+      <description>&lt;p&gt;
+get_last*modified() are fine.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #6775 (Post Revisions) updated</title>
+      
+        <dc:creator>mdawaffe</dc:creator>
+
+      <pubDate>Thu, 08 May 2008 21:08:52 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/6775#comment:18</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/6775#comment:18/1210280932000000</guid>
+      <description>&lt;p&gt;
+Ryan feels that current caps for edit_post, read_post, etc are all fine to use with revisions as well.  I'll look over the cap code to see if we should check caps against the post_parent if 'inherit' == post_status.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>6775.3.diff attached to Ticket #6775</title>
+      
+        <dc:creator>mdawaffe</dc:creator>
+
+      <pubDate>Thu, 08 May 2008 21:06:29 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/6775/6775.3.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/6775/6775.3.diff/1210280789000000</guid>
+      <description>&lt;p&gt;
+Pages
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #6775 (Post Revisions) updated</title>
+      
+        <dc:creator>mdawaffe</dc:creator>
+
+      <pubDate>Thu, 08 May 2008 21:05:58 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/6775#comment:17</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/6775#comment:17/1210280758000000</guid>
+      <description>&lt;p&gt;
+6775.3.diff
+&lt;/p&gt;
+&lt;ol&gt;&lt;li&gt;Turn on revisions for pages.
+&lt;/li&gt;&lt;/ol&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>user_level_to_caps.diff attached to Ticket #6940</title>
+      
+        <dc:creator>filosofo</dc:creator>
+
+      <pubDate>Thu, 08 May 2008 19:47:32 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/6940/user_level_to_caps.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/6940/user_level_to_caps.diff/1210276052000000</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #6940 (User user caps instead of levels) created</title>
+      
+        <dc:creator>filosofo</dc:creator>
+
+      <pubDate>Thu, 08 May 2008 19:47:20 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/6940</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/6940/1210276040000000</guid>
+      <description>&lt;p&gt;
+Only two places in core still use user levels instead of capabilities, and unnecessarily so.  My patch removes them.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Changeset [7911]: Use array calling style. see #6647</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Thu, 08 May 2008 19:19:58 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/7911</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/7911/1210274398330110</guid>
+      <description>&lt;p&gt;
+Use array calling style. see &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/6647" title="#6647: enhancement: Internally, pass arrays instead of query strings to functions that use ... (closed: fixed)"&gt;#6647&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Ticket #6647 (Internally, pass arrays instead of query strings to functions that use ...) updated</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Thu, 08 May 2008 19:19:58 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/6647#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/6647#comment:3/1210274398000000</guid>
+      <description>&lt;p&gt;
+(In &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/7911" title="Use array calling style. see #6647"&gt;[7911]&lt;/a&gt;) Use array calling style. see &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/6647" title="#6647: enhancement: Internally, pass arrays instead of query strings to functions that use ... (closed: fixed)"&gt;#6647&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>post.diff attached to Ticket #6939</title>
+      
+        <dc:creator>imwebgefunden</dc:creator>
+
+      <pubDate>Thu, 08 May 2008 18:25:29 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/6939/post.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/6939/post.diff/1210271129000000</guid>
+      <description>&lt;p&gt;
+Patch for wp-includes/post.php
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>post-template.diff attached to Ticket #6939</title>
+      
+        <dc:creator>imwebgefunden</dc:creator>
+
+      <pubDate>Thu, 08 May 2008 18:24:51 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/6939/post-template.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/6939/post-template.diff/1210271091000000</guid>
+      <description>&lt;p&gt;
+Patch for wp-includes/post-template.php
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #6939 (wp_list_pages() should also lists private pages if the user has ...) created</title>
+      
+        <dc:creator>imwebgefunden</dc:creator>
+
+      <pubDate>Thu, 08 May 2008 18:19:29 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/6939</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/6939/1210270769000000</guid>
+      <description>&lt;p&gt;
+If the user has the capability "read_private_pages" wp_list_pages() don't lists private pages in no way. I've noticed this problem by some comments on my "Role Manager" Plugin page.
+&lt;/p&gt;
+&lt;p&gt;
+Two patches are attached to this ticket.
+&lt;/p&gt;
+&lt;p&gt;
+wp_list_pages() gets a new option "include_private_pages". The default value is 1 for lists private pages too if the user has the capability "read_private_pages".
+If private pages should not be listed also if the user has the cap "read_private_pages" the syntax is as an example:
+wp_list_pages('title_li=&amp;lt;h2&amp;gt;Pages&amp;lt;/h2&amp;gt;&amp;amp;include_private_pages=0');
+&lt;/p&gt;
+&lt;p&gt;
+The second patch is for get_pages() - with the same option and default value.
+&lt;/p&gt;
+&lt;p&gt;
+And of course: if a user don't has the cap "read_private_pages" private pages are listed in no case :)
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Changeset [7910]: number_format_i18n() for comments_number()</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Thu, 08 May 2008 17:54:40 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/7910</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/7910/1210269280776287</guid>
+      <description>&lt;p&gt;
+number_format_i18n() for comments_number()
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Ticket #6931 (global-rtl.css missing?) updated</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Thu, 08 May 2008 17:47:16 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/6931#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/6931#comment:2/1210268836000000</guid>
+      <description>&lt;p&gt;
+(In &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/7909" title="global-rtl.css from mdawaffe. fixes #6931 for 2.5"&gt;[7909]&lt;/a&gt;) global-rtl.css from mdawaffe. fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/6931" title="#6931: defect (bug): global-rtl.css missing? (closed: fixed)"&gt;#6931&lt;/a&gt; for 2.5
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Changeset [7909]: global-rtl.css from mdawaffe. fixes #6931 for 2.5</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Thu, 08 May 2008 17:47:11 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/7909</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/7909/1210268831352215</guid>
+      <description>&lt;p&gt;
+global-rtl.css from mdawaffe. fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/6931" title="#6931: defect (bug): global-rtl.css missing? (closed: fixed)"&gt;#6931&lt;/a&gt; for 2.5
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Ticket #6931 (global-rtl.css missing?) closed</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Thu, 08 May 2008 17:46:47 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/6931#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/6931#comment:1/1210268807000000</guid>
+      <description>fixed: &lt;p&gt;
+(In &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/7908" title="global-rtl.css from mdawaffe. fixes #6931 for trunk"&gt;[7908]&lt;/a&gt;) global-rtl.css from mdawaffe. fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/6931" title="#6931: defect (bug): global-rtl.css missing? (closed: fixed)"&gt;#6931&lt;/a&gt; for trunk
+&lt;/p&gt;
+</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Changeset [7908]: global-rtl.css from mdawaffe. fixes #6931 for trunk</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Thu, 08 May 2008 17:46:46 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/7908</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/7908/1210268806073050</guid>
+      <description>&lt;p&gt;
+global-rtl.css from mdawaffe. fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/6931" title="#6931: defect (bug): global-rtl.css missing? (closed: fixed)"&gt;#6931&lt;/a&gt; for trunk
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Ticket #6933 (Allow wp-config.php to exist one level up from WordPress root directory) updated</title>
+      
+        <dc:creator>westi</dc:creator>
+
+      <pubDate>Thu, 08 May 2008 17:44:55 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/6933#comment:7</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/6933#comment:7/1210268695000000</guid>
+      <description>&lt;p&gt;
+-1
+&lt;/p&gt;
+&lt;p&gt;
+I am not sure how much benefit this provides for end users.
+&lt;/p&gt;
+&lt;p&gt;
+And doesn't this break any plugins that pull in wp-config.php.
+&lt;/p&gt;
+&lt;p&gt;
+Surely the best solution for the enduser is to just pull in the config settings from another file within the stock wp-config.php instead of specifing them directly.
+&lt;/p&gt;
+&lt;p&gt;
+This is something we could document for the enduser.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #6934 (wp_insert_post and % in name) closed</title>
+      
+        <dc:creator>westi</dc:creator>
+
+      <pubDate>Thu, 08 May 2008 17:40:11 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/6934#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/6934#comment:2/1210268411000000</guid>
+      <description>duplicate: &lt;p&gt;
+Replying to &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/6934#comment:1" title="Comment 1"&gt;ryan&lt;/a&gt;:
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+Looks the same as &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/6894" title="#6894: defect (bug): 2.5.1 only - some post text (persian) causes timeout on publish (not save) (closed: fixed)"&gt;#6894&lt;/a&gt;.
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+Agreed.  Closing as a duplicate of &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/6894" title="#6894: defect (bug): 2.5.1 only - some post text (persian) causes timeout on publish (not save) (closed: fixed)"&gt;#6894&lt;/a&gt; which is fixed for trunk and branches/2.5
+&lt;/p&gt;
+</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Changeset [7907]: Move autosave to post revisions. Props mdawaffe. see #6775</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Thu, 08 May 2008 17:25:07 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/7907</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/7907/1210267507480051</guid>
+      <description>&lt;p&gt;
+Move autosave to post revisions. Props mdawaffe. see &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/6775" title="#6775: enhancement: Post Revisions (closed: fixed)"&gt;#6775&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Ticket #6775 (Post Revisions) updated</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Thu, 08 May 2008 17:25:07 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/6775#comment:16</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/6775#comment:16/1210267507000000</guid>
+      <description>&lt;p&gt;
+(In &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/7907" title="Move autosave to post revisions. Props mdawaffe. see #6775"&gt;[7907]&lt;/a&gt;) Move autosave to post revisions. Props mdawaffe. see &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/6775" title="#6775: enhancement: Post Revisions (closed: fixed)"&gt;#6775&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #6934 (wp_insert_post and % in name) updated</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Thu, 08 May 2008 17:23:23 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/6934#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/6934#comment:1/1210267403000000</guid>
+      <description>&lt;p&gt;
+Looks the same as &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/6894" title="#6894: defect (bug): 2.5.1 only - some post text (persian) causes timeout on publish (not save) (closed: fixed)"&gt;#6894&lt;/a&gt;.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #6775 (Post Revisions) updated</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Thu, 08 May 2008 17:18:41 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/6775#comment:15</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/6775#comment:15/1210267121000000</guid>
+      <description>&lt;p&gt;
+Found it.  Small typo in the code that checks for reversed diffs.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #6775 (Post Revisions) updated</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Thu, 08 May 2008 17:09:40 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/6775#comment:14</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/6775#comment:14/1210266580000000</guid>
+      <description>&lt;p&gt;
+Viewing diff results in infinite redirect.  $redirect is "/trunk/wp-admin/revision.php?action=diff&amp;amp;right=59&amp;amp;left=58" every time.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #6935 (Incorrect comment moderation count) updated</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Thu, 08 May 2008 15:43:29 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/6935#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/6935#comment:1/1210261409000000</guid>
+      <description>&lt;p&gt;
+Are you using a caching backend like memcached, APC, or xcache?  They likely need to be updated to mark the "counts" cache group as non-persistent.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #6933 (Allow wp-config.php to exist one level up from WordPress root directory) updated</title>
+      
+        <dc:creator>sambauers</dc:creator>
+
+      <pubDate>Thu, 08 May 2008 15:20:42 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/6933#comment:6</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/6933#comment:6/1210260042000000</guid>
+      <description>&lt;p&gt;
+Also see &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/6938" title="#6938: enhancement: Allow wp-content directory to exist in a custom location (not relative ... (closed: fixed)"&gt;#6938&lt;/a&gt;, which completes potential for full separation of user content from core files.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #6938 (Allow wp-content directory to exist in a custom location (not relative ...) created</title>
+      
+        <dc:creator>sambauers</dc:creator>
+
+      <pubDate>Thu, 08 May 2008 15:16:56 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/6938</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/6938/1210259816000000</guid>
+      <description>&lt;p&gt;
+This enhancement is related to ticket &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/6933" title="#6933: enhancement: Allow wp-config.php to exist one level up from WordPress root directory (closed: fixed)"&gt;#6933&lt;/a&gt;, with similar reasoning.
+&lt;/p&gt;
+&lt;ol&gt;&lt;li&gt;It's a little more secure if wp-content happens to also be outside the webroot
+&lt;/li&gt;&lt;li&gt;It allows us to add WordPress as an external repository in other projects with plugins/themes/cache engines/database classes that sit outside that external repository (we do some of this with bbPress)
+&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;
+WordPress requires a few changes as there are a few hard-coded references to wp-content.
+&lt;/p&gt;
+&lt;p&gt;
+If we don't like the constant name I chose ( WP_CONTENT_DIR ), then that can be easily changed in the patch.
+&lt;/p&gt;
+&lt;p&gt;
+This will almost certainly break a few plugins where wp-config is hard-coded, but only when the blog owner chooses to use this feature. Naughty plugins should use API calls anyway :)
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #6936 (upgrade process fails with WP_User_Search class not found error if ...) updated</title>
+      
+        <dc:creator>DD32</dc:creator>
+
+      <pubDate>Thu, 08 May 2008 14:35:06 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/6936#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/6936#comment:2/1210257306000000</guid>
+      <description>&lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Seems like Stupid PHP to me.. Calling the autoload function is fair enough, but surely it should check again to see if the class was loaded before returning..
+&lt;/p&gt;
+&lt;p&gt;
+Anyway, The $autoload parameter for class_exists was introduced with PHP 5.0.0, I'm not sure what warnings are triggered by calling a function with extra arguements(If any indeed..).
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #6937 (problem with tables in phpmyadmin 2.9.2) created</title>
+      
+        <dc:creator>wep</dc:creator>
+
+      <pubDate>Thu, 08 May 2008 14:34:13 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/6937</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/6937/1210257253000000</guid>
+      <description>&lt;p&gt;
+Hi, this problem in wpmu 1.5RC1 and wp 2.5.1 because is exactly the schema...
+&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;
+when install, in phpmyadmin 2.9.2 in tables: wp_1_comments :
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;
+Indexes: Documentation Keyname Type Cardinality Action Field
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+PRIMARY PRIMARY 0 Edit Drop comment_ID comment_approved INDEX None Edit Drop comment_approved comment_post_ID INDEX None Edit Drop comment_post_ID comment_approved_date_gmt INDEX None Edit Drop comment_approved comment_date_gmt comment_date_gmt INDEX None Edit Drop comment_date_gmt ! More than one INDEX key was created for column comment_approved &amp;lt;------ Warning
+&lt;/p&gt;
+&lt;p&gt;
+click in edit comment_aproved and: ("PRIMARY" must be the name of and only of a primary key!) &amp;lt;----- Warning
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #6936 (upgrade process fails with WP_User_Search class not found error if ...) updated</title>
+      
+        <dc:creator>ithinkihaveacat</dc:creator>
+
+      <pubDate>Thu, 08 May 2008 14:26:47 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/6936#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/6936#comment:1/1210256807000000</guid>
+      <description>&lt;i&gt;Cc&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>user.patch attached to Ticket #6936</title>
+      
+        <dc:creator>ithinkihaveacat</dc:creator>
+
+      <pubDate>Thu, 08 May 2008 14:26:30 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/6936/user.patch</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/6936/user.patch/1210256790000000</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #6936 (upgrade process fails with WP_User_Search class not found error if ...) created</title>
+      
+        <dc:creator>ithinkihaveacat</dc:creator>
+
+      <pubDate>Thu, 08 May 2008 14:22:54 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/6936</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/6936/1210256574000000</guid>
+      <description>&lt;p&gt;
+If &lt;span class="underline"&gt;autoload is defined, the upgrade process fails with a WP_User_Search class not found error.  This is because wp-admin/includes/user.php does:
+&lt;/span&gt;&lt;/p&gt;
+&lt;pre class="wiki"&gt;if ( !class_exists('WP_User_Search') ) :
+class WP_User_Search {
+	var $results;
+        // ...
+&lt;/pre&gt;&lt;p&gt;
+If WP_User_Search doesn't exist and &lt;span class="underline"&gt;autoload is defined &lt;/span&gt;autoload is invoked to define the class, which fails.  The fix is to include an optional second argument to class_exists:
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;if ( !class_exists('WP_User_Search', false) ) :
+class WP_User_Search {
+	var $results;
+        // ...
+&lt;/pre&gt;&lt;p&gt;
+(A patch is attached.)
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #6905 (Feeds always display full text) updated</title>
+      
+        <dc:creator>gnot</dc:creator>
+
+      <pubDate>Thu, 08 May 2008 14:19:05 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/6905#comment:8</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/6905#comment:8/1210256345000000</guid>
+      <description>&lt;p&gt;
+I have just released a small plugin (&lt;a class="ext-link" href="http://www.g-loaded.eu/2008/05/08/more-feed-excerpt-wordpress-plugin/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;More-Feed-Excerpt&lt;/a&gt; to revert the behaviour back to what we have been used to. I believe it is complete and in accordance to the WordPress philosophy.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>6934.diff attached to Ticket #6934</title>
+      
+        <dc:creator>xknown</dc:creator>
+
+      <pubDate>Thu, 08 May 2008 13:27:08 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/6934/6934.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/6934/6934.diff/1210253228000000</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #6935 (Incorrect comment moderation count) created</title>
+      
+        <dc:creator>dougal</dc:creator>
+
+      <pubDate>Thu, 08 May 2008 13:01:27 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/6935</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/6935/1210251687000000</guid>
+      <description>&lt;p&gt;
+Currently in my dashboard, I'm being told that I have 4 comments awaiting moderation. But I seem to actually have zero. If I click on the "Awaiting Moderation (4)" link, it then tells me "No comments awaiting moderation… yet."
+&lt;/p&gt;
+&lt;p&gt;
+So, how do I reset the counter?
+&lt;/p&gt;
+&lt;p&gt;
+And how did it get out of sync in the first place?
+&lt;/p&gt;
+&lt;p&gt;
+This is with branches/2.5 rev 7899. (2.5.2-alpha, updated 2008-05-07T15:08:00-0000)
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #6933 (Allow wp-config.php to exist one level up from WordPress root directory) updated</title>
+      
+        <dc:creator>sambauers</dc:creator>
+
+      <pubDate>Thu, 08 May 2008 11:22:23 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/6933#comment:5</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/6933#comment:5/1210245743000000</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #6933 (Allow wp-config.php to exist one level up from WordPress root directory) updated</title>
+      
+        <dc:creator>sambauers</dc:creator>
+
+      <pubDate>Thu, 08 May 2008 11:20:03 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/6933#comment:4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/6933#comment:4/1210245603000000</guid>
+      <description>&lt;p&gt;
+Replying to &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/6933#comment:1" title="Comment 1"&gt;DD32&lt;/a&gt;:
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+However, You need to keep in mind that most people do not do the correct thing and include wp-blog-header.php, Instead, Most people simply include wp-config.php as it does the job.
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+Well, that will only break where people do move their config file one level up. People doing it "normally" will not be affected.
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+Afterall, Half of the WordPress files used to simply do that too. (Regardless of if its the "right" way or not.)
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+It was "right" in those instances to avoid loading &lt;em&gt;everything&lt;/em&gt;. This patch removes those.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>allow-config-file-outside-of-webroot.patch attached to Ticket #6933</title>
+      
+        <dc:creator>sambauers</dc:creator>
+
+      <pubDate>Thu, 08 May 2008 11:15:00 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/6933/allow-config-file-outside-of-webroot.patch</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/6933/allow-config-file-outside-of-webroot.patch/1210245300000000</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #6933 (Allow wp-config.php to exist one level up from WordPress root directory) updated</title>
+      
+        <dc:creator>sambauers</dc:creator>
+
+      <pubDate>Thu, 08 May 2008 11:14:37 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/6933#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/6933#comment:3/1210245277000000</guid>
+      <description>&lt;p&gt;
+Replying to &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/6933#comment:2" title="Comment 2"&gt;thee17&lt;/a&gt;:
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+Is it me or is wp-load.php not in this patch?
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+It's not just you...
+&lt;/p&gt;
+&lt;p&gt;
+Patch re-added.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #6933 (Allow wp-config.php to exist one level up from WordPress root directory) updated</title>
+      
+        <dc:creator>thee17</dc:creator>
+
+      <pubDate>Thu, 08 May 2008 11:08:36 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/6933#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/6933#comment:2/1210244916000000</guid>
+      <description>&lt;p&gt;
+Is it me or is wp-load.php not in this patch?
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #6934 (wp_insert_post and % in name) created</title>
+      
+        <dc:creator>libc</dc:creator>
+
+      <pubDate>Thu, 08 May 2008 10:00:54 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/6934</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/6934/1210240854000000</guid>
+      <description>&lt;p&gt;
+I'm writing import plugin.
+&lt;/p&gt;
+&lt;p&gt;
+post_title is “ViewSonic® Redefines Visual Technology Leadership with Introduction of Supe
+rPDA and Tablet PC Products” (UTF-8)
+wp_insert_post assigns post_name “viewsonic%c2%ae-redefines-visual-technology-leadership-with-introduction-of-superpda-and-tablet-pc-products”.
+&lt;/p&gt;
+&lt;p&gt;
+and (&lt;a class="source" href="http://core.trac.wordpress.org/browser/tags/2.5.1/wp-includes/post.php?rev=7906#L1282"&gt;here&lt;/a&gt;&lt;a class="trac-rawlink" href="http://core.trac.wordpress.org/export/7906/tags/2.5.1/wp-includes/post.php#L1282" title="Download"&gt;​&lt;/a&gt;)
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;	if ( 'draft' != $post_status ) {
+		$post_name_check = $wpdb-&amp;gt;get_var($wpdb-&amp;gt;prepare("SELECT post_name FROM $wpdb-&amp;gt;posts WHERE post_name = %s AND post_type = %s AND ID != %d AND post_parent = %d LIMIT 1", $post_name, $post_type, $post_ID, $post_parent));
+		if ($post_name_check || in_array($post_name, $wp_rewrite-&amp;gt;feeds) ) {
+			$suffix = 2;
+			do {
+				$alt_post_name = substr($post_name, 0, 200-(strlen($suffix)+1)). "-$suffix";
+				// expected_slashed ($alt_post_name, $post_name, $post_type)
+				$post_name_check = $wpdb-&amp;gt;get_var($wpdb-&amp;gt;prepare("SELECT post_name FROM $wpdb-&amp;gt;posts WHERE post_name = '$alt_post_name' AND post_type = '$post_type' AND ID != %d AND post_parent = %d LIMIT 1", $post_ID, $post_parent));
+				$suffix++;
+			} while ($post_name_check);
+			$post_name = $alt_post_name;
+		}
+	}
+&lt;/pre&gt;&lt;p&gt;
+when it calls $wpdb-&amp;gt;prepare, it pass arguments to vsprintf, and it wanted more arguments, than I provide (becase of %c).
+and $wpdb-&amp;gt;prepare returns false. so this loop became infinite…
+&lt;/p&gt;
+&lt;p&gt;
+My temporary solution is
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;$alt_post_name = str_replace('%', '%%', substr($post_name, 0, 200-(strlen($suffix)+1)). "-$suffix");
+&lt;/pre&gt;&lt;p&gt;
+but it's not adequate, because original $post_name_check fails, but should not. (good solution IMHO should be proper sanitize_title)
+I tested it in 2.5 and 2.5.1.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #6933 (Allow wp-config.php to exist one level up from WordPress root directory) updated</title>
+      
+        <dc:creator>DD32</dc:creator>
+
+      <pubDate>Thu, 08 May 2008 09:18:33 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/6933#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/6933#comment:1/1210238313000000</guid>
+      <description>&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+I'm pretty sure this patch won't break backward compatibility for people who directly include wp-blog-header.php elsewhere either. wp-blog-header.php calls wp-load.php in this patch.
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+However, You need to keep in mind that most people do not do the correct thing and include wp-blog-header.php, Instead, Most people simply include wp-config.php as it does the job.
+&lt;/p&gt;
+&lt;p&gt;
+Afterall, Half of the WordPress files used to simply do that too. (Regardless of if its the "right" way or not.)
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #6863 (Plugin Update Notification incorrectly notifies) updated</title>
+      
+        <dc:creator>csogilvie</dc:creator>
+
+      <pubDate>Thu, 08 May 2008 09:08:25 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/6863#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/6863#comment:2/1210237705000000</guid>
+      <description>&lt;p&gt;
+The problem, of course, is that not all plugins are going to have a unique URI which is why this problem occurred.
+&lt;/p&gt;
+&lt;p&gt;
+It would be useful if this could be changed to also work on the Plugin Name as well as the URI or something.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>6775.2.diff attached to Ticket #6775</title>
+      
+        <dc:creator>mdawaffe</dc:creator>
+
+      <pubDate>Thu, 08 May 2008 08:49:13 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/6775/6775.2.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/6775/6775.2.diff/1210236553000000</guid>
+      <description>&lt;p&gt;
+Autosave
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #6775 (Post Revisions) updated</title>
+      
+        <dc:creator>mdawaffe</dc:creator>
+
+      <pubDate>Thu, 08 May 2008 08:48:44 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/6775#comment:13</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/6775#comment:13/1210236524000000</guid>
+      <description>&lt;i&gt;Owner&lt;/i&gt;, &lt;i&gt;Status&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+6775.2.diff
+&lt;/p&gt;
+&lt;ol&gt;&lt;li&gt;Moves autosave to post revisions.  For drafts, autosave overwrites the post (this is the same as the old behavior).  For non-drafts, a special post revision is inserted into the posts table.
+&lt;/li&gt;&lt;/ol&gt;&lt;blockquote&gt;
+&lt;p&gt;
+Only one autosave is stored per post.
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;
+The philosophy here is that a new post revision is created every time the user clicks one of the save buttons, but not for each autosave.
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;ol start="2"&gt;&lt;li&gt;Turns on autosave for all posts.
+&lt;/li&gt;&lt;li&gt;Displays warning when a user edits a post for which there is an autosave more recent than the post itself.
+&lt;/li&gt;&lt;li&gt;Consolidates code from &lt;code&gt;edit_post()&lt;/code&gt; and &lt;code&gt;wp_write_post()&lt;/code&gt;.
+&lt;/li&gt;&lt;li&gt;Refactors wp-admin/revision.php into &lt;code&gt;switch( $action ) :&lt;/code&gt; like our other "object" pages.
+&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;
+Still TODO:
+&lt;/p&gt;
+&lt;ol&gt;&lt;li&gt;Open up revisions for pages as well. It's mostly there, but probably needs some tweaks.  Pages might be a bit broken right now, in fact.
+&lt;/li&gt;&lt;li&gt;Review caps/permissions. Do we need any new ones like &lt;code&gt;current_user_can( 'view_revision', $id )&lt;/code&gt;?
+&lt;/li&gt;&lt;li&gt;Display revisions and/or diffs in front end?
+&lt;/li&gt;&lt;li&gt;Decide how many revisions to store for each post. Right now it stores an arbitrary number. Should it be capped?
+&lt;/li&gt;&lt;li&gt;See if get_last*modified() need any adjusting.
+&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;
+New functions:
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;wp_get_autosave( $post_id );
+wp_create_autosave();
+_wp_translate_postdata(); // Rename $_POST data from form names to DB post columns
+&lt;/pre&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #6775 (Post Revisions) updated</title>
+      
+        <dc:creator>mdawaffe</dc:creator>
+
+      <pubDate>Thu, 08 May 2008 08:35:39 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/6775#comment:12</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/6775#comment:12/1210235739000000</guid>
+      <description>&lt;p&gt;
+Replying to &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/6775#comment:9" title="Comment 9"&gt;neoen&lt;/a&gt;:
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+Will be possible to turn off post revisions and use only current autosave?
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+No - Autosave will use the new revisions system.  There may be a (hidden) option to limit how many revisions WP should keep for any given post.  If we do that, then setting it to 0 would mean "do autosaves, but don't keep post revisions".
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #6933 (Allow wp-config.php to exist one level up from WordPress root directory) created</title>
+      
+        <dc:creator>sambauers</dc:creator>
+
+      <pubDate>Thu, 08 May 2008 08:03:30 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/6933</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/6933/1210233810000000</guid>
+      <description>&lt;p&gt;
+For a while in bbPress we have allowed users to keep their bb-config.php file one level below the root directory. It's helpful for a few reasons.
+&lt;/p&gt;
+&lt;ol&gt;&lt;li&gt;It's a little more secure if wp-config.php happens to also be outside the webroot
+&lt;/li&gt;&lt;li&gt;It allows us to add WordPress as an external repository in other projects with a config file that sits outside that external repository (we do this with bbPress a lot)
+&lt;/li&gt;&lt;li&gt;Removes direct calls to wp-config.php, which allows more control of it's loading through wp-load.php in the future
+&lt;/li&gt;&lt;li&gt;Removes some duplicate code in some places for detecting wp-config.php
+&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;
+WordPress requires a few more changes to get it to do this as there are a few hard-coded include paths to wp-config.php
+&lt;/p&gt;
+&lt;p&gt;
+This patch adds a new file called wp-load.php in the root which allows the places that statically include wp-config.php to include wp-load.php instead
+&lt;/p&gt;
+&lt;p&gt;
+I'm pretty sure this patch won't break backward compatibility for people who directly include wp-blog-header.php elsewhere either. wp-blog-header.php calls wp-load.php in this patch.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>comments-feed-cdata.diff attached to Ticket #6932</title>
+      
+        <dc:creator>nbachiyski</dc:creator>
+
+      <pubDate>Thu, 08 May 2008 06:50:46 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/6932/comments-feed-cdata.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/6932/comments-feed-cdata.diff/1210229446000000</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #6932 (Translation of message for protected comemnts can break comments feed) created</title>
+      
+        <dc:creator>nbachiyski</dc:creator>
+
+      <pubDate>Thu, 08 May 2008 06:50:32 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/6932</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/6932/1210229432000000</guid>
+      <description>&lt;p&gt;
+If the translation of &lt;code&gt;Protected Comments: Please enter your password to view comments.&lt;/code&gt; contains invalid XML it will break the comments feed.
+&lt;/p&gt;
+&lt;p&gt;
+Attached is a patch, which encloses the string in CDATA, so that it can contain whatever the translators want.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #6772 (get_posts Should Use WP_Query) updated</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Thu, 08 May 2008 05:17:29 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/6772#comment:15</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/6772#comment:15/1210223849000000</guid>
+      <description>&lt;p&gt;
+(In &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/7906" title="Query cleanups. Use absint, concat where instead of overwrite, make ..."&gt;[7906]&lt;/a&gt;) Query cleanups. Use absint, concat where instead of overwrite, make post_parent independent, sanitize post&lt;span class="underline"&gt;in and post&lt;/span&gt;not_in.  Props mdawaffe. see &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/6772" title="#6772: defect (bug): get_posts Should Use WP_Query (closed: fixed)"&gt;#6772&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Changeset [7906]: Query cleanups. Use absint, concat where instead of overwrite, make ...</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Thu, 08 May 2008 05:17:27 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/7906</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/7906/1210223847897849</guid>
+      <description>&lt;p&gt;
+Query cleanups. Use absint, concat where instead of overwrite, make post_parent independent, sanitize post&lt;span class="underline"&gt;in and post&lt;/span&gt;not_in.  Props mdawaffe. see &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/6772" title="#6772: defect (bug): get_posts Should Use WP_Query (closed: fixed)"&gt;#6772&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>global-rtl.css attached to Ticket #6931</title>
+      
+        <dc:creator>mdawaffe</dc:creator>
+
+      <pubDate>Thu, 08 May 2008 04:11:00 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/6931/global-rtl.css</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/6931/global-rtl.css/1210219860000000</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #6931 (global-rtl.css missing?) created</title>
+      
+        <dc:creator>mdawaffe</dc:creator>
+
+      <pubDate>Thu, 08 May 2008 04:10:29 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/6931</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/6931/1210219829000000</guid>
+      <description>&lt;p&gt;
+There is no global-rtl.css in wp-admin/css even though global.css defines a number of LTR specific styles.
+&lt;/p&gt;
+&lt;p&gt;
+Attached is a first attempt, mani or other RTL folk should take a look.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>6772-absint-concat-and-parent.diff attached to Ticket #6772</title>
+      
+        <dc:creator>mdawaffe</dc:creator>
+
+      <pubDate>Thu, 08 May 2008 01:03:58 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/6772/6772-absint-concat-and-parent.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/6772/6772-absint-concat-and-parent.diff/1210208638000000</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #6772 (get_posts Should Use WP_Query) updated</title>
+      
+        <dc:creator>mdawaffe</dc:creator>
+
+      <pubDate>Thu, 08 May 2008 01:03:45 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/6772#comment:14</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/6772#comment:14/1210208625000000</guid>
+      <description>&lt;p&gt;
+6772-absint-concat-and-parent.diff
+&lt;/p&gt;
+&lt;ol&gt;&lt;li&gt;Sanitizes &lt;code&gt;post__in&lt;/code&gt; and &lt;code&gt;post__not_in&lt;/code&gt;.
+&lt;/li&gt;&lt;li&gt;Converts most of the (int) and intval() sanitation to absint(). I'm pretty sure I left all the arguments that can be negative (like cat, posts_per_page, etc.). I'm not sure if the time arguments should be allowed to be negative or not.
+&lt;/li&gt;&lt;li&gt;Prevents WP_Query from stomping on $where variable when &lt;code&gt;p&lt;/code&gt;, &lt;code&gt;post_parent&lt;/code&gt;, &lt;code&gt;post__in&lt;/code&gt;, or &lt;code&gt;post__not_in&lt;/code&gt; argument is passed.
+&lt;/li&gt;&lt;li&gt;Pulls &lt;code&gt;post_parent&lt;/code&gt; out from a case in an elseif chain so that it can be used independently.
+&lt;/li&gt;&lt;/ol&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>6772-absint.diff attached to Ticket #6772</title>
+      
+        <dc:creator>mdawaffe</dc:creator>
+
+      <pubDate>Thu, 08 May 2008 00:45:55 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/6772/6772-absint.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/6772/6772-absint.diff/1210207555000000</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #6772 (get_posts Should Use WP_Query) updated</title>
+      
+        <dc:creator>mdawaffe</dc:creator>
+
+      <pubDate>Thu, 08 May 2008 00:45:40 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/6772#comment:13</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/6772#comment:13/1210207540000000</guid>
+      <description>&lt;p&gt;
+6772-absint.diff
+&lt;/p&gt;
+&lt;ol&gt;&lt;li&gt;Sanitizes &lt;code&gt;post__in&lt;/code&gt; and &lt;code&gt;post__not_in&lt;/code&gt;.
+&lt;/li&gt;&lt;li&gt;Converts most of the (int) and intval() sanitation to absint().  I'm pretty sure I left all the arguments that can be negative (like cat, posts_per_page, etc.).  I'm not sure if the time arguments should be allowed to be negative or not.
+&lt;/li&gt;&lt;/ol&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #6930 (Browser Undo and Redo do not work in text editor) created</title>
+      
+        <dc:creator>chombee</dc:creator>
+
+      <pubDate>Thu, 08 May 2008 00:29:04 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/6930</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/6930/1210206544000000</guid>
+      <description>&lt;p&gt;
+I also posted this to the forum: &lt;a class="ext-link" href="http://wordpress.org/support/topic/174720?replies=1#post-753746"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;http://wordpress.org/support/topic/174720?replies=1#post-753746&lt;/a&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Start writing a new blog post in wordpress 2.5, for example on wordpress.com. When you've finished writing it, accidentally highlight the whole text and delete it. Press CTRL+Z or Undo in your browser.
+&lt;/p&gt;
+&lt;p&gt;
+If your browser is GNOME Epiphany nothing happens, you cannot undo, you've lost your work.
+&lt;/p&gt;
+&lt;p&gt;
+If your browser is Firefox 3 you can undo. Redo, however, does not work.
+&lt;/p&gt;
+&lt;p&gt;
+In either of these browsers, on most web pages, both Undo and Redo work absolutely fine in the embedded text editor.
+&lt;/p&gt;
+&lt;p&gt;
+I am using Ubuntu 8.04 and am able to reproduce this issue in both Firefox and Epiphany by following the steps above.
+&lt;/p&gt;
+&lt;p&gt;
+I would say this is a pretty serious issue as it can lead to the loss of big chunks of user content. My friend just lost an hour's work and is very upset.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item>
+   </channel>
+</rss>

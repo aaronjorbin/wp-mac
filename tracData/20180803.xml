@@ -1,0 +1,2953 @@
+<?xml version="1.0"?>
+<rss xmlns:dc="http://purl.org/dc/elements/1.1/" version="2.0">
+  <channel>
+    <title>WordPress Trac</title>
+    <link>http://core.trac.wordpress.org/timeline</link>
+    <description>Trac Timeline</description>
+    <language>en-US</language>
+    <generator>Trac 1.2.2</generator>
+    <image>
+      <title>WordPress Trac</title>
+      <url>http://core.trac.wordpress.org/chrome/site/your_project_logo.png</url>
+      <link>http://core.trac.wordpress.org/timeline</link>
+    </image>
+    <item>
+      <title>Ticket #43985 (Privacy: The user request email should be sent in the user language) updated</title>
+      
+        <dc:creator>earnjam</dc:creator>
+
+      <pubDate>Fri, 03 Aug 2018 22:56:10 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43985#comment:38</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43985#comment:38/1533336970849746</guid>
+      <description>&lt;p&gt;
+I worked on this with @desrosj this afternoon. After a little more investigation, I can get the tests to pass by adding some &lt;code&gt;set_current_screen()&lt;/code&gt; calls. Seems &lt;code&gt;$current_screen&lt;/code&gt; isn't getting changed between tests, which throws off this block in &lt;code&gt;WP_Locale_Switcher-&amp;gt;switch_to_locale()&lt;/code&gt; and preventing the locale from getting switched correctly.
+&lt;/p&gt;
+&lt;div class="wiki-code"&gt;&lt;div class="code"&gt;&lt;pre&gt;&lt;span class="cp"&gt;&amp;lt;?php&lt;/span&gt;
+&lt;span class="k"&gt;public&lt;/span&gt; &lt;span class="k"&gt;function&lt;/span&gt; &lt;span class="nf"&gt;switch_to_locale&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="nv"&gt;$locale&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+        &lt;span class="nv"&gt;$current_locale&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nx"&gt;is_admin&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="o"&gt;?&lt;/span&gt; &lt;span class="nx"&gt;get_user_locale&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="nx"&gt;get_locale&lt;/span&gt;&lt;span class="p"&gt;();&lt;/span&gt;
+        &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="nv"&gt;$current_locale&lt;/span&gt; &lt;span class="o"&gt;===&lt;/span&gt; &lt;span class="nv"&gt;$locale&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+                &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="k"&gt;false&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+        &lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;p&gt;
+The last 3 tests in &lt;code&gt;Tests_Locale_Switcher&lt;/code&gt; all run &lt;code&gt;set_current_screen()&lt;/code&gt; calls, which are what is tripping up these later tests when you pair the User group with the l10n group on the tests.
+&lt;/p&gt;
+&lt;p&gt;
+Need to dig in to the specific screen settings here a bit more to figure out why they're failing. Don't want to set that to get them to pass and mask a bigger underlying problem.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44201 (Ability to specify a URL as the privacy page) updated</title>
+      
+        <dc:creator>garrett-eclipse</dc:creator>
+
+      <pubDate>Fri, 03 Aug 2018 22:26:10 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44201#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44201#comment:3/1533335170751350</guid>
+      <description>&lt;p&gt;
+I'm a +1 for this, our government client has multiple tribunal sites but their Privacy Policy is on their main organization site. They also want to be able to have full control of their content without requiring a dev for changes to URLs such as this policy.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44723 (The user ID in a `WP_User_Request` is not an integer as stated) updated</title>
+      
+        <dc:creator>garrett-eclipse</dc:creator>
+
+      <pubDate>Fri, 03 Aug 2018 21:13:34 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44723#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44723#comment:2/1533330814645903</guid>
+      <description>&lt;p&gt;
+Interesting enough but if you go down the rabbit hole although the codex states WP_Post's post_author is 'A numeric string, for compatibility reasons' it's default is the numeric 0 and in wp_insert_post it's expecting an (int) but if not provided uses the return of get_current_user_id which is an int.
+&lt;/p&gt;
+&lt;p&gt;
+$post_author in WP_Post - &lt;a href="https://core.trac.wordpress.org/browser/tags/4.9.8/src/wp-includes/class-wp-post.php#L32"&gt;https://core.trac.wordpress.org/browser/tags/4.9.8/src/wp-includes/class-wp-post.php#L32&lt;/a&gt;
+wp_insert_post Codex - &lt;a class="ext-link" href="https://developer.wordpress.org/reference/functions/wp_insert_post/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://developer.wordpress.org/reference/functions/wp_insert_post/&lt;/a&gt;
+$user_id in wp_insert_post - &lt;a href="https://core.trac.wordpress.org/browser/tags/4.9.8/src/wp-includes/post.php#L3139"&gt;https://core.trac.wordpress.org/browser/tags/4.9.8/src/wp-includes/post.php#L3139&lt;/a&gt;
+get_current_user_id Codex - &lt;a class="ext-link" href="https://developer.wordpress.org/reference/functions/get_current_user_id/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://developer.wordpress.org/reference/functions/get_current_user_id/&lt;/a&gt;
+&lt;/p&gt;
+&lt;p&gt;
+So it's weird it seems it's always an int down the chain so not sure why it's saying it's a numeric string.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>43985.8.diff attached to Ticket #43985</title>
+      
+        <dc:creator>desrosj</dc:creator>
+
+      <pubDate>Fri, 03 Aug 2018 21:11:54 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/43985/43985.8.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/43985/43985.8.diff/1533330714698913</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #43985 (Privacy: The user request email should be sent in the user language) updated</title>
+      
+        <dc:creator>desrosj</dc:creator>
+
+      <pubDate>Fri, 03 Aug 2018 21:11:14 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43985#comment:37</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43985#comment:37/1533330674034278</guid>
+      <description>&lt;p&gt;
+I pulled the change to &lt;code&gt;WP_User_Request&lt;/code&gt; into its own ticket after discussing with @jorbin (see &lt;a class="new ticket" href="http://core.trac.wordpress.org/ticket/44723" title="#44723: defect (bug): The user ID in a `WP_User_Request` is not an integer as stated (new)"&gt;#44723&lt;/a&gt;).
+&lt;/p&gt;
+&lt;p&gt;
+&lt;a class="attachment" href="http://core.trac.wordpress.org/attachment/ticket/43985/43985.8.diff" title="Attachment '43985.8.diff' in Ticket #43985"&gt;43985.8.diff&lt;/a&gt;&lt;a class="trac-rawlink" href="http://core.trac.wordpress.org/raw-attachment/ticket/43985/43985.8.diff" title="Download"&gt;​&lt;/a&gt; has that change pulled out.
+&lt;/p&gt;
+&lt;p&gt;
+The unit tests pass when run as a group (&lt;code&gt;phpunit --group privacy&lt;/code&gt; or &lt;code&gt;phpunit --group 43985&lt;/code&gt;), but when you run them in conjunction with the &lt;code&gt;l10n&lt;/code&gt; tests, there is one failure. The &lt;code&gt;localeSwitcher.php&lt;/code&gt;seems to be causing the issue, but haven't figured out why and need to step away for the day.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44723 (The user ID in a `WP_User_Request` is not an integer as stated) updated</title>
+      
+        <dc:creator>desrosj</dc:creator>
+
+      <pubDate>Fri, 03 Aug 2018 21:01:41 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44723#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44723#comment:1/1533330101347238</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+&lt;a class="attachment" href="http://core.trac.wordpress.org/attachment/ticket/44723/44723.diff" title="Attachment '44723.diff' in Ticket #44723"&gt;44723.diff&lt;/a&gt;&lt;a class="trac-rawlink" href="http://core.trac.wordpress.org/raw-attachment/ticket/44723/44723.diff" title="Download"&gt;​&lt;/a&gt; type casts the property as an integer. But, this could be a potentially breaking change. It may be better to change the documentation to indicate the value is a string.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44427 (Introduce lazy-loading API for media and other elements) updated</title>
+      
+        <dc:creator>jonoaldersonwp</dc:creator>
+
+      <pubDate>Fri, 03 Aug 2018 21:00:42 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44427#comment:6</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44427#comment:6/1533330042277617</guid>
+      <description>&lt;p&gt;
+Ah, yes, maybe we should have a &lt;code&gt;data-enable-lazy-load&lt;/code&gt; attribute, too, for cases where an image might otherwise have been passively &lt;em&gt;excluded&lt;/em&gt;, but the theme/content author wants it to be explicitly &lt;em&gt;included&lt;/em&gt;.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>44723.diff attached to Ticket #44723</title>
+      
+        <dc:creator>desrosj</dc:creator>
+
+      <pubDate>Fri, 03 Aug 2018 21:00:36 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/44723/44723.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/44723/44723.diff/1533330036634383</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #44723 (The user ID in a `WP_User_Request` is not an integer as stated) created</title>
+      
+        <dc:creator>desrosj</dc:creator>
+
+      <pubDate>Fri, 03 Aug 2018 21:00:02 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44723</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44723/1533330002550401</guid>
+      <description>&lt;p&gt;
+Discovered this while debugging something in &lt;a class="reopened ticket" href="http://core.trac.wordpress.org/ticket/43985" title="#43985: defect (bug): Privacy: The user request email should be sent in the user language (reopened)"&gt;#43985&lt;/a&gt;. The value of &lt;code&gt;WP_User_Request-&amp;gt;user_id&lt;/code&gt; is a string, not an integer as stated by the inline documentation. This was causing some unexpected behavior in &lt;code&gt;get_user_locale()&lt;/code&gt;, which performs a strict comparison for &lt;code&gt;0&lt;/code&gt; and was causing the condition to incorrectly evaluate as &lt;code&gt;false&lt;/code&gt;.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #44719 (Hide this update button placement is wrong on update-core.php) updated</title>
+      
+        <dc:creator>chetan200891</dc:creator>
+
+      <pubDate>Fri, 03 Aug 2018 20:24:28 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44719#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44719#comment:3/1533327868465407</guid>
+      <description>&lt;p&gt;
+I have created patch &lt;a href="https://core.trac.wordpress.org/attachment/ticket/44719/44719.2.diff"&gt;44719.2.diff&lt;/a&gt; to fix space issue.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>44719.2.diff attached to Ticket #44719</title>
+      
+        <dc:creator>chetan200891</dc:creator>
+
+      <pubDate>Fri, 03 Aug 2018 20:23:35 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/44719/44719.2.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/44719/44719.2.diff/1533327815580211</guid>
+      <description>&lt;p&gt;
+Created patch to fix space issue.
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #39165 (Add page to assist with debugging and support) updated</title>
+      
+        <dc:creator>Clorith</dc:creator>
+
+      <pubDate>Fri, 03 Aug 2018 20:22:25 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/39165#comment:84</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/39165#comment:84/1533327745193042</guid>
+      <description>&lt;p&gt;
+Following up on this ticket, what do we still need here (besides possibly a refresh of the patch) ?
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44722 (Double escape issue on translated wordpress.org/team/ for some locales) updated</title>
+      
+        <dc:creator>cbrandt</dc:creator>
+
+      <pubDate>Fri, 03 Aug 2018 20:14:54 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44722#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44722#comment:2/1533327294840566</guid>
+      <description>&lt;p&gt;
+Hi @ocean90,
+&lt;/p&gt;
+&lt;p&gt;
+Great! Glad it's been taken care of. Thank you.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44722 (Double escape issue on translated wordpress.org/team/ for some locales) closed</title>
+      
+        <dc:creator>ocean90</dc:creator>
+
+      <pubDate>Fri, 03 Aug 2018 19:37:12 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44722#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44722#comment:1/1533325032818268</guid>
+      <description>invalid: &lt;p&gt;
+Hello @cbrandt, welcome to WordPress Trac!
+&lt;/p&gt;
+&lt;p&gt;
+This Trac is only used for reporting issues with WordPress core. The team sites are using a plugin/theme called o2. There’s already an issue for this problem at &lt;a class="ext-link" href="https://github.com/Automattic/o2/issues/135"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://github.com/Automattic/o2/issues/135&lt;/a&gt; where you can follow the progress.
+&lt;/p&gt;
+</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Ticket #44664 (Twenty Fourteen: Video play icon alignment) updated</title>
+      
+        <dc:creator>mmaumio</dc:creator>
+
+      <pubDate>Fri, 03 Aug 2018 19:30:25 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44664#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44664#comment:2/1533324625588066</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>br.wordpress-team-bug-2.png attached to Ticket #44722</title>
+      
+        <dc:creator>cbrandt</dc:creator>
+
+      <pubDate>Fri, 03 Aug 2018 18:44:25 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/44722/br.wordpress-team-bug-2.png</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/44722/br.wordpress-team-bug-2.png/1533321865344044</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>br.wordpress-team-bug.png attached to Ticket #44722</title>
+      
+        <dc:creator>cbrandt</dc:creator>
+
+      <pubDate>Fri, 03 Aug 2018 18:44:15 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/44722/br.wordpress-team-bug.png</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/44722/br.wordpress-team-bug.png/1533321855605301</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #44722 (Double escape issue on translated wordpress.org/team/ for some locales) created</title>
+      
+        <dc:creator>cbrandt</dc:creator>
+
+      <pubDate>Fri, 03 Aug 2018 18:42:36 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44722</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44722/1533321756907094</guid>
+      <description>&lt;p&gt;
+Forgive the simplicity of this first bug report, done by a non-developer.
+&lt;/p&gt;
+&lt;p&gt;
+Dates are being shown wrongly on the /team/ page belonging to certain locales of wordpress.org.
+&lt;/p&gt;
+&lt;p&gt;
+Where the English language date string is &lt;code&gt;F j, Y&lt;/code&gt;
+&lt;/p&gt;
+&lt;p&gt;
+The pt-BR locale at [br.wordpress.org/team/] would have &lt;code&gt;j \d\e F \d\e Y&lt;/code&gt;
+&lt;/p&gt;
+&lt;p&gt;
+However, the text on the page, for &lt;code&gt;March 21, 2018&lt;/code&gt;, reads &lt;code&gt;21 \21\-03:00 março \21\-03:00 2018&lt;/code&gt; in what looks like a double escaping issue.
+&lt;/p&gt;
+&lt;p&gt;
+A similar issue was also found on [es.wordpress.org/team/]. Not every locale opted to include a connector (&lt;code&gt;de&lt;/code&gt;) that needed escaping, therefore this issue is not seen, for example, on [fr.wordpress.org] or [it.wordpress.org].
+&lt;/p&gt;
+&lt;p&gt;
+We did not do a comprehensive search, more locales may be affected.
+&lt;/p&gt;
+&lt;p&gt;
+We did an attempt at trying to find a translation that may have a double escape wrongly inserted on the string, &lt;code&gt;j \\d\\e F \\d\\e Y&lt;/code&gt;, which would result in the malformed strings we see on the final page, but could not find any for pt-BR.
+&lt;/p&gt;
+&lt;p&gt;
+The correct timestamp, untranslated, is present at the HTML code of the page. So we think this may be a Javascript function somewhere down the pipe adding the second escape and causing this issue.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #43985 (Privacy: The user request email should be sent in the user language) updated</title>
+      
+        <dc:creator>desrosj</dc:creator>
+
+      <pubDate>Fri, 03 Aug 2018 18:10:49 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43985#comment:36</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43985#comment:36/1533319849850775</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt;, &lt;i&gt;Focuses&lt;/i&gt;, &lt;i&gt;Component&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>de_DE.mo attached to Ticket #43985</title>
+      
+        <dc:creator>desrosj</dc:creator>
+
+      <pubDate>Fri, 03 Aug 2018 18:10:17 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/43985/de_DE.mo</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/43985/de_DE.mo/1533319817451673</guid>
+      <description>&lt;p&gt;
+Additional changed &lt;code&gt;.mo&lt;/code&gt; file to update.
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>43985.7.diff attached to Ticket #43985</title>
+      
+        <dc:creator>desrosj</dc:creator>
+
+      <pubDate>Fri, 03 Aug 2018 18:09:47 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/43985/43985.7.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/43985/43985.7.diff/1533319787584053</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #43985 (Privacy: The user request email should be sent in the user language) updated</title>
+      
+        <dc:creator>desrosj</dc:creator>
+
+      <pubDate>Fri, 03 Aug 2018 18:09:27 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43985#comment:35</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43985#comment:35/1533319767075539</guid>
+      <description>&lt;p&gt;
+Ah, I forgot to do &lt;code&gt;svn add&lt;/code&gt; on &lt;code&gt;wpSendUserRequest.php&lt;/code&gt; test file when I created &lt;a class="attachment" href="http://core.trac.wordpress.org/attachment/ticket/43985/43985.6.diff" title="Attachment '43985.6.diff' in Ticket #43985"&gt;43985.6.diff&lt;/a&gt;&lt;a class="trac-rawlink" href="http://core.trac.wordpress.org/raw-attachment/ticket/43985/43985.6.diff" title="Download"&gt;​&lt;/a&gt;.
+&lt;/p&gt;
+&lt;p&gt;
+&lt;code&gt;wp_send_user_request()&lt;/code&gt; can return a &lt;code&gt;WP_Error&lt;/code&gt; at the very beginning of the function if an invalid request ID is passed. The &lt;code&gt;wp_mail()&lt;/code&gt; function will return &lt;code&gt;true&lt;/code&gt;/&lt;code&gt;false&lt;/code&gt;, though. I do like making the functions consistent, so I have updated the function to return a &lt;code&gt;WP_Error&lt;/code&gt; on failure instead of &lt;code&gt;false&lt;/code&gt;.
+&lt;/p&gt;
+&lt;p&gt;
+I could not reproduce the issue you described above with the email sending in the current administrator's locale when the user is not registered. I wrote some unit tests for each scenario that should have failed if what you described was true, but they all passed. I dug a little deeper and figured out the problem. &lt;code&gt;get_user_locale()&lt;/code&gt; does call &lt;code&gt;wp_get_current_user()&lt;/code&gt; when the passed user ID is &lt;code&gt;0&lt;/code&gt;, but it performs an explicit check for a &lt;code&gt;0&lt;/code&gt; integer. The user ID property of the &lt;code&gt;WP_User_Request&lt;/code&gt; class is being stored as a string. Since the inline documentation for the user ID property says it is an &lt;code&gt;int&lt;/code&gt;, this is definitely a bug. I included that fix in the patch as well.
+&lt;/p&gt;
+&lt;p&gt;
+In summary, &lt;a class="attachment" href="http://core.trac.wordpress.org/attachment/ticket/43985/43985.7.diff" title="Attachment '43985.7.diff' in Ticket #43985"&gt;43985.7.diff&lt;/a&gt;&lt;a class="trac-rawlink" href="http://core.trac.wordpress.org/raw-attachment/ticket/43985/43985.7.diff" title="Download"&gt;​&lt;/a&gt; contains:
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;Changed &lt;code&gt;wp_send_user_request()&lt;/code&gt; to return a &lt;code&gt;WP_Error&lt;/code&gt; when the email does not send successfully to match the behavior in &lt;code&gt;wp_privacy_send_personal_data_export_email()&lt;/code&gt;.
+&lt;/li&gt;&lt;li&gt;Updated the &lt;code&gt;WP_Error&lt;/code&gt; codes in &lt;code&gt;wp_get_user_request_data()&lt;/code&gt;, &lt;code&gt;wp_privacy_send_personal_data_export_email()&lt;/code&gt;, and &lt;code&gt;wp_send_user_request()&lt;/code&gt; to be more descriptive and consistent when requests are invalid and emails fail.
+&lt;/li&gt;&lt;li&gt;Guarantee the &lt;code&gt;WP_User_Request-&amp;gt;user_id&lt;/code&gt; property is in fact an integer.
+&lt;/li&gt;&lt;li&gt;Updated &lt;code&gt;wp_send_user_request()&lt;/code&gt; to ensure the email is sent in the requested user's locale (or the site's default locale if they are not a registered user) when the administrator creating the request uses a different locale. Added all necessary tests.
+&lt;/li&gt;&lt;li&gt;Added a string to the &lt;code&gt;de_DE.po&lt;/code&gt; file in order to have two non-default locales to ensure the correct behaviors.
+&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;
+I also created &lt;a class="assigned ticket" href="http://core.trac.wordpress.org/ticket/44721" title="#44721: defect (bug): The privacy data erase fulfillment email should be in the user's language (assigned)"&gt;#44721&lt;/a&gt; for the fulfillment email and pulled that change out of &lt;a class="attachment" href="http://core.trac.wordpress.org/attachment/ticket/43985/43985.7.diff" title="Attachment '43985.7.diff' in Ticket #43985"&gt;43985.7.diff&lt;/a&gt;&lt;a class="trac-rawlink" href="http://core.trac.wordpress.org/raw-attachment/ticket/43985/43985.7.diff" title="Download"&gt;​&lt;/a&gt; to prevent this patch/commit from ballooning (that function currently has no tests, so needs more attention).
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #14558 (Separate Database Table Support for Custom Post Types) updated</title>
+      
+        <dc:creator>cuteantonyraj</dc:creator>
+
+      <pubDate>Fri, 03 Aug 2018 18:08:58 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/14558#comment:15</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/14558#comment:15/1533319738148692</guid>
+      <description>&lt;p&gt;
+Definitely it will be useful for lot of developers
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44721 (The privacy data erase fulfillment email should be in the user's language) created</title>
+      
+        <dc:creator>desrosj</dc:creator>
+
+      <pubDate>Fri, 03 Aug 2018 17:55:29 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44721</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44721/1533318929207452</guid>
+      <description>&lt;p&gt;
+When using the new admin tools, the email sent to the user when their data has successfully been erased is currently sent in the language of the user fulfilling the request. It should be sent in the language of the user who's data is being erased (or the site's default locale if they are not a registered user).
+&lt;/p&gt;
+&lt;p&gt;
+Related: &lt;a class="reopened ticket" href="http://core.trac.wordpress.org/ticket/43985" title="#43985: defect (bug): Privacy: The user request email should be sent in the user language (reopened)"&gt;#43985&lt;/a&gt;, &lt;a class="assigned ticket" href="http://core.trac.wordpress.org/ticket/44084" title="#44084: defect (bug): Privacy: The personal data export file should be generated in the ... (assigned)"&gt;#44084&lt;/a&gt;.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #39953 (REST API: Do not update date when preparing post if date is known to ...) updated</title>
+      
+        <dc:creator>jnylen0</dc:creator>
+
+      <pubDate>Fri, 03 Aug 2018 16:20:21 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/39953#comment:15</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/39953#comment:15/1533313221494495</guid>
+      <description>&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+In my opinion there should have been no dates stored for either &lt;code&gt;post_date&lt;/code&gt; or &lt;code&gt;post_date_gmt&lt;/code&gt; until published or manually set, and &lt;code&gt;post_modified&lt;/code&gt; and &lt;code&gt;post_modified_gmt&lt;/code&gt; should have been used instead.
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+Yep, this is getting closer to what the ideal design could have been from the beginning.
+&lt;/p&gt;
+&lt;p&gt;
+There are really several separate dates in play here, which may or may not be equal in various circumstances.
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;&lt;strong&gt;Published/updated date&lt;/strong&gt; - &lt;code&gt;post_date&lt;/code&gt; and &lt;code&gt;post_date_gmt&lt;/code&gt;.  Usually.
+&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Modified date&lt;/strong&gt; - always read-only, unless you try really hard and edit this via a direct db query.
+&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Creation date&lt;/strong&gt; - currently &lt;code&gt;post_date&lt;/code&gt; serves this role for drafts... until the draft is published, then the creation date may be lost, and &lt;code&gt;post_date&lt;/code&gt; and &lt;code&gt;post_date_gmt&lt;/code&gt; suddenly mean "date published".
+&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;
+Complicated for sure.  I guess we could do some kind of hack to add &lt;code&gt;created&lt;/code&gt; and &lt;code&gt;created_gmt&lt;/code&gt;, but it would be even more complicated, and the field values would often be inconsistent or missing since there just isn't a natural way to separate and store these separate pieces of information.
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+The only way I see out of this while maintaining full back-compat is some kind of flag.
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
++1
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44712 (GitHub mirror is not syncing) updated</title>
+      
+        <dc:creator>slackbot</dc:creator>
+
+      <pubDate>Fri, 03 Aug 2018 16:10:59 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44712#comment:7</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44712#comment:7/1533312659957036</guid>
+      <description>&lt;p&gt;
+&lt;em&gt;This ticket was mentioned in &lt;a class="ext-link" href="https://make.wordpress.org/chat/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;Slack&lt;/a&gt; in #core by swissspidy. &lt;a class="ext-link" href="https://wordpress.slack.com/archives/core/p1533312658000258"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;View the logs&lt;/a&gt;.&lt;/em&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #39953 (REST API: Do not update date when preparing post if date is known to ...) updated</title>
+      
+        <dc:creator>earnjam</dc:creator>
+
+      <pubDate>Fri, 03 Aug 2018 14:55:15 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/39953#comment:14</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/39953#comment:14/1533308115493168</guid>
+      <description>&lt;p&gt;
+After thinking on it a bit more, I'm closer to agreeing with @jnylen0 here.
+&lt;/p&gt;
+&lt;p&gt;
+I'm not crazy about adding a separate flag for this, but the dates shouldn't have been used in this way from the beginning. In my opinion there should have been no dates stored for either &lt;code&gt;post_date&lt;/code&gt; or &lt;code&gt;post_date_gmt&lt;/code&gt; until published or manually set, and &lt;code&gt;post_modified&lt;/code&gt; and &lt;code&gt;post_modified_gmt&lt;/code&gt; should have been used instead. You could even argue that from the beginning the REST API should have returned null values for both &lt;code&gt;date&lt;/code&gt; &lt;strong&gt;&lt;em&gt;and&lt;/em&gt;&lt;/strong&gt; &lt;code&gt;date_gmt&lt;/code&gt; if there was no &lt;code&gt;post_date_gmt&lt;/code&gt; stored, since it would mean there wasn't a &lt;strong&gt;&lt;em&gt;true&lt;/em&gt;&lt;/strong&gt; date set for the post yet. The shim wasn't really needed IMO because you should have been using the &lt;code&gt;modified_gmt&lt;/code&gt; value when you needed a date for an unpublished/unscheduled draft. But here we are.
+&lt;/p&gt;
+&lt;p&gt;
+At this point, changing the way we supply &lt;code&gt;date_gmt&lt;/code&gt; in the REST API now does add potential for breakage even with the &lt;code&gt;edit&lt;/code&gt; context, as there might be clients using &lt;code&gt;edit&lt;/code&gt; context now and not expecting a null value there.
+&lt;/p&gt;
+&lt;p&gt;
+I suppose we could make a pretty good guess that it's supposed to be a floating date when looking at the API response right now if the post status is &lt;code&gt;draft&lt;/code&gt; or &lt;code&gt;auto-draft&lt;/code&gt; and &lt;code&gt;date&lt;/code&gt; is identical to &lt;code&gt;modified&lt;/code&gt;. The only way I think that scenario would not be true is if you manually set the date to the exact second you saved the draft. Highly unlikely, but it still feels potentially unreliable.
+&lt;/p&gt;
+&lt;p&gt;
+The only way I see out of this while maintaining full back-compat is some kind of flag.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44600 (Update WPCS to 1.0.0, and enforce coding standards) updated</title>
+      
+        <dc:creator>jrf</dc:creator>
+
+      <pubDate>Fri, 03 Aug 2018 14:53:09 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44600#comment:4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44600#comment:4/1533307989142047</guid>
+      <description>&lt;p&gt;
+FYI: WPCS 1.0.0 has been released in the mean time.
+Changelog: &lt;a class="ext-link" href="https://github.com/WordPress-Coding-Standards/WordPress-Coding-Standards/releases/tag/1.0.0"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://github.com/WordPress-Coding-Standards/WordPress-Coding-Standards/releases/tag/1.0.0&lt;/a&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Regarding the sniff name changes in WPCS 1.0.0, no changes are needed in the current custom ruleset use by WP Core.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #43484 (WordPress Notification Center proposal) updated</title>
+      
+        <dc:creator>slackbot</dc:creator>
+
+      <pubDate>Fri, 03 Aug 2018 14:43:37 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43484#comment:32</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43484#comment:32/1533307417795178</guid>
+      <description>&lt;p&gt;
+&lt;em&gt;This ticket was mentioned in &lt;a class="ext-link" href="https://make.wordpress.org/chat/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;Slack&lt;/a&gt; in #core-editor by clorith. &lt;a class="ext-link" href="https://wordpress.slack.com/archives/core-editor/p1533307417000073"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;View the logs&lt;/a&gt;.&lt;/em&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44719 (Hide this update button placement is wrong on update-core.php) updated</title>
+      
+        <dc:creator>swissspidy</dc:creator>
+
+      <pubDate>Fri, 03 Aug 2018 14:42:20 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44719#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44719#comment:2/1533307340797125</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt;, &lt;i&gt;Version&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+I wonder where these styles got lost...
+&lt;/p&gt;
+&lt;p&gt;
+In any case, we shouldn't fix this with inline styles but by putting some proper selectors in a CSS file.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44712 (GitHub mirror is not syncing) updated</title>
+      
+        <dc:creator>jasonadamyoung</dc:creator>
+
+      <pubDate>Fri, 03 Aug 2018 14:32:59 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44712#comment:6</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44712#comment:6/1533306779748155</guid>
+      <description>&lt;p&gt;
+I need to chime in with a "me too" here.
+&lt;/p&gt;
+&lt;p&gt;
+I went to update to 4.9.8 today and observed the broken mirror.  My workflow is treat the GitHub mirror as an upstream remote and do a git merge from the tags into my own git repositories for my wordpress sites + plugins, I've been doing that for years, and it's always been spot-on reliable until today.
+&lt;/p&gt;
+&lt;p&gt;
+Switching to &lt;a class="ext-link" href="git://core.git.wordpress.org/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;git://core.git.wordpress.org/&lt;/a&gt; is going to be a giant mess of conflicts because the git history is treated as unrelated - at least from the first local tests (also being able to use the GitHub web UI to inspect changes is a huge benefit as well)
+&lt;/p&gt;
+&lt;p&gt;
+I'm super thankful for this mirror and appreciate the volunteer work that goes into maintaining it. It's been a first-class part of the WordPress dev for years, if that's going to change, I do understand - but it's definitely going to cause some headaches.
+&lt;/p&gt;
+&lt;p&gt;
+I know this is assigned, but I just wanted to add the "me too" about how useful this mirror has been and would continue to be.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Screen Shot 2018-08-03 at 7.28.29 AM.png attached to Ticket #44720</title>
+      
+        <dc:creator>JoshuaWold</dc:creator>
+
+      <pubDate>Fri, 03 Aug 2018 14:28:48 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/44720/Screen%20Shot%202018-08-03%20at%207.28.29%20AM.png</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/44720/Screen%20Shot%202018-08-03%20at%207.28.29%20AM.png/1533306528522563</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #44720 (CSS in Plugin Details broken with 4.9.8 Update) updated</title>
+      
+        <dc:creator>JoshuaWold</dc:creator>
+
+      <pubDate>Fri, 03 Aug 2018 14:27:06 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44720#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44720#comment:1/1533306426942085</guid>
+      <description>&lt;p&gt;
+Could you share a bit more details about it, perhaps a screenshot? I tested on my site and am seeing no issues, but could have different settings than yours. Thanks!
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #38741 (Introduce the concept of a large site in order to speed up the Users ...) updated</title>
+      
+        <dc:creator>slackbot</dc:creator>
+
+      <pubDate>Fri, 03 Aug 2018 14:09:59 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/38741#comment:45</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/38741#comment:45/1533305399403530</guid>
+      <description>&lt;p&gt;
+&lt;em&gt;This ticket was mentioned in &lt;a class="ext-link" href="https://make.wordpress.org/chat/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;Slack&lt;/a&gt; in #core by macbookandrew. &lt;a class="ext-link" href="https://wordpress.slack.com/archives/core/p1533305397000550"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;View the logs&lt;/a&gt;.&lt;/em&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44719 (Hide this update button placement is wrong on update-core.php) updated</title>
+      
+        <dc:creator>subrataemfluence</dc:creator>
+
+      <pubDate>Fri, 03 Aug 2018 14:05:24 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44719#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44719#comment:1/1533305124062854</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>with-patch.png attached to Ticket #44719</title>
+      
+        <dc:creator>subrataemfluence</dc:creator>
+
+      <pubDate>Fri, 03 Aug 2018 14:02:42 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/44719/with-patch.png</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/44719/with-patch.png/1533304962157452</guid>
+      <description>&lt;p&gt;
+After applying proposed patch
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>44719.diff attached to Ticket #44719</title>
+      
+        <dc:creator>subrataemfluence</dc:creator>
+
+      <pubDate>Fri, 03 Aug 2018 14:00:22 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/44719/44719.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/44719/44719.diff/1533304822355732</guid>
+      <description>&lt;p&gt;
+Proposed patch
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #44720 (CSS in Plugin Details broken with 4.9.8 Update) created</title>
+      
+        <dc:creator>AlaskaNativeNews</dc:creator>
+
+      <pubDate>Fri, 03 Aug 2018 13:48:34 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44720</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44720/1533304114918580</guid>
+      <description>&lt;p&gt;
+The CSS in the details popup for plugins is gone with the update. Renders just the html
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>screenshot.png attached to Ticket #44719</title>
+      
+        <dc:creator>subrataemfluence</dc:creator>
+
+      <pubDate>Fri, 03 Aug 2018 13:38:21 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/44719/screenshot.png</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/44719/screenshot.png/1533303501669069</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #44719 (Hide this update button placement is wrong on update-core.php) created</title>
+      
+        <dc:creator>subrataemfluence</dc:creator>
+
+      <pubDate>Fri, 03 Aug 2018 13:37:31 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44719</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44719/1533303451071362</guid>
+      <description>&lt;p&gt;
+The button &lt;code&gt;Hide this update&lt;/code&gt; in &lt;code&gt;update-core.php&lt;/code&gt; is wrongly placed. There should be a small space after &lt;code&gt;Update Now&lt;/code&gt; button.
+&lt;/p&gt;
+&lt;p&gt;
+Please see screenshot
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #44427 (Introduce lazy-loading API for media and other elements) updated</title>
+      
+        <dc:creator>tabrisrp</dc:creator>
+
+      <pubDate>Fri, 03 Aug 2018 13:22:53 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44427#comment:5</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44427#comment:5/1533302573071465</guid>
+      <description>&lt;p&gt;
+Here is a list of functions we identified, which outputs HTML for images and have an available filter:
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;&lt;code&gt;get_avatar()&lt;/code&gt; &lt;a class="ext-link" href="https://developer.wordpress.org/reference/functions/get_avatar/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://developer.wordpress.org/reference/functions/get_avatar/&lt;/a&gt;
+&lt;/li&gt;&lt;li&gt;&lt;code&gt;get_image_tag()&lt;/code&gt; &lt;a class="ext-link" href="https://developer.wordpress.org/reference/functions/get_image_tag/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://developer.wordpress.org/reference/functions/get_image_tag/&lt;/a&gt;
+&lt;/li&gt;&lt;li&gt;&lt;code&gt;get_the_post_thumbnail()&lt;/code&gt; with &lt;code&gt;post_thumbnail_html&lt;/code&gt; filter &lt;a class="ext-link" href="https://developer.wordpress.org/reference/functions/get_the_post_thumbnail/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://developer.wordpress.org/reference/functions/get_the_post_thumbnail/&lt;/a&gt;
+&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;
+&lt;code&gt;get_the_post_thumbnail()&lt;/code&gt; uses &lt;code&gt;wp_get_attachment_image()&lt;/code&gt; under the hood, which doesn't have a filter for the whole HTML returned (see &lt;a href="https://core.trac.wordpress.org/ticket/27399"&gt;https://core.trac.wordpress.org/ticket/27399&lt;/a&gt;), only for the attributes with &lt;code&gt;wp_get_attachment_image_attributes&lt;/code&gt;.
+&lt;/p&gt;
+&lt;p&gt;
+In the case of images added into the main content and in widgets like the image widget, I suppose the best approach would be to add the attributes directly to the generated HTML at that time, the same way than for the responsive attributes.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44714 (Title should toggle to Show details to Hide details as per the event fired) updated</title>
+      
+        <dc:creator>subrataemfluence</dc:creator>
+
+      <pubDate>Fri, 03 Aug 2018 12:46:06 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44714#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44714#comment:2/1533300366008105</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>44714.diff attached to Ticket #44714</title>
+      
+        <dc:creator>subrataemfluence</dc:creator>
+
+      <pubDate>Fri, 03 Aug 2018 12:42:33 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/44714/44714.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/44714/44714.diff/1533300153635172</guid>
+      <description>&lt;p&gt;
+Proposed patch
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #44718 (Revision Error) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Fri, 03 Aug 2018 11:41:30 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44718#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44718#comment:1/1533296490664693</guid>
+      <description>&lt;i&gt;Component&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44717 (Missing space in changelog on about.php) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Fri, 03 Aug 2018 11:39:41 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44717#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44717#comment:3/1533296381119198</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt;, &lt;i&gt;Focuses&lt;/i&gt;, &lt;i&gt;Component&lt;/i&gt;, &lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44716 (Gutenberg Blank Page) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Fri, 03 Aug 2018 11:36:34 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44716#comment:6</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44716#comment:6/1533296194578840</guid>
+      <description>&lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Restoring the milestone so that the ticket does not get lost.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44715 (Post Preview after content update) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Fri, 03 Aug 2018 11:34:06 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44715#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44715#comment:2/1533296046797685</guid>
+      <description>&lt;i&gt;Component&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44718 (Revision Error) created</title>
+      
+        <dc:creator>visnik21</dc:creator>
+
+      <pubDate>Fri, 03 Aug 2018 11:31:33 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44718</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44718/1533295893395930</guid>
+      <description>&lt;p&gt;
+Please found the link
+&lt;/p&gt;
+&lt;p&gt;
+&lt;a class="ext-link" href="https://testgutenberg.com/revision.php?revision=896&amp;amp;gutenberg=true"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://testgutenberg.com/revision.php?revision=896&amp;amp;gutenberg=true&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #44716 (Gutenberg Blank Page) updated</title>
+      
+        <dc:creator>earnjam</dc:creator>
+
+      <pubDate>Fri, 03 Aug 2018 11:07:21 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44716#comment:5</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44716#comment:5/1533294441153234</guid>
+      <description>&lt;p&gt;
+If there are no errors in JS console, then I would do these steps in this order:
+&lt;/p&gt;
+&lt;ol&gt;&lt;li&gt;Check PHP error logs
+&lt;/li&gt;&lt;li&gt;Try deactivating other plugins one at a time and testing in between
+&lt;/li&gt;&lt;li&gt;Try changing themes to one of the default themes
+&lt;/li&gt;&lt;/ol&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44697 (Argument type does not match: user.php) updated</title>
+      
+        <dc:creator>subrataemfluence</dc:creator>
+
+      <pubDate>Fri, 03 Aug 2018 10:33:55 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44697#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44697#comment:3/1533292435525847</guid>
+      <description>&lt;p&gt;
+I had the same initial feeling but got a kinda confused!
+&lt;/p&gt;
+&lt;p&gt;
+Now, since the default value set for &lt;code&gt;$for_user_id&lt;/code&gt; is &lt;code&gt;0&lt;/code&gt;, can this be better idea to rewrite the comparison block like this?
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;if ( '' == $for_user_id || 0 == $for_user_id ) {
+   $for_user_id = get_current_user_id();
+}
+$user = get_userdata( $for_user_id );
+&lt;/pre&gt;&lt;p&gt;
+This ensures &lt;code&gt;$for_user_id&lt;/code&gt; gets the current user id for default values.
+&lt;/p&gt;
+&lt;p&gt;
+And if fails to satisfy the above condition, rest will be executed as tNB: Ire.
+&lt;/p&gt;
+&lt;p&gt;
+And if the default value for &lt;code&gt;$for_user_id&lt;/code&gt; is set to &lt;code&gt;0&lt;/code&gt;, do we really need to compare it with an &lt;code&gt;empty string&lt;/code&gt;?
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>44697-1.diff attached to Ticket #44697</title>
+      
+        <dc:creator>subrataemfluence</dc:creator>
+
+      <pubDate>Fri, 03 Aug 2018 10:31:21 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/44697/44697-1.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/44697/44697-1.diff/1533292281423350</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #44716 (Gutenberg Blank Page) updated</title>
+      
+        <dc:creator>slackbot</dc:creator>
+
+      <pubDate>Fri, 03 Aug 2018 10:31:14 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44716#comment:4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44716#comment:4/1533292274888043</guid>
+      <description>&lt;p&gt;
+&lt;em&gt;This ticket was mentioned in &lt;a class="ext-link" href="https://make.wordpress.org/chat/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;Slack&lt;/a&gt; in #core by chetan200891. &lt;a class="ext-link" href="https://wordpress.slack.com/archives/core/p1533292274000068"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;View the logs&lt;/a&gt;.&lt;/em&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44717 (Missing space in changelog on about.php) updated</title>
+      
+        <dc:creator>chetan200891</dc:creator>
+
+      <pubDate>Fri, 03 Aug 2018 10:28:54 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44717#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44717#comment:2/1533292134785598</guid>
+      <description>&lt;p&gt;
+@swissspidy  I have created patch &lt;a href="https://core.trac.wordpress.org/attachment/ticket/44717/44717.diff"&gt;44717.diff&lt;/a&gt; to fix missing space issue.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>44717.diff attached to Ticket #44717</title>
+      
+        <dc:creator>chetan200891</dc:creator>
+
+      <pubDate>Fri, 03 Aug 2018 10:23:56 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/44717/44717.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/44717/44717.diff/1533291836449249</guid>
+      <description>&lt;p&gt;
+Created patch to add missing space.
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>after-icon-alignment-fix.png attached to Ticket #44664</title>
+      
+        <dc:creator>mmaumio</dc:creator>
+
+      <pubDate>Fri, 03 Aug 2018 10:09:05 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/44664/after-icon-alignment-fix.png</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/44664/after-icon-alignment-fix.png/1533290945140250</guid>
+      <description>&lt;p&gt;
+After the fix
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>before-icon-alignment-fix.png attached to Ticket #44664</title>
+      
+        <dc:creator>mmaumio</dc:creator>
+
+      <pubDate>Fri, 03 Aug 2018 10:08:14 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/44664/before-icon-alignment-fix.png</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/44664/before-icon-alignment-fix.png/1533290894535564</guid>
+      <description>&lt;p&gt;
+Before Icon Alignment Fix
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>video_icon_alignment.diff attached to Ticket #44664</title>
+      
+        <dc:creator>mmaumio</dc:creator>
+
+      <pubDate>Fri, 03 Aug 2018 09:58:57 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/44664/video_icon_alignment.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/44664/video_icon_alignment.diff/1533290337640267</guid>
+      <description>&lt;p&gt;
+Removed the margin from the .mejs-overlay-button for both hentry and widget as it was misaligning the icon from being centered vertically and horizontally. Changed the icon position to relative instead of absolute which the issue creator advised as well.
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #44717 (Missing space in changelog on about.php) updated</title>
+      
+        <dc:creator>swissspidy</dc:creator>
+
+      <pubDate>Fri, 03 Aug 2018 09:44:01 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44717#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44717#comment:1/1533289441222571</guid>
+      <description>&lt;p&gt;
+@burhandodhy To be clear, the space is only missing for the latest changelog entry (4.9.8). All other strings are fine and the space is not within the translatable strings. There's no need to change the strings and force all the translators to update their packages.
+&lt;/p&gt;
+&lt;p&gt;
+It's the way the strings are concatenated that somehow differs for 4.9.8. This just needs be adjusted.
+&lt;/p&gt;
+&lt;p&gt;
+Notice the difference by comparing &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/43552" title="Bump 4.9 branch to version 4.9.8."&gt;[43552]&lt;/a&gt; and &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/43407" title="Bump 4.9 branch to version 4.9.7"&gt;[43407]&lt;/a&gt;.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>44717.patch attached to Ticket #44717</title>
+      
+        <dc:creator>burhandodhy</dc:creator>
+
+      <pubDate>Fri, 03 Aug 2018 09:26:25 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/44717/44717.patch</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/44717/44717.patch/1533288385383265</guid>
+      <description>&lt;p&gt;
+One possible solution is to add extra space after the line end
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #44716 (Gutenberg Blank Page) updated</title>
+      
+        <dc:creator>fachrils</dc:creator>
+
+      <pubDate>Fri, 03 Aug 2018 09:11:38 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44716#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44716#comment:3/1533287498588604</guid>
+      <description>&lt;p&gt;
+@pento sorry i just spotantly reporting this bug to core.
+there is nothing on console bdw
+&lt;/p&gt;
+&lt;p&gt;
+@chetan200891 i tried some browser still... nothing
+&lt;a class="ext-link" href="https://i.imgur.com/mkq6vZf.png"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://i.imgur.com/mkq6vZf.png&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44712 (GitHub mirror is not syncing) updated</title>
+      
+        <dc:creator>peterwilsoncc</dc:creator>
+
+      <pubDate>Fri, 03 Aug 2018 09:02:41 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44712#comment:5</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44712#comment:5/1533286961174757</guid>
+      <description>&lt;i&gt;Status&lt;/i&gt;, &lt;i&gt;Owner&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44716 (Gutenberg Blank Page) updated</title>
+      
+        <dc:creator>chetan200891</dc:creator>
+
+      <pubDate>Fri, 03 Aug 2018 08:45:25 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44716#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44716#comment:2/1533285925702608</guid>
+      <description>&lt;p&gt;
+I was getting the same issue when I was testing RC. But I found that it was cache issue. Once you clear cache or try in fresh browser. It should work properly.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44712 (GitHub mirror is not syncing) updated</title>
+      
+        <dc:creator>c00kiemon5ter</dc:creator>
+
+      <pubDate>Fri, 03 Aug 2018 08:13:44 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44712#comment:4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44712#comment:4/1533284024597393</guid>
+      <description>&lt;p&gt;
+I see github has been updated. I will also try the core.git.wp remote. Thanks!
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44717 (Missing space in changelog on about.php) created</title>
+      
+        <dc:creator>swissspidy</dc:creator>
+
+      <pubDate>Fri, 03 Aug 2018 07:37:55 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44717</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44717/1533281875905822</guid>
+      <description>&lt;p&gt;
+On &lt;code&gt;wp-admin/about.php&lt;/code&gt; there's a missing space after the period for the 4.9.8 changelog entry:
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+Version 4.9.8 addressed 46 bugs.For more information, see the release notes.
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+Screenshot: &lt;a class="ext-link" href="https://cloudup.com/cEPPqwWZeE0"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://cloudup.com/cEPPqwWZeE0&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #44716 (Gutenberg Blank Page) updated</title>
+      
+        <dc:creator>pento</dc:creator>
+
+      <pubDate>Fri, 03 Aug 2018 07:37:08 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44716#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44716#comment:1/1533281828653929</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt;, &lt;i&gt;Version&lt;/i&gt;, &lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Thank you for the bug report, @fachrils!
+&lt;/p&gt;
+&lt;p&gt;
+Just so you know, we're tracking Gutenberg issues over on the &lt;a class="ext-link" href="https://github.com/WordPress/gutenberg/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;Gutenberg repo&lt;/a&gt;, but we can continue this one here for now. 🙂
+&lt;/p&gt;
+&lt;p&gt;
+Do you see any errors in your browser's JavaScript console, or in your web server's error logs?
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44716 (Gutenberg Blank Page) created</title>
+      
+        <dc:creator>fachrils</dc:creator>
+
+      <pubDate>Fri, 03 Aug 2018 07:33:16 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44716</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44716/1533281596260233</guid>
+      <description>&lt;p&gt;
+Hi,
+&lt;/p&gt;
+&lt;p&gt;
+I just installed Gutenberg after updating wordpress
+Why Gutenberg got blank page? at the demo, edit page and at every page?
+Proof: &lt;a class="ext-link" href="https://my.mixtape.moe/yelmpb.gif"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://my.mixtape.moe/yelmpb.gif&lt;/a&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Thankyou.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #44712 (GitHub mirror is not syncing) updated</title>
+      
+        <dc:creator>slackbot</dc:creator>
+
+      <pubDate>Fri, 03 Aug 2018 07:14:45 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44712#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44712#comment:3/1533280485038695</guid>
+      <description>&lt;p&gt;
+&lt;em&gt;This ticket was mentioned in &lt;a class="ext-link" href="https://make.wordpress.org/chat/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;Slack&lt;/a&gt; in #core by swissspidy. &lt;a class="ext-link" href="https://wordpress.slack.com/archives/core/p1533280483000210"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;View the logs&lt;/a&gt;.&lt;/em&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44715 (Post Preview after content update) closed</title>
+      
+        <dc:creator>pento</dc:creator>
+
+      <pubDate>Fri, 03 Aug 2018 06:46:09 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44715#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44715#comment:1/1533278769266437</guid>
+      <description>invalid: &lt;p&gt;
+Thank you for the bug report, @niravcse006!
+&lt;/p&gt;
+&lt;p&gt;
+Just so you know, we're tracking Gutenberg issues over on the &lt;a class="ext-link" href="https://github.com/WordPress/gutenberg/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;Gutenberg repo&lt;/a&gt;. 🙂
+&lt;/p&gt;
+&lt;p&gt;
+For this particular bug, there are some circumstances where the preview doesn't load correctly, you can follow it on &lt;a class="ext-link" href="https://github.com/WordPress/gutenberg/issues/7852"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;this issue&lt;/a&gt;.
+&lt;/p&gt;
+&lt;p&gt;
+I'm going to close this issue, we can continue tracking it on the Gutenberg repo.
+&lt;/p&gt;
+</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>preview.png attached to Ticket #44715</title>
+      
+        <dc:creator>niravcse006</dc:creator>
+
+      <pubDate>Fri, 03 Aug 2018 06:43:33 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/44715/preview.png</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/44715/preview.png/1533278613590586</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #44715 (Post Preview after content update) created</title>
+      
+        <dc:creator>niravcse006</dc:creator>
+
+      <pubDate>Fri, 03 Aug 2018 06:42:50 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44715</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44715/1533278570890509</guid>
+      <description>&lt;p&gt;
+Hello,
+When we insert any new post with data or modify any post then we click on "Update" button and then same time we click on post "Preview" button its display blank page with "Please wait…  Generating preview." message. When we modify post with update button after 4-5 second post "Preview" working fine. But when we click on update button and at a time next click on post "Preview" button then its not working.
+&lt;/p&gt;
+&lt;p&gt;
+Please check this URL: &lt;a class="ext-link" href="http://php54.indianic.com/harmeliehoney/preview.png"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;http://php54.indianic.com/harmeliehoney/preview.png&lt;/a&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Thanks.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #44713 (Gutenberg formatting layout and UI errors) closed</title>
+      
+        <dc:creator>pento</dc:creator>
+
+      <pubDate>Fri, 03 Aug 2018 06:24:53 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44713#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44713#comment:2/1533277493733049</guid>
+      <description>invalid: &lt;p&gt;
+Thank you for the feedback, @PrmyApps!
+&lt;/p&gt;
+&lt;p&gt;
+Just so you know, we're tracking Gutenberg issues over on the &lt;a class="ext-link" href="https://github.com/WordPress/gutenberg/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;Gutenberg repo&lt;/a&gt;, but we can go through these ones here. 🙂
+&lt;/p&gt;
+&lt;p&gt;
+1/2: Themes &lt;a class="ext-link" href="https://wordpress.org/gutenberg/handbook/extensibility/theme-support/#block-font-sizes"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;will need to specify&lt;/a&gt; what they would like each size to be. Without that information, Gutenberg just uses a default font size, which may not match what you see when you preview the post.
+&lt;/p&gt;
+&lt;p&gt;
+3: This is due to a inconsistent and buggy browser behaviour. We ran into issues early on where different browsers had strange issues when rendering the editable view with the drop cap. The best solution was to not show the drop cap when editing, then show it again once you move out of the block.
+&lt;/p&gt;
+&lt;p&gt;
+4: We've iterated on the block inserter a few times, there's still some work to be done here. I agree that there's the potential for confusion when there's no block inserter at the end of the post. Here are some issues for some more context: &lt;a class="ext-link" href="https://github.com/WordPress/gutenberg/issues/7006"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;7006&lt;/a&gt;, &lt;a class="ext-link" href="https://github.com/WordPress/gutenberg/issues/7271"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;7271&lt;/a&gt;.
+&lt;/p&gt;
+&lt;p&gt;
+5/6: Much like the Classic Editor &lt;a class="ext-link" href="https://codex.wordpress.org/Editor_Style"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;requires themes to specify styling&lt;/a&gt;, Gutenberg has &lt;a class="ext-link" href="https://wordpress.org/gutenberg/handbook/extensibility/theme-support/#editor-styles"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;similar requirements&lt;/a&gt;. Due to some fundamental differences with how the editors function, it's not really possible to automatically re-use theme styles built for the Classic Editor in Gutenberg.
+&lt;/p&gt;
+&lt;p&gt;
+I'm going to close this ticket, but please continue providing feedback over on the &lt;a class="ext-link" href="https://github.com/WordPress/gutenberg/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;Gutenberg repo&lt;/a&gt;!
+&lt;/p&gt;
+</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Ticket #44714 (Title should toggle to Show details to Hide details as per the event fired) updated</title>
+      
+        <dc:creator>swissspidy</dc:creator>
+
+      <pubDate>Fri, 03 Aug 2018 06:21:47 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44714#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44714#comment:1/1533277307174014</guid>
+      <description>&lt;i&gt;Focuses&lt;/i&gt;, &lt;i&gt;Component&lt;/i&gt;, &lt;i&gt;Version&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>toggle event issue.webm attached to Ticket #44714</title>
+      
+        <dc:creator>krupajnanda</dc:creator>
+
+      <pubDate>Fri, 03 Aug 2018 06:15:57 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/44714/toggle%20event%20issue.webm</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/44714/toggle%20event%20issue.webm/1533276957330752</guid>
+      <description>&lt;p&gt;
+Please check this visual for detail.
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #44714 (Title should toggle to Show details to Hide details as per the event fired) created</title>
+      
+        <dc:creator>krupajnanda</dc:creator>
+
+      <pubDate>Fri, 03 Aug 2018 06:15:24 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44714</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44714/1533276924730052</guid>
+      <description>&lt;p&gt;
+On &lt;strong&gt;upload-core.php&lt;/strong&gt; page --&amp;gt; While theme and/or plugin is being updated, information title should be toggled to &lt;strong&gt;Hide details&lt;/strong&gt; when user clicked on &lt;strong&gt;Show details&lt;/strong&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Please check this attachment.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #44713 (Gutenberg formatting layout and UI errors) updated</title>
+      
+        <dc:creator>PrmyApps</dc:creator>
+
+      <pubDate>Fri, 03 Aug 2018 05:56:09 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44713#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44713#comment:1/1533275769109033</guid>
+      <description>&lt;p&gt;
+the post on instagram is the same screenshots I uploaded here. I didn't realize I could upload them.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>fullsizeoutput_2265.jpeg attached to Ticket #44713</title>
+      
+        <dc:creator>PrmyApps</dc:creator>
+
+      <pubDate>Fri, 03 Aug 2018 05:53:51 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/44713/fullsizeoutput_2265.jpeg</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/44713/fullsizeoutput_2265.jpeg/1533275631708537</guid>
+      <description>&lt;p&gt;
+resulting layout in Preview
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>fullsizeoutput_2266.jpeg attached to Ticket #44713</title>
+      
+        <dc:creator>PrmyApps</dc:creator>
+
+      <pubDate>Fri, 03 Aug 2018 05:53:21 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/44713/fullsizeoutput_2266.jpeg</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/44713/fullsizeoutput_2266.jpeg/1533275601266826</guid>
+      <description>&lt;p&gt;
+visual editor UI
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #44713 (Gutenberg formatting layout and UI errors) created</title>
+      
+        <dc:creator>PrmyApps</dc:creator>
+
+      <pubDate>Fri, 03 Aug 2018 05:50:47 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44713</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44713/1533275447439877</guid>
+      <description>&lt;p&gt;
+I installed Gutenberg today on my localhost on a Mac and using the Chrome browser. My theme is Twenty-Seventeen. I found 5-6 user interface issues and layout problems. I tried searching your database, but with the highly technical summary titles, it is difficult for me to tell if these concerns have already been reported.
+&lt;/p&gt;
+&lt;p&gt;
+I posted screenshots on Instagram at
+&lt;a class="ext-link" href="https://www.instagram.com/p/BmAR91GgMPH/?utm_source=ig_web_copy_link"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://www.instagram.com/p/BmAR91GgMPH/?utm_source=ig_web_copy_link&lt;/a&gt;
+&lt;/p&gt;
+&lt;p&gt;
+the problems in the Guttenberg editor are
+&lt;/p&gt;
+&lt;ol&gt;&lt;li&gt;When I am in a block, the Text Settings boxes of S M L XL or not highlighted, so I do not know what size text I am using.
+&lt;/li&gt;&lt;/ol&gt;&lt;ol start="2"&gt;&lt;li&gt;The font size is not displayed until I click on a S M L XL box.
+&lt;/li&gt;&lt;/ol&gt;&lt;ol start="3"&gt;&lt;li&gt;If i turn on Drop Cap for a block, the visual editor does not WYSIWIG this until I exit the block
+&lt;/li&gt;&lt;/ol&gt;&lt;ol start="4"&gt;&lt;li&gt;When on the last block, there is no + sign underneath the block to add another block. Instead, I have to go to the end of the paragraph in the last block and press Return. To be consistent, the + sign should be available on the last block.
+&lt;/li&gt;&lt;/ol&gt;&lt;ol start="5"&gt;&lt;li&gt;With Drop Cap On, the layout looks good in the visual editor but the layout in Preview is different.
+&lt;/li&gt;&lt;/ol&gt;&lt;ol start="6"&gt;&lt;li&gt;If the Visual editor is to be WYSIWIG, shouldn't it reflect the theme's format?
+&lt;/li&gt;&lt;/ol&gt;</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #39953 (REST API: Do not update date when preparing post if date is known to ...) updated</title>
+      
+        <dc:creator>jnylen0</dc:creator>
+
+      <pubDate>Fri, 03 Aug 2018 04:29:46 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/39953#comment:13</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/39953#comment:13/1533270586422759</guid>
+      <description>&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+I think this should be a &lt;code&gt;400 Bad Request&lt;/code&gt; because the client is providing inconsistent information regarding what it wants the API to do.  Again:  inconsistency = bad.
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+I am revising my opinion on this.  If &lt;code&gt;date_gmt&lt;/code&gt; is set and &lt;code&gt;date_floating&lt;/code&gt; is true, then that's fine.  Internally, we convert &lt;code&gt;date_gmt&lt;/code&gt; to site local time, and set &lt;code&gt;date&lt;/code&gt; accordingly.  Then we set &lt;code&gt;date_gmt&lt;/code&gt; to the null value.
+&lt;/p&gt;
+&lt;p&gt;
+Not ideal, but I think it's the best we can reasonably do.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #39953 (REST API: Do not update date when preparing post if date is known to ...) updated</title>
+      
+        <dc:creator>jnylen0</dc:creator>
+
+      <pubDate>Fri, 03 Aug 2018 04:25:43 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/39953#comment:12</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/39953#comment:12/1533270343786221</guid>
+      <description>&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+leave it as-is. It's up to REST API clients to keep track of whether the draft was scheduled or unscheduled.
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+This is not going to work, because of the case you mentioned: different clients editing the same post.
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+when requesting a post in the "edit" context, don't do the magic from &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/38883" title="#38883: defect (bug): Shim post_date_gmt for drafts / empty dates in the REST API (closed: fixed)"&gt;#38883&lt;/a&gt; ... [but] it's a bit strange having &lt;code&gt;date_gmt&lt;/code&gt;'s value be dependent on the request context.
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+Let's not do this either.  Inconsistency bad.  :)
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+add a new field, called something like &lt;code&gt;date_floating&lt;/code&gt;
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+This is still my preferred solution.  I also haven't heard a name I like more than &lt;code&gt;date_floating&lt;/code&gt;.
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+The downside to this is it's a bit messy deciding what to do when a draft is submitted with a &lt;code&gt;date_gmt&lt;/code&gt; AND &lt;code&gt;date_float=true&lt;/code&gt;, because &lt;code&gt;date_floating=true&lt;/code&gt; means we should totally ignore whatever is submitted for &lt;code&gt;date_gmt&lt;/code&gt;.
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+I think this should be a &lt;code&gt;400 Bad Request&lt;/code&gt; because the client is providing inconsistent information regarding what it wants the API to do.  Again:  inconsistency = bad.
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+It feels like we're putting more paint over a crack in the foundation- it won't ever be pretty.
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+No argument here.  Still, I think trying to fix this across all of WP would be very difficult and would cause a surprising amount of breakage.
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+Both add a bit of complexity to understanding the REST API, but provide the needed feature.
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+This little flag is complexity of the &lt;em&gt;application&lt;/em&gt;, which should be reflected in the API.  It is a separate piece of information from the draft's date, so the simplest way for consumers of the API to understand this new feature is to use a separate field.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44682 (mistake on WordPress 4.4.16 Changelog Page) closed</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Fri, 03 Aug 2018 03:51:48 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44682#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44682#comment:1/1533268308739643</guid>
+      <description>fixed: &lt;p&gt;
+Hi @jangar, welcome to WordPress Trac! Thanks for the report.
+&lt;/p&gt;
+&lt;p&gt;
+I've edited the page to correct the list of files. If you see any other issues like this, you can just edit the page yourself (Codex is a wiki, any WordPress.org user can edit it).
+&lt;/p&gt;
+&lt;p&gt;
+In the future, please note that this Trac is just for WordPress core, any issues with WordPress.org sites should be reported on &lt;a class="ext-link" href="https://meta.trac.wordpress.org"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://meta.trac.wordpress.org&lt;/a&gt;. Thanks!
+&lt;/p&gt;
+</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Ticket #44681 (mistake on WordPress 4.4.15 Changelog Page) closed</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Fri, 03 Aug 2018 03:51:33 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44681#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44681#comment:1/1533268293317044</guid>
+      <description>fixed: &lt;p&gt;
+Hi @jangar, welcome to WordPress Trac! Thanks for the report.
+&lt;/p&gt;
+&lt;p&gt;
+I've edited the page to correct the list of files. If you see any other issues like this, you can just edit the page yourself (Codex is a wiki, any WordPress.org user can edit it).
+&lt;/p&gt;
+&lt;p&gt;
+In the future, please note that this Trac is just for WordPress core, any issues with WordPress.org sites should be reported on &lt;a class="ext-link" href="https://meta.trac.wordpress.org"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://meta.trac.wordpress.org&lt;/a&gt;. Thanks!
+&lt;/p&gt;
+</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Ticket #44711 (Try Gutenberg: Clicking the "Try" button can result in a 500 error) updated</title>
+      
+        <dc:creator>pento</dc:creator>
+
+      <pubDate>Fri, 03 Aug 2018 03:41:25 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44711#comment:10</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44711#comment:10/1533267685116333</guid>
+      <description>&lt;i&gt;Summary&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44712 (GitHub mirror is not syncing) updated</title>
+      
+        <dc:creator>GamerZ</dc:creator>
+
+      <pubDate>Fri, 03 Aug 2018 03:30:47 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44712#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44712#comment:2/1533267047257195</guid>
+      <description>&lt;p&gt;
+I swap GH repo with WordPress.org. But it got stuck at fetching tags.
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;$  git remote set-url origin git://core.git.wordpress.org/
+$  git fetch --tags -v
+Looking up core.git.wordpress.org ... done.
+Connecting to core.git.wordpress.org (port 9418) ... 198.143.164.245 done.
+&lt;/pre&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44712 (GitHub mirror is not syncing) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Fri, 03 Aug 2018 02:41:43 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44712#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44712#comment:1/1533264103130721</guid>
+      <description>&lt;p&gt;
+Hi @c00kiemon5ter, welcome to WordPress Trac!
+&lt;/p&gt;
+&lt;p&gt;
+Until the GitHub mirror sync is fixed, can you switch your remote to &lt;a class="ext-link" href="git://core.git.wordpress.org/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;git://core.git.wordpress.org/&lt;/a&gt;? That should be more reliable.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44711 (Try Gutenberg: Clicking the "Try" button can result in a 500 error) updated</title>
+      
+        <dc:creator>pbiron</dc:creator>
+
+      <pubDate>Fri, 03 Aug 2018 02:29:41 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44711#comment:9</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44711#comment:9/1533263381882284</guid>
+      <description>&lt;p&gt;
+Replying to &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/44711#comment:7" title="Comment 7"&gt;pbiron&lt;/a&gt;:
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+Replying to &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/44711#comment:6" title="Comment 6"&gt;pento&lt;/a&gt;:
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+Oh, I see how that's happening. Is &lt;code&gt;/wp-json/*&lt;/code&gt; a default setting there?
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+No.
+&lt;/p&gt;
+&lt;p&gt;
+I had a number of malicious attacks against several sites I manage by bots probing for various REST-API vulnerabilities.  And since "normal" usage of these sites had no need for the REST-API, I added that rule.
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+Adding that rule was kind of the lazy way out.
+&lt;/p&gt;
+&lt;p&gt;
+What I should have done was something like:
+&lt;/p&gt;
+&lt;div class="wiki-code"&gt;&lt;div class="code"&gt;&lt;pre&gt;&lt;span class="x"&gt;add_filter( 'rest_authentication_errors', 'shc_rest_authentication_errors' );
+/**
+ * Restrict REST-API requests to logged in users
+ *
+ * @param string $error Authentication error
+ * @return string|WP_Error
+ */
+function shc_rest_authentication_errors( $error ) {
+        if ( ! empty( $error ) || is_user_logged_in() ) {
+                return $error;
+        }
+        return new WP_Error(
+                'rest_not_logged_in',
+                'You must be logged in to access this resource.',
+                array( 'status' =&amp;gt; 401 )
+         );
+}
+&lt;/span&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;p&gt;
+which I will change all my sites to in the morning when I've had a chance to test it a little bit.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44711 (Try Gutenberg: Clicking the "Try" button can result in a 500 error) updated</title>
+      
+        <dc:creator>pento</dc:creator>
+
+      <pubDate>Fri, 03 Aug 2018 02:13:11 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44711#comment:8</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44711#comment:8/1533262391149054</guid>
+      <description>&lt;p&gt;
+Okay, thanks for confirming that.
+&lt;/p&gt;
+&lt;p&gt;
+@mmaunder: Given that this issue is likely to escalate fairly quickly with the release of WordPress 4.9.8 and the Try Gutenberg callout, could you see if Wordfence can handle this kind of block in a friendlier manner? 🙂
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44711 (Try Gutenberg: Clicking the "Try" button can result in a 500 error) updated</title>
+      
+        <dc:creator>pbiron</dc:creator>
+
+      <pubDate>Fri, 03 Aug 2018 01:58:04 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44711#comment:7</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44711#comment:7/1533261484386159</guid>
+      <description>&lt;p&gt;
+Replying to &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/44711#comment:6" title="Comment 6"&gt;pento&lt;/a&gt;:
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+Oh, I see how that's happening. Is &lt;code&gt;/wp-json/*&lt;/code&gt; a default setting there?
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+No.
+&lt;/p&gt;
+&lt;p&gt;
+I had a number of malicious attacks against several sites I manage by bots probing for various REST-API vulnerabilities.  And since "normal" usage of these sites had no need for the REST-API, I added that rule.
+&lt;/p&gt;
+&lt;p&gt;
+This may not be what is causing the problem for OP, but I suspect it (or some similar reason that REST-API is being blocked) might be.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44711 (Try Gutenberg: Clicking the "Try" button can result in a 500 error) updated</title>
+      
+        <dc:creator>pento</dc:creator>
+
+      <pubDate>Fri, 03 Aug 2018 01:47:16 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44711#comment:6</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44711#comment:6/1533260836395428</guid>
+      <description>&lt;p&gt;
+Oh, I see how that's happening. Is &lt;code&gt;/wp-json/*&lt;/code&gt; a default setting there?
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44712 (GitHub mirror is not syncing) created</title>
+      
+        <dc:creator>c00kiemon5ter</dc:creator>
+
+      <pubDate>Fri, 03 Aug 2018 01:34:06 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44712</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44712/1533260046798848</guid>
+      <description>&lt;p&gt;
+At the time of this writing, the Github mirror&lt;a class="missing changeset" title="No changeset 0 in the repository"&gt;[0]&lt;/a&gt; says
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+Latest commit 4c2fcf3  28 days ago
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+Either the statement about syncing every 15minutes is wrong and the mirror has been abandoned, or the sync process is stuck.
+&lt;/p&gt;
+&lt;p&gt;
+Since, I rely on the github mirror for some the work I do with wordpress, I would really like this to be resolved, as I believe it is easy to do so.
+&lt;/p&gt;
+&lt;p&gt;
+Cheers,
+&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;
+&lt;a class="missing changeset" title="No changeset 0 in the repository"&gt;[0]&lt;/a&gt;: &lt;a class="ext-link" href="https://github.com/WordPress/WordPress"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://github.com/WordPress/WordPress&lt;/a&gt;
+&lt;/p&gt;
+&lt;/blockquote&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #44711 (Try Gutenberg: Clicking the "Try" button can result in a 500 error) updated</title>
+      
+        <dc:creator>pbiron</dc:creator>
+
+      <pubDate>Fri, 03 Aug 2018 01:33:55 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44711#comment:5</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44711#comment:5/1533260035434932</guid>
+      <description>&lt;p&gt;
+Many/most other WAF's have a similar setting, but the WordFence setting in question is on the &lt;code&gt;wp-admin/admin.php?page=WordfenceWAF&amp;amp;subpage=waf_options&lt;/code&gt; screen, in the &lt;code&gt;Advanced Firewall Options&lt;/code&gt; section:
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;Immediately block IPs that access these URLs
+&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;
+in which I'd entered (among other things) &lt;code&gt;/wp-json/*&lt;/code&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44711 (Try Gutenberg: Clicking the "Try" button can result in a 500 error) updated</title>
+      
+        <dc:creator>pbiron</dc:creator>
+
+      <pubDate>Fri, 03 Aug 2018 01:29:22 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44711#comment:4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44711#comment:4/1533259762104455</guid>
+      <description>&lt;p&gt;
+&lt;a class="ext-link" href="https://wordpress.org/plugins/wordfence/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://wordpress.org/plugins/wordfence/&lt;/a&gt;
+&lt;/p&gt;
+&lt;p&gt;
+And I didn't get the error until I clicked the &lt;code&gt;Try Gutenberg&lt;/code&gt; button, which is when the OP said it happened to him.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44706 (Latest 4.9.7 wp_delete_attachment() security patch breaks deletion on ...) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Fri, 03 Aug 2018 01:28:20 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44706#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44706#comment:2/1533259700150606</guid>
+      <description>&lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44711 (Try Gutenberg: Clicking the "Try" button can result in a 500 error) updated</title>
+      
+        <dc:creator>pento</dc:creator>
+
+      <pubDate>Fri, 03 Aug 2018 01:26:52 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44711#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44711#comment:3/1533259612717967</guid>
+      <description>&lt;p&gt;
+@pbiron: Is this Cloudflare's WAF, or someone else?
+&lt;/p&gt;
+&lt;p&gt;
+Also, can you confirm if you getting the 500 error when clicking the Install button from the Try Gutenberg callout, or when you opened Gutenberg itself?
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44710 (Upload plugin and theme functionalities are not removing uploaded ...) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Fri, 03 Aug 2018 01:25:48 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44710#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44710#comment:1/1533259548611267</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44711 (Try Gutenberg: Clicking the "Try" button can result in a 500 error) updated</title>
+      
+        <dc:creator>pbiron</dc:creator>
+
+      <pubDate>Fri, 03 Aug 2018 01:03:57 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44711#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44711#comment:2/1533258237559486</guid>
+      <description>&lt;p&gt;
+This also just happened to me when I went to investigate this report.
+&lt;/p&gt;
+&lt;p&gt;
+The following is just an educated guess, but it fixed the problem for me.
+&lt;/p&gt;
+&lt;p&gt;
+Prior to using using Gutenberg I had no need for the REST-API on the site I tested this on, so I had rule in the Application Firewall (WAF) of the security plugin I use to block all accesses to &lt;code&gt;/wp-json/*&lt;/code&gt;.  D'oh!
+&lt;/p&gt;
+&lt;p&gt;
+Once I removed that WAF rule I no longer get the 500 error.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44711 (Try Gutenberg: Clicking the "Try" button can result in a 500 error) updated</title>
+      
+        <dc:creator>pento</dc:creator>
+
+      <pubDate>Fri, 03 Aug 2018 00:36:30 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44711#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44711#comment:1/1533256590390527</guid>
+      <description>&lt;p&gt;
+Extra information requested on the GitHub issue:
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;ul&gt;&lt;li&gt;When you install a plugin, do you usually need to type your FTP username/password (or do you have FTP_* settings in your wp-config.php file)?
+&lt;/li&gt;&lt;li&gt;Do you have access to your web server error log? If so, could you attach a copy of it?
+&lt;/li&gt;&lt;/ul&gt;&lt;/blockquote&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44711 (Try Gutenberg: Clicking the "Try" button can result in a 500 error) created</title>
+      
+        <dc:creator>pento</dc:creator>
+
+      <pubDate>Fri, 03 Aug 2018 00:32:48 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44711</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44711/1533256368334155</guid>
+      <description>&lt;p&gt;
+From the &lt;a class="ext-link" href="https://github.com/WordPress/gutenberg/issues/8410"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;Gutenberg repo&lt;/a&gt;:
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+Try Gutenberg results in a 500 Server Internal Error
+&lt;/p&gt;
+&lt;p&gt;
+Steps to reproduce the behavior:
+&lt;/p&gt;
+&lt;ol&gt;&lt;li&gt;Install Gutenberg plugin
+&lt;/li&gt;&lt;li&gt;Activate Gutenberg plugin
+&lt;/li&gt;&lt;li&gt;Click on Try Gutenberg
+&lt;/li&gt;&lt;li&gt;Results in 500 Server Internal Error
+&lt;/li&gt;&lt;/ol&gt;&lt;/blockquote&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #44710 (Upload plugin and theme functionalities are not removing uploaded ...) created</title>
+      
+        <dc:creator>rawrly</dc:creator>
+
+      <pubDate>Fri, 03 Aug 2018 00:11:59 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44710</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44710/1533255119623346</guid>
+      <description>&lt;p&gt;
+Within wp-admin, an administrator user may upload files by using the Upload Plugin functionality (Plugins -&amp;gt; Add New -&amp;gt; Upload plugin) and the Upload Theme functionality (Appearance -&amp;gt; Themes -&amp;gt; Add New -&amp;gt; Upload Theme)
+&lt;/p&gt;
+&lt;p&gt;
+These processes uploads the user submitted file to /wp-content/uploads/{month} first, then attempts to extract it to the plugins or theme directory (The form expects a .zip file, yet allows any mime-type or extension for uploaded files, such as images, or .php files). If the process fails for any reason the uploaded file remains in /wp-content/uploads/ and/or /wp-content/upgrade/
+&lt;/p&gt;
+&lt;p&gt;
+It would be best if the plugin and theme upload functionalities properly clean up the uploaded files if a plugin or theme fail to properly get extracted and/or installed.
+&lt;/p&gt;
+&lt;p&gt;
+Note: On successful installations of a plugin or theme, the uploaded file is being properly removed from /wp-content/uploads/ and/or /wp-content/upgrade/
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #44703 (Add documentation to the WordPress PHPUnit functions.php) closed</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Thu, 02 Aug 2018 22:35:11 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44703#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44703#comment:2/1533249311333933</guid>
+      <description>fixed: &lt;p&gt;
+In &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/43555" title="Build/Test Tools: Add documentation for `tests_add_filter()`, ..."&gt;43555&lt;/a&gt;:
+&lt;/p&gt;
+&lt;div class="message"&gt;&lt;p&gt;
+Build/Test Tools: Add documentation for &lt;code&gt;tests_add_filter()&lt;/code&gt;, &lt;code&gt;_test_filter_build_unique_id()&lt;/code&gt;, &lt;code&gt;_delete_all_data()&lt;/code&gt;, &lt;code&gt;_delete_all_posts()&lt;/code&gt;.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Props andizer.&lt;br /&gt;
+Fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/44703" title="#44703: enhancement: Add documentation to the WordPress PHPUnit functions.php (closed: fixed)"&gt;#44703&lt;/a&gt;.&lt;br /&gt;
+&lt;/p&gt;
+&lt;/div&gt;</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Changeset [43555]: Build/Test Tools: Add documentation for `tests_add_filter()`, ...</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Thu, 02 Aug 2018 22:35:10 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/43555</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/43555/1533249310298718</guid>
+      <description>&lt;p&gt;
+Build/Test Tools: Add documentation for &lt;code&gt;tests_add_filter()&lt;/code&gt;, &lt;code&gt;_test_filter_build_unique_id()&lt;/code&gt;, &lt;code&gt;_delete_all_data()&lt;/code&gt;, &lt;code&gt;_delete_all_posts()&lt;/code&gt;.
+&lt;/p&gt;
+&lt;p&gt;
+Props andizer.
+Fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/44703" title="#44703: enhancement: Add documentation to the WordPress PHPUnit functions.php (closed: fixed)"&gt;#44703&lt;/a&gt;.
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Milestone 4.9.8 completed</title>
+      
+
+      <pubDate>Thu, 02 Aug 2018 21:44:04 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/milestone/4.9.8</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/milestone/4.9.8/1533246244000000</guid>
+      <description></description>
+      <category>milestone</category>
+    </item><item>
+      <title>Changeset [43554]: Branch 4.9 is now 4.9.9-alpha.</title>
+      
+        <dc:creator>ocean90</dc:creator>
+
+      <pubDate>Thu, 02 Aug 2018 21:35:32 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/43554</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/43554/1533245732558444</guid>
+      <description>&lt;p&gt;
+Branch 4.9 is now 4.9.9-alpha.
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Changeset [43553]: Tag 4.9.8</title>
+      
+        <dc:creator>ocean90</dc:creator>
+
+      <pubDate>Thu, 02 Aug 2018 21:32:41 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/43553</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/43553/1533245561259735</guid>
+      <description>&lt;p&gt;
+Tag 4.9.8
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Changeset [43552]: Bump 4.9 branch to version 4.9.8.</title>
+      
+        <dc:creator>ocean90</dc:creator>
+
+      <pubDate>Thu, 02 Aug 2018 20:12:09 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/43552</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/43552/1533240729078692</guid>
+      <description>&lt;p&gt;
+Bump 4.9 branch to version 4.9.8.
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Ticket #39953 (REST API: Do not update date when preparing post if date is known to ...) updated</title>
+      
+        <dc:creator>mnelson4</dc:creator>
+
+      <pubDate>Thu, 02 Aug 2018 19:01:11 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/39953#comment:11</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/39953#comment:11/1533236471788515</guid>
+      <description>&lt;h2 id="Heresanothersummaryofthesituation"&gt;Here's another summary of the situation&lt;/h2&gt;
+&lt;p&gt;
+(although @jnylen0 did a good job of summarizing at the start and on &lt;a href="https://core.trac.wordpress.org/ticket/39953#comment:2"&gt;https://core.trac.wordpress.org/ticket/39953#comment:2&lt;/a&gt;)
+&lt;/p&gt;
+&lt;p&gt;
+-when drafts are saved, the &lt;code&gt;post_date_gmt&lt;/code&gt; column is set to &lt;code&gt;0000-00-00 00:00:00&lt;/code&gt; as a special value that indicates "whenever it gets published" (it probably uses this because the database column doesn't allow &lt;code&gt;null&lt;/code&gt;), but the &lt;code&gt;post_date&lt;/code&gt; column is set to the current time, indicating when the draft was last updated (I don't know why it doesn't just use &lt;code&gt;post_modified&lt;/code&gt; for that, but that's probably another discussion).
+&lt;/p&gt;
+&lt;p&gt;
+-&lt;a href="https://core.trac.wordpress.org/ticket/38883"&gt;https://core.trac.wordpress.org/ticket/38883&lt;/a&gt; did some magic so the REST API's &lt;code&gt;date_gmt&lt;/code&gt; field for drafts, which should have been &lt;code&gt;0000-00-00T00:00:00&lt;/code&gt; according to the &lt;code&gt;post_date_gmt&lt;/code&gt; column, is calculated to the &lt;code&gt;post_date&lt;/code&gt; column plus timezone offset. Ie, in the REST API, we never show &lt;code&gt;0000-00-00T00:00:00&lt;/code&gt; for draft GMT dates, we show the actual time the draft was last updated in GMT.
+&lt;/p&gt;
+&lt;p&gt;
+-however, it's also possible for a draft post to a fixed date. In that case, its &lt;code&gt;post_date_gmt&lt;/code&gt; column is set to a real time.
+&lt;/p&gt;
+&lt;p&gt;
+-that means, over the REST API, it's impossible to know if a draft post's column is &lt;code&gt;0000-00-00 00:00:00&lt;/code&gt;, indicating "whenever it gets published" aka "date floating", or if it has a fixed date. In the REST API, they all look like they all have a fixed date (because none have &lt;code&gt;0000-00-00T00:00:00&lt;/code&gt;).
+&lt;/p&gt;
+&lt;h2 id="ThepossiblesolutionsandtheirPROsCONs:"&gt;The possible solutions, and their PROs/CONs:&lt;/h2&gt;
+&lt;p&gt;
+-leave it as-is. It's up to REST API clients to keep track of whether the  draft had a floating date or a fixed one. But that only works when the REST API client created the draft. If the draft was created in the wp-admin, the REST API client has no way of knowing if has a floating date or a fixed one. But it does keep the REST API simpler.
+&lt;/p&gt;
+&lt;p&gt;
+-add a new field, called something like &lt;code&gt;date_floating&lt;/code&gt;, which would indicate if the draft internally has a floating date or is fixed. The downside to this is it's a bit messy deciding what to do when a draft is submitted with a &lt;code&gt;date_gmt&lt;/code&gt; AND &lt;code&gt;date_float=true&lt;/code&gt;, because &lt;code&gt;date_floating=true&lt;/code&gt; means we should totally ignore whatever is submitted for &lt;code&gt;date_gmt&lt;/code&gt;. Also, this adds yet another field. Also, it's inconsistent with the database (although we're already inconsistent). But it seems backwards compatible and makes it easy to distinguish between drafts with a floating date or a fixed date
+&lt;/p&gt;
+&lt;p&gt;
+-when requesting a post in the "edit" context, don't do the magic from &lt;a href="https://core.trac.wordpress.org/ticket/38883"&gt;https://core.trac.wordpress.org/ticket/38883&lt;/a&gt; (that makes it so the REST API field &lt;code&gt;date_gmt&lt;/code&gt; is calculated from the column &lt;code&gt;post_date&lt;/code&gt; plus timezone offset) and instead leave &lt;code&gt;date_gmt&lt;/code&gt; be null, like it was before that ticket. This is quite consistent with the database, but might be backwards incompatible for REST API clients that didn't expect &lt;code&gt;null&lt;/code&gt; for &lt;code&gt;date_gmt&lt;/code&gt; (I think that would be neglegible, as before &lt;a href="https://core.trac.wordpress.org/ticket/38883"&gt;https://core.trac.wordpress.org/ticket/38883&lt;/a&gt; it often had &lt;code&gt;null&lt;/code&gt; in it). Also, it's a bit strange having &lt;code&gt;date_gmt&lt;/code&gt;'s value be dependent on the request context.
+&lt;/p&gt;
+&lt;h2 id="MikesOpinion"&gt;Mike's Opinion&lt;/h2&gt;
+&lt;p&gt;
+It feels like we're putting more paint over a crack in the foundation- it won't ever be pretty. But I like adding a new field or using &lt;code&gt;null&lt;/code&gt; for drafts with floating dates in the &lt;code&gt;edit&lt;/code&gt; context equally. Both add a bit of complexity to understanding the REST API, but provide the needed feature.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44709 (Allow for late loading of scripts added via wp_add_inline_script()) created</title>
+      
+        <dc:creator>woodent</dc:creator>
+
+      <pubDate>Thu, 02 Aug 2018 18:40:33 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44709</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44709/1533235233623900</guid>
+      <description>&lt;p&gt;
+Inline scripts added via &lt;code&gt;wp_add_inline_script()&lt;/code&gt; are only output when the referenced script file is loaded. If an inline script is added after a referenced script file has already been output, the inline script won't be output.
+&lt;/p&gt;
+&lt;p&gt;
+Much like how &lt;code&gt;wp_enqueue_script()&lt;/code&gt; can be used within a shortcode to enqueue a file in the footer even though it would normally be loaded in the head; I propose that &lt;code&gt;wp_add_inline_script()&lt;/code&gt; should output the inline script even if the referenced script file has already been loaded.
+&lt;/p&gt;
+&lt;p&gt;
+Since we can't predict when a script file that was loaded in the footer might be loaded into the head due to a third-party script with it as a dependency, &lt;code&gt;wp_add_inline_script()&lt;/code&gt; should also be flexible and not break things by simply not outputting the code in those cases.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #39953 (REST API: Do not update date when preparing post if date is known to ...) updated</title>
+      
+        <dc:creator>slackbot</dc:creator>
+
+      <pubDate>Thu, 02 Aug 2018 17:26:16 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/39953#comment:10</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/39953#comment:10/1533230776269955</guid>
+      <description>&lt;p&gt;
+&lt;em&gt;This ticket was mentioned in &lt;a class="ext-link" href="https://make.wordpress.org/chat/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;Slack&lt;/a&gt; in #core-restapi by earnjam. &lt;a class="ext-link" href="https://wordpress.slack.com/archives/core-restapi/p1533230773000492"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;View the logs&lt;/a&gt;.&lt;/em&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44476 (Backend section Access based on Role/User) updated</title>
+      
+        <dc:creator>kartiks16</dc:creator>
+
+      <pubDate>Thu, 02 Aug 2018 16:52:43 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44476#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44476#comment:2/1533228763429004</guid>
+      <description>&lt;p&gt;
+Hello @SergeyBiryukov
+&lt;/p&gt;
+&lt;p&gt;
+Any updates on this?
+&lt;/p&gt;
+&lt;p&gt;
+Do you find my request proper?
+&lt;/p&gt;
+&lt;p&gt;
+Waiting for your reply.
+&lt;/p&gt;
+&lt;p&gt;
+Thanks.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44708 (Coding consistency, seeing both $request and $request_data) created</title>
+      
+        <dc:creator>garrett-eclipse</dc:creator>
+
+      <pubDate>Thu, 02 Aug 2018 16:52:41 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44708</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44708/1533228761257920</guid>
+      <description>&lt;p&gt;
+Hello,
+&lt;/p&gt;
+&lt;p&gt;
+I'm noticing the variable naming for Privacy component items isn't consistent as there's a mix of both $request and $request_data for the request object. IMHO $request makes the most sense.
+&lt;/p&gt;
+&lt;p&gt;
+You can see this inconsistency best when you search for the 'wp_get_user_request_data' function call;
+&lt;a class="ext-link" href="https://github.com/WordPress/WordPress/search?q=wp_get_user_request_data&amp;amp;unscoped_q=wp_get_user_request_data"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://github.com/WordPress/WordPress/search?q=wp_get_user_request_data&amp;amp;unscoped_q=wp_get_user_request_data&lt;/a&gt;
+&lt;/p&gt;
+&lt;p&gt;
+$request_data is used in wp-includes/user.php and once in wp-admin/includes/user.php, but $request is found in wp-admin/includes/user.php, wp-admin/includes/file.php and /wp-admin/includes/ajax-actions.php
+&lt;/p&gt;
+&lt;p&gt;
+Cheers
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Screen Shot 2018-08-02 at 9.45.18 AM.png attached to Ticket #44707</title>
+      
+        <dc:creator>garrett-eclipse</dc:creator>
+
+      <pubDate>Thu, 02 Aug 2018 16:45:53 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/44707/Screen%20Shot%202018-08-02%20at%209.45.18%20AM.png</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/44707/Screen%20Shot%202018-08-02%20at%209.45.18%20AM.png/1533228353530952</guid>
+      <description>&lt;p&gt;
+Duplicate Request Error
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #44707 (The user should be able to create additional requests when previous ...) created</title>
+      
+        <dc:creator>garrett-eclipse</dc:creator>
+
+      <pubDate>Thu, 02 Aug 2018 16:45:26 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44707</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44707/1533228326962701</guid>
+      <description>&lt;p&gt;
+Hello,
+&lt;/p&gt;
+&lt;p&gt;
+Currently the wp_create_user_request function has a check for duplicate requests of any post_status which blocks an admin from making a second request with the same email_address.
+&lt;/p&gt;
+&lt;p&gt;
+This is great however this limits admins from making another request after their initial request is completed or archived (future feature) and forces them to remove the original request before being able to make another.
+&lt;/p&gt;
+&lt;p&gt;
+It would be nice to soften this block so additional requests using the email_address can be done when the original request is completed/old as there may be new information added for the email_address since the previous request.
+&lt;/p&gt;
+&lt;p&gt;
+Many admins also need to leave requests rather than remove for logging and auditing needs so forcing the removal before another request can be made conflicts with their legal requirements in some areas.
+&lt;/p&gt;
+&lt;p&gt;
+So in short I'm suggesting updating the $requests_query post_status argument to be an array of states that should actually block the duplicates such as &lt;code&gt;array( 'request-pending', 'request-confirmed' )&lt;/code&gt;. I didn't include 'request-failed' or 'request-completed' as these states I feel should support duplicates as they're no longer active requests.
+&lt;/p&gt;
+&lt;p&gt;
+In this way admins can retain a log of their requests but still be able to make additional requests for users if all their previous requests had finished.
+&lt;/p&gt;
+&lt;p&gt;
+Thanks
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #44646 (Bundled Themes: Bump version number and update changelog in Twenty ...) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Thu, 02 Aug 2018 16:42:19 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44646#comment:11</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44646#comment:11/1533228139888694</guid>
+      <description>&lt;p&gt;
+In &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/43551" title="Twenty Seventeen: Bump version number and update changelog for 4.9.8 ..."&gt;43551&lt;/a&gt;:
+&lt;/p&gt;
+&lt;div class="message"&gt;&lt;p&gt;
+Twenty Seventeen: Bump version number and update changelog for 4.9.8 release.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Props pbiron, laurelfulford.&lt;br /&gt;
+Merges &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/43541" title="Twenty Seventeen: Bump version number and update changelog for 4.9.8 ..."&gt;[43541]&lt;/a&gt; and &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/43550" title="Twenty Seventeen: Correct date in changelog for 4.9.8 release.
+Props ..."&gt;[43550]&lt;/a&gt; to the 4.9 branch.&lt;br /&gt;
+Fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/44646" title="#44646: task (blessed): Bundled Themes: Bump version number and update changelog in Twenty ... (closed: fixed)"&gt;#44646&lt;/a&gt;.&lt;br /&gt;
+&lt;/p&gt;
+&lt;/div&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Changeset [43551]: Twenty Seventeen: Bump version number and update changelog for 4.9.8 ...</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Thu, 02 Aug 2018 16:42:18 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/43551</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/43551/1533228138855072</guid>
+      <description>&lt;p&gt;
+Twenty Seventeen: Bump version number and update changelog for 4.9.8 release.
+&lt;/p&gt;
+&lt;p&gt;
+Props pbiron, laurelfulford.
+Merges &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/43541" title="Twenty Seventeen: Bump version number and update changelog for 4.9.8 ..."&gt;[43541]&lt;/a&gt; and &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/43550" title="Twenty Seventeen: Correct date in changelog for 4.9.8 release.
+Props ..."&gt;[43550]&lt;/a&gt; to the 4.9 branch.
+Fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/44646" title="#44646: task (blessed): Bundled Themes: Bump version number and update changelog in Twenty ... (closed: fixed)"&gt;#44646&lt;/a&gt;.
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Ticket #43985 (Privacy: The user request email should be sent in the user language) updated</title>
+      
+        <dc:creator>garrett-eclipse</dc:creator>
+
+      <pubDate>Thu, 02 Aug 2018 16:28:59 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43985#comment:34</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43985#comment:34/1533227339790629</guid>
+      <description>&lt;p&gt;
+As well looking at the switch_to_locale, if the request is for an email which doesn't associate to a valid user then the user_id on the request is 0. In this case get_user_locale will return the locale of the current user (admin taking the action). So I am wondering is it the desire to use the admin user locale when the request user isn't a real WP_User or in that case should it default to the site locale? If so a check should be done for &lt;code&gt;$request-&amp;gt;user_id == 0&lt;/code&gt; and either supply false to get_user_locale or simply call get_locale in that case.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>screenshot-2018-08-02-21-54-00.png attached to Ticket #44698</title>
+      
+        <dc:creator>kartiks16</dc:creator>
+
+      <pubDate>Thu, 02 Aug 2018 16:25:49 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/44698/screenshot-2018-08-02-21-54-00.png</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/44698/screenshot-2018-08-02-21-54-00.png/1533227149614489</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #44698 (Comment Form : Can we move GDPR info and consent box above submit ...) updated</title>
+      
+        <dc:creator>kartiks16</dc:creator>
+
+      <pubDate>Thu, 02 Aug 2018 16:25:18 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44698#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44698#comment:3/1533227118561500</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Hello @SergeyBiryukov &amp;amp; @wingo5315
+&lt;/p&gt;
+&lt;p&gt;
+Thank you for reviewing the ticket and sharing your thoughts.
+&lt;/p&gt;
+&lt;p&gt;
+I agree that this might depend on theme, but I would suggest that we make it appear at Unique place i.e. above the "Post Comment" button.
+&lt;/p&gt;
+&lt;p&gt;
+As far as theme is concerned,I think it can be either twentyfifteen or twentyfourteen.
+&lt;/p&gt;
+&lt;p&gt;
+Kindly review the screenshot attached (screenshot-2018-08-02-21-54-00.png) if that helps you.
+&lt;/p&gt;
+&lt;p&gt;
+Please feel free to share your thoughts on this.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44706 (Latest 4.9.7 wp_delete_attachment() security patch breaks deletion on ...) updated</title>
+      
+        <dc:creator>swissspidy</dc:creator>
+
+      <pubDate>Thu, 02 Aug 2018 16:20:31 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44706#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44706#comment:1/1533226831100919</guid>
+      <description>&lt;p&gt;
+See also &lt;a class="assigned ticket" href="http://core.trac.wordpress.org/ticket/39476" title="#39476: defect (bug): wp_delete_file filter expects both absolute and relative paths (assigned)"&gt;#39476&lt;/a&gt;.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44706 (Latest 4.9.7 wp_delete_attachment() security patch breaks deletion on ...) created</title>
+      
+        <dc:creator>l3rady</dc:creator>
+
+      <pubDate>Thu, 02 Aug 2018 15:53:09 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44706</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44706/1533225189851950</guid>
+      <description>&lt;p&gt;
+We use AWS S3 to offload and store uploads on.
+&lt;/p&gt;
+&lt;p&gt;
+Previously we would hook into the &lt;code&gt;wp_delete_file&lt;/code&gt; filter see what files need deleting and then delete the files from the S3 bucket.
+&lt;/p&gt;
+&lt;p&gt;
+The new security patch checks if the files exist on the local filesystem first and are in the right directory before even attempting to delete the files and subsequently firing the &lt;code&gt;wp_delete_file&lt;/code&gt; filter. As our files are on a remote filesystem and not local, WordPress cannot see them locally and then doesn't attempt to delete the files. WordPress happily removes the record from the database but then leaves the files on S3.
+&lt;/p&gt;
+&lt;p&gt;
+The way it has been patched means that now we have to hook &lt;code&gt;delete_attachment&lt;/code&gt; instead and reimplement a lot of code WordPress already has due to a lack of filters and actions around this patch.
+&lt;/p&gt;
+&lt;p&gt;
+would it be possible to put in a filter around the check for file existence so we can override the result by checking S3 if the file is there and then feeding that back to WordPress to allow the delete to happen?
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #43985 (Privacy: The user request email should be sent in the user language) updated</title>
+      
+        <dc:creator>garrett-eclipse</dc:creator>
+
+      <pubDate>Thu, 02 Aug 2018 15:51:34 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43985#comment:33</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43985#comment:33/1533225094902744</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Hey @desrosj checking 43985.6.diff I found that it's completely missing the Unit tests (wpSendUserRequest.php) that were present in 43985.5.diff.
+&lt;/p&gt;
+&lt;p&gt;
+As well the wp_mail returns a bool only but the wp_send_user_request indicates it returns WP_Error|bool; &lt;br /&gt;
+&lt;code&gt; * @return WP_Error|bool Will return true/false based on the success of sending the email, or a WP_Error object.&lt;/code&gt; &lt;br /&gt;
+Should the return approach be updated to match more what's done in &lt;code&gt;wp_privacy_send_personal_data_export_email&lt;/code&gt; here; &lt;br /&gt;
+&lt;a class="ext-link" href="https://github.com/WordPress/WordPress/blob/d9df5dec117ca01211c02b90cb88e015e697d68e/wp-admin/includes/file.php#L2248"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://github.com/WordPress/WordPress/blob/d9df5dec117ca01211c02b90cb88e015e697d68e/wp-admin/includes/file.php#L2248&lt;/a&gt;
+*Althought maybe instead of just standard 'error' the error code could be more specific.
+&lt;/p&gt;
+&lt;p&gt;
+Cheers
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44696 (Plugin Deactivation Page Jump) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Thu, 02 Aug 2018 15:45:50 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44696#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44696#comment:1/1533224750407368</guid>
+      <description>&lt;i&gt;Focuses&lt;/i&gt;, &lt;i&gt;Component&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Hi @organicthemes, welcome to WordPress Trac! Thanks for the ticket.
+&lt;/p&gt;
+&lt;p&gt;
+It might also be a good idea to display active plugins first for easier visual scanning. Here's a small plugin I wrote after the idea came up on support forums: &lt;a class="ext-link" href="https://wordpress.org/plugins/display-active-plugins-first/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://wordpress.org/plugins/display-active-plugins-first/&lt;/a&gt;.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44646 (Bundled Themes: Bump version number and update changelog in Twenty ...) updated</title>
+      
+        <dc:creator>laurelfulford</dc:creator>
+
+      <pubDate>Thu, 02 Aug 2018 15:34:47 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44646#comment:10</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44646#comment:10/1533224087002492</guid>
+      <description>&lt;p&gt;
+I updated the date here as well:
+&lt;/p&gt;
+&lt;p&gt;
+&lt;a class="ext-link" href="https://codex.wordpress.org/Twenty_Seventeen_Theme_Changelog#Version_1.7"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://codex.wordpress.org/Twenty_Seventeen_Theme_Changelog#Version_1.7&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44646 (Bundled Themes: Bump version number and update changelog in Twenty ...) closed</title>
+      
+        <dc:creator>laurelfulford</dc:creator>
+
+      <pubDate>Thu, 02 Aug 2018 15:32:27 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44646#comment:9</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44646#comment:9/1533223947521180</guid>
+      <description>fixed: &lt;p&gt;
+In &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/43550" title="Twenty Seventeen: Correct date in changelog for 4.9.8 release.
+Props ..."&gt;43550&lt;/a&gt;:
+&lt;/p&gt;
+&lt;div class="message"&gt;&lt;p&gt;
+Twenty Seventeen: Correct date in changelog for 4.9.8 release.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Props pbiron, laurelfulford.&lt;br /&gt;
+Fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/44646" title="#44646: task (blessed): Bundled Themes: Bump version number and update changelog in Twenty ... (closed: fixed)"&gt;#44646&lt;/a&gt;.&lt;br /&gt;
+&lt;/p&gt;
+&lt;/div&gt;</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Changeset [43550]: Twenty Seventeen: Correct date in changelog for 4.9.8 release.  Props ...</title>
+      
+        <dc:creator>laurelfulford</dc:creator>
+
+      <pubDate>Thu, 02 Aug 2018 15:32:26 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/43550</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/43550/1533223946384861</guid>
+      <description>&lt;p&gt;
+Twenty Seventeen: Correct date in changelog for 4.9.8 release.
+&lt;/p&gt;
+&lt;p&gt;
+Props pbiron, laurelfulford.
+Fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/44646" title="#44646: task (blessed): Bundled Themes: Bump version number and update changelog in Twenty ... (closed: fixed)"&gt;#44646&lt;/a&gt;.
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Ticket #44697 (Argument type does not match: user.php) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Thu, 02 Aug 2018 15:28:55 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44697#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44697#comment:2/1533223735031455</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt;, &lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Hi @subrataemfluence, thanks for the ticket!
+&lt;/p&gt;
+&lt;p&gt;
+The existing type is correct, &lt;code&gt;$for_user_id&lt;/code&gt; should be an integer, not a string.
+&lt;/p&gt;
+&lt;p&gt;
+That said, it could use a better default value, i.e. &lt;code&gt;0&lt;/code&gt; instead of an empty string. Given the non-strict check a few lines below, changing it to &lt;code&gt;0&lt;/code&gt; should not affect the logic.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44698 (Comment Form : Can we move GDPR info and consent box above submit ...) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Thu, 02 Aug 2018 15:22:33 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44698#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44698#comment:2/1533223353236209</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Hi @kartiks16, thanks for the ticket!
+&lt;/p&gt;
+&lt;p&gt;
+The consent checkbox placement depends on your theme. In default themes like Twenty Seventeen, it's displayed above the submit button, see the screenshot in &lt;a class="reviewing ticket" href="http://core.trac.wordpress.org/ticket/44699" title="#44699: defect (bug): Twenty Seventeen: Comment form cookies consent checkbox has no focus style (reviewing)"&gt;#44699&lt;/a&gt; for example.
+&lt;/p&gt;
+&lt;p&gt;
+Which theme are you using?
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44695 (WP_Term_Query unexpected 'orderby' behaviour.) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Thu, 02 Aug 2018 15:14:00 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44695#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44695#comment:2/1533222840302997</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44691 (Comment variable is wrong for shortcode tags) closed</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Thu, 02 Aug 2018 15:12:57 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44691#comment:4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44691#comment:4/1533222777656133</guid>
+      <description>fixed: &lt;p&gt;
+In &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/43549" title="Docs: Correct parameter name in `strip_shortcodes_tagnames` filter ..."&gt;43549&lt;/a&gt;:
+&lt;/p&gt;
+&lt;div class="message"&gt;&lt;p&gt;
+Docs: Correct parameter name in &lt;code&gt;strip_shortcodes_tagnames&lt;/code&gt; filter DocBlock.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Props uttam007.&lt;br /&gt;
+Fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/44691" title="#44691: defect (bug): Comment variable is wrong for shortcode tags (closed: fixed)"&gt;#44691&lt;/a&gt;.&lt;br /&gt;
+&lt;/p&gt;
+&lt;/div&gt;</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Changeset [43549]: Docs: Correct parameter name in `strip_shortcodes_tagnames` filter ...</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Thu, 02 Aug 2018 15:12:56 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/43549</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/43549/1533222776550754</guid>
+      <description>&lt;p&gt;
+Docs: Correct parameter name in &lt;code&gt;strip_shortcodes_tagnames&lt;/code&gt; filter DocBlock.
+&lt;/p&gt;
+&lt;p&gt;
+Props uttam007.
+Fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/44691" title="#44691: defect (bug): Comment variable is wrong for shortcode tags (closed: fixed)"&gt;#44691&lt;/a&gt;.
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Ticket #44704 (`wp.media.view.EmbedLink` and `oembed/1.0/proxy` don't work as expected) updated</title>
+      
+        <dc:creator>swissspidy</dc:creator>
+
+      <pubDate>Thu, 02 Aug 2018 14:56:16 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44704#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44704#comment:1/1533221776543265</guid>
+      <description>&lt;p&gt;
+Sounds to me like &lt;code&gt;oembed/1.0/proxy&lt;/code&gt; works as expected though. It's just the model data that isn't set correctly.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44705 (Edit embed contents without saving post breaks previews) created</title>
+      
+        <dc:creator>7studio</dc:creator>
+
+      <pubDate>Thu, 02 Aug 2018 14:50:19 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44705</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44705/1533221419226858</guid>
+      <description>&lt;p&gt;
+It seems that when we insert embed content and edit it just after without saving the post, the embed preview isn't displayed.
+&lt;/p&gt;
+&lt;p&gt;
+&lt;strong&gt;To Reproduce&lt;/strong&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Steps to reproduce the behaviour:
+&lt;/p&gt;
+&lt;ol&gt;&lt;li&gt;Create a new post.
+&lt;/li&gt;&lt;li&gt;Click on "Add Media" button.
+&lt;/li&gt;&lt;li&gt;Choose "Insert from URL" interface.
+&lt;/li&gt;&lt;li&gt;Paste a valid YouTube URL: &lt;a class="ext-link" href="https://www.youtube.com/watch?v=KA_CLal14u4"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://www.youtube.com/watch?v=KA_CLal14u4&lt;/a&gt;
+&lt;/li&gt;&lt;li&gt;See the YouTube &lt;code&gt;&amp;lt;iframe&amp;gt;&lt;/code&gt; with a &lt;code&gt;600px&lt;/code&gt; width.
+&lt;/li&gt;&lt;li&gt;Click on "Insert into post" button.
+&lt;/li&gt;&lt;li&gt;Edit the YouTube video.
+&lt;/li&gt;&lt;li&gt;See nothing.
+&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;
+&lt;strong&gt;Expected behaviour&lt;/strong&gt;
+&lt;/p&gt;
+&lt;p&gt;
+The embed content should be displayed.
+&lt;/p&gt;
+&lt;p&gt;
+&lt;strong&gt;Reason found&lt;/strong&gt;
+&lt;/p&gt;
+&lt;p&gt;
+None. The problem is present in all browsers.
+&lt;/p&gt;
+&lt;p&gt;
+The Google Chrome console logs &lt;code&gt;Cross-Origin Read Blocking (CORB) blocked cross-origin response https://www.youtube.com/watch?v=KA_CLal14u4 with MIME type text/html. See https://www.chromestatus.com/feature/5629709824032768 for more details.&lt;/code&gt;.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>edit-embed.png attached to Ticket #44704</title>
+      
+        <dc:creator>7studio</dc:creator>
+
+      <pubDate>Thu, 02 Aug 2018 14:44:23 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/44704/edit-embed.png</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/44704/edit-embed.png/1533221063875031</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>insert-embed.png attached to Ticket #44704</title>
+      
+        <dc:creator>7studio</dc:creator>
+
+      <pubDate>Thu, 02 Aug 2018 14:44:17 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/44704/insert-embed.png</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/44704/insert-embed.png/1533221057069449</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #44704 (`wp.media.view.EmbedLink` and `oembed/1.0/proxy` don't work as expected) created</title>
+      
+        <dc:creator>7studio</dc:creator>
+
+      <pubDate>Thu, 02 Aug 2018 14:43:51 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44704</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44704/1533221031367655</guid>
+      <description>&lt;p&gt;
+It seems that &lt;code&gt;wp.media.view.EmbedLink&lt;/code&gt; and the REST route &lt;code&gt;oembed/1.0/proxy&lt;/code&gt; don't respect the &lt;code&gt;maxwidth&lt;/code&gt; oEmbed parameter in all cases.
+&lt;/p&gt;
+&lt;p&gt;
+&lt;strong&gt;To Reproduce&lt;/strong&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Steps to reproduce the behaviour:
+&lt;/p&gt;
+&lt;ol&gt;&lt;li&gt;Create a new post.
+&lt;/li&gt;&lt;li&gt;Click on "Add Media" button.
+&lt;/li&gt;&lt;li&gt;Choose "Insert from URL" interface.
+&lt;/li&gt;&lt;li&gt;Paste a valid YouTube URL: &lt;a class="ext-link" href="https://www.youtube.com/watch?v=KA_CLal14u4"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://www.youtube.com/watch?v=KA_CLal14u4&lt;/a&gt;
+&lt;/li&gt;&lt;li&gt;See the YouTube &lt;code&gt;&amp;lt;iframe&amp;gt;&lt;/code&gt; with a &lt;code&gt;600px&lt;/code&gt; width.
+&lt;/li&gt;&lt;li&gt;Click on "Insert into post" button.
+&lt;/li&gt;&lt;li&gt;Publish post.
+&lt;/li&gt;&lt;li&gt;Edit the YouTube video.
+&lt;/li&gt;&lt;li&gt;See the YouTube &lt;code&gt;&amp;lt;iframe&amp;gt;&lt;/code&gt; with a tiny &lt;code&gt;200px&lt;/code&gt; width.
+&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;
+&lt;strong&gt;Expected behaviour&lt;/strong&gt;
+&lt;/p&gt;
+&lt;p&gt;
+The embed contents from Facebook or other services should have the same width when you add or edit them.
+&lt;/p&gt;
+&lt;p&gt;
+&lt;strong&gt;Reason found&lt;/strong&gt;
+&lt;/p&gt;
+&lt;p&gt;
+After some researches, it seems that the problem comes from &lt;code&gt;media-view.js&lt;/code&gt; and this part of code:
+&lt;/p&gt;
+&lt;div class="wiki-code"&gt;&lt;div class="code"&gt;&lt;pre&gt;&lt;span class="k"&gt;this&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;dfd&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nx"&gt;wp&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;apiRequest&lt;/span&gt;&lt;span class="p"&gt;({&lt;/span&gt;
+        &lt;span class="nx"&gt;url&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="nx"&gt;wp&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;media&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;view&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;settings&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;oEmbedProxyUrl&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+        &lt;span class="nx"&gt;data&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+                &lt;span class="nx"&gt;url&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="nx"&gt;url&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+                &lt;span class="nx"&gt;maxwidth&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="k"&gt;this&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;model&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;get&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="s1"&gt;'width'&lt;/span&gt; &lt;span class="p"&gt;),&lt;/span&gt;
+                &lt;span class="nx"&gt;maxheight&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="k"&gt;this&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;model&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;get&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="s1"&gt;'height'&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt;
+        &lt;span class="p"&gt;},&lt;/span&gt;
+        &lt;span class="nx"&gt;type&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s1"&gt;'GET'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+        &lt;span class="nx"&gt;dataType&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s1"&gt;'json'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+        &lt;span class="nx"&gt;context&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="k"&gt;this&lt;/span&gt;
+&lt;span class="p"&gt;})&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;p&gt;
+I don't know why the embed content &lt;code&gt;this.model.get( 'width' )&lt;/code&gt; is egal to &lt;code&gt;0&lt;/code&gt; when we edit it :/ As a result, the default value for the &lt;code&gt;maxwidth&lt;/code&gt; argument of the REST route &lt;code&gt;oembed/1.0/proxy&lt;/code&gt; can't be used like the first time.
+&lt;/p&gt;
+&lt;p&gt;
+Here is the requested URL:
+&lt;/p&gt;
+&lt;ol&gt;&lt;li&gt;when we try to embed YouTube video: &lt;code&gt;http://v10.helloprojets.test/wp-json/oembed/1.0/proxy?url=https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DscAxBpppwcQ%26list%3DPLoSIOFPSXQoOXzR8tpGC484wjgKFwIbWL%26index%3D78&lt;/code&gt;.
+&lt;/li&gt;&lt;li&gt;when we edit the YouTube video: &lt;code&gt;http://v10.helloprojets.test/wp-json/oembed/1.0/proxy?url=https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DscAxBpppwcQ%26list%3DPLoSIOFPSXQoOXzR8tpGC484wjgKFwIbWL%26index%3D78&amp;amp;maxwidth=&amp;amp;maxheight=&lt;/code&gt;.
+&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;
+This problem is a bit weird and complex. I hope I was clear in my explanations ;)
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #44702 (Lack of validation for the REST request method) updated</title>
+      
+        <dc:creator>johnbillion</dc:creator>
+
+      <pubDate>Thu, 02 Aug 2018 14:32:07 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44702#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44702#comment:1/1533220327634776</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt;, &lt;i&gt;Focuses&lt;/i&gt;, &lt;i&gt;Type&lt;/i&gt;, &lt;i&gt;Version&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44066 (Add a tool to test personal data without sending a mail to a user) updated</title>
+      
+        <dc:creator>netweb</dc:creator>
+
+      <pubDate>Thu, 02 Aug 2018 14:14:24 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44066#comment:11</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44066#comment:11/1533219264100699</guid>
+      <description>&lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44207 (TinyMCE image toolbar not functioning in Microsoft Edge) updated</title>
+      
+        <dc:creator>netweb</dc:creator>
+
+      <pubDate>Thu, 02 Aug 2018 14:13:48 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44207#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44207#comment:2/1533219228438459</guid>
+      <description>&lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44160 (No Feedback for writing an Comment) updated</title>
+      
+        <dc:creator>netweb</dc:creator>
+
+      <pubDate>Thu, 02 Aug 2018 14:12:09 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44160#comment:4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44160#comment:4/1533219129513750</guid>
+      <description>&lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #43956 (_embed parameter should accept options on what to embed) updated</title>
+      
+        <dc:creator>netweb</dc:creator>
+
+      <pubDate>Thu, 02 Aug 2018 14:11:02 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43956#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43956#comment:2/1533219062955777</guid>
+      <description>&lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #43705 (Respect custom taxonomy term order on admin edit page when show_ui and ...) updated</title>
+      
+        <dc:creator>netweb</dc:creator>
+
+      <pubDate>Thu, 02 Aug 2018 14:10:15 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43705#comment:4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43705#comment:4/1533219015677888</guid>
+      <description>&lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Tickets #40436,​43705 batch updated</title>
+      
+        <dc:creator>netweb</dc:creator>
+
+      <pubDate>Thu, 02 Aug 2018 14:09:51 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/query?id=40436%2C43705</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/query?id=40436%2C43705/1533218991799904</guid>
+      <description>&lt;p&gt;
+Duplicate of &lt;a class="new ticket" href="http://core.trac.wordpress.org/ticket/40436" title="#40436: defect (bug): Custom taxonomy terms order lost under wp-admin/post.php edit action ... (new)"&gt;#40436&lt;/a&gt;.
+&lt;/p&gt;
+</description>
+      <category>batchmodify</category>
+    </item><item>
+      <title>Ticket #44703 (Add documentation to the WordPress PHPUnit functions.php) updated</title>
+      
+        <dc:creator>netweb</dc:creator>
+
+      <pubDate>Thu, 02 Aug 2018 13:49:27 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44703#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44703#comment:1/1533217767756774</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt;, &lt;i&gt;Component&lt;/i&gt;, &lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>44703.diff attached to Ticket #44703</title>
+      
+        <dc:creator>andizer</dc:creator>
+
+      <pubDate>Thu, 02 Aug 2018 13:37:26 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/44703/44703.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/44703/44703.diff/1533217046063100</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #44703 (Add documentation to the WordPress PHPUnit functions.php) created</title>
+      
+        <dc:creator>andizer</dc:creator>
+
+      <pubDate>Thu, 02 Aug 2018 13:36:46 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44703</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44703/1533217006367011</guid>
+      <description>&lt;p&gt;
+There are a couple of functions not being documented. I've add some docs for these.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #39953 (REST API: Do not update date when preparing post if date is known to ...) updated</title>
+      
+        <dc:creator>earnjam</dc:creator>
+
+      <pubDate>Thu, 02 Aug 2018 13:12:12 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/39953#comment:9</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/39953#comment:9/1533215532341140</guid>
+      <description>&lt;p&gt;
+This just came up in Gutenberg because we can't reliably tell if a draft post has a date set or not to know what to display in the publish panel as the date.
+&lt;/p&gt;
+&lt;p&gt;
+&lt;a class="ext-link" href="https://github.com/WordPress/gutenberg/issues/7195"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://github.com/WordPress/gutenberg/issues/7195&lt;/a&gt;
+&lt;/p&gt;
+&lt;p&gt;
+One option is to allow the &lt;code&gt;date_gmt&lt;/code&gt; value be &lt;code&gt;null&lt;/code&gt; in the &lt;code&gt;edit&lt;/code&gt; context. Not necessarily ideal, but it continues the pattern used by the classic editor.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #43947 (JSDoc: wp-includes/wpdialog.js) updated</title>
+      
+        <dc:creator>netweb</dc:creator>
+
+      <pubDate>Thu, 02 Aug 2018 12:52:57 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43947#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43947#comment:3/1533214377640234</guid>
+      <description>&lt;i&gt;Focuses&lt;/i&gt;, &lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #43927 (Filter policy help blocks away from the_content) updated</title>
+      
+        <dc:creator>netweb</dc:creator>
+
+      <pubDate>Thu, 02 Aug 2018 12:52:43 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43927#comment:9</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43927#comment:9/1533214363184957</guid>
+      <description>&lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #43943 (Retention messages are not being displayed during personal data erasure) updated</title>
+      
+        <dc:creator>netweb</dc:creator>
+
+      <pubDate>Thu, 02 Aug 2018 12:52:08 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43943#comment:7</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43943#comment:7/1533214328334955</guid>
+      <description>&lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44023 (Remove help tab from settings privacy until we have something helpful ...) updated</title>
+      
+        <dc:creator>netweb</dc:creator>
+
+      <pubDate>Thu, 02 Aug 2018 12:51:46 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44023#comment:8</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44023#comment:8/1533214306437908</guid>
+      <description>&lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #43948 (JSDoc: wp-includes/js/zxcvbn-async.js) updated</title>
+      
+        <dc:creator>netweb</dc:creator>
+
+      <pubDate>Thu, 02 Aug 2018 12:49:11 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43948#comment:4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43948#comment:4/1533214151970098</guid>
+      <description>&lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;&lt;pre class="wiki"&gt;In [43333]
+Docs: Improve JSDoc for zxcvbn-async.js.
+Props manuelaugustin, igorsch, LisanneKluitmans.
+Fixes 43948.
+&lt;/pre&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #43950 (JSDoc: wp-admin/js/language-chooser.js) updated</title>
+      
+        <dc:creator>netweb</dc:creator>
+
+      <pubDate>Thu, 02 Aug 2018 12:47:15 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43950#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43950#comment:2/1533214035223563</guid>
+      <description>&lt;i&gt;Focuses&lt;/i&gt;, &lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #33833 (Quick/Bulk Edit are not visually consistent) reopened</title>
+      
+        <dc:creator>netweb</dc:creator>
+
+      <pubDate>Thu, 02 Aug 2018 12:47:01 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/33833#comment:5</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/33833#comment:5/1533214021032664</guid>
+      <description>&lt;p&gt;
+I believe the inconsistencies are still present, a set of current screenshots comparing those already  submitted to this ticket would be beneficial to check on any progress made thus far.
+&lt;/p&gt;
+</description>
+      <category>reopenedticket</category>
+    </item><item>
+      <title>14148.3.diff attached to Ticket #14148</title>
+      
+        <dc:creator>andizer</dc:creator>
+
+      <pubDate>Thu, 02 Aug 2018 12:40:43 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/14148/14148.3.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/14148/14148.3.diff/1533213643804353</guid>
+      <description>&lt;p&gt;
+Fix codestyle issue
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #44325 (JSDoc: src/js/_enqueues/lib/pointer.js) updated</title>
+      
+        <dc:creator>netweb</dc:creator>
+
+      <pubDate>Thu, 02 Aug 2018 12:40:14 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44325#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44325#comment:3/1533213614266207</guid>
+      <description>&lt;i&gt;Focuses&lt;/i&gt;, &lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44362 (JSDoc: src/js/_enqueues/admin/link.js) updated</title>
+      
+        <dc:creator>netweb</dc:creator>
+
+      <pubDate>Thu, 02 Aug 2018 12:40:01 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44362#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44362#comment:3/1533213601829135</guid>
+      <description>&lt;i&gt;Focuses&lt;/i&gt;, &lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44364 (JSDoc: src/js/_enqueues/lib/auth-check.js) updated</title>
+      
+        <dc:creator>netweb</dc:creator>
+
+      <pubDate>Thu, 02 Aug 2018 12:39:47 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44364#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44364#comment:2/1533213587206656</guid>
+      <description>&lt;i&gt;Focuses&lt;/i&gt;, &lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44367 (JSDoc: src/js/_enqueues/wp/emoji.js) updated</title>
+      
+        <dc:creator>netweb</dc:creator>
+
+      <pubDate>Thu, 02 Aug 2018 12:39:32 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44367#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44367#comment:2/1533213572954244</guid>
+      <description>&lt;i&gt;Focuses&lt;/i&gt;, &lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44520 (Fix default parameters in controls.js JSDoc.) updated</title>
+      
+        <dc:creator>netweb</dc:creator>
+
+      <pubDate>Thu, 02 Aug 2018 12:39:13 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44520#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44520#comment:2/1533213553546012</guid>
+      <description>&lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44452 (Widget - Toggle indicator on "Available and Inactive Widgets" should ...) updated</title>
+      
+        <dc:creator>netweb</dc:creator>
+
+      <pubDate>Thu, 02 Aug 2018 12:37:11 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44452#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44452#comment:2/1533213431055563</guid>
+      <description>&lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44346 (instant publish not possible) updated</title>
+      
+        <dc:creator>netweb</dc:creator>
+
+      <pubDate>Thu, 02 Aug 2018 12:36:57 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44346#comment:5</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44346#comment:5/1533213417792087</guid>
+      <description>&lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44300 (Not able to upload feature Image to blog post) updated</title>
+      
+        <dc:creator>netweb</dc:creator>
+
+      <pubDate>Thu, 02 Aug 2018 12:36:34 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44300#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44300#comment:2/1533213394432964</guid>
+      <description>&lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #41330 (Auto complete TAG not working) updated</title>
+      
+        <dc:creator>netweb</dc:creator>
+
+      <pubDate>Thu, 02 Aug 2018 12:36:04 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/41330#comment:4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/41330#comment:4/1533213364358965</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt;, &lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #41303 (Fatal error: Maximum execution time of 30 seconds exceeded) updated</title>
+      
+        <dc:creator>netweb</dc:creator>
+
+      <pubDate>Thu, 02 Aug 2018 12:33:42 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/41303#comment:4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/41303#comment:4/1533213222439486</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt;, &lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44702 (Lack of validation for the REST request method) created</title>
+      
+        <dc:creator>andizer</dc:creator>
+
+      <pubDate>Thu, 02 Aug 2018 09:55:57 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44702</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44702/1533203757773937</guid>
+      <description>&lt;p&gt;
+When registering a REST API endpoint it is possible to set a request method. Like GET, PUT, POST, etcetera. This is awesome, however there is no validation to verify if the REST method is a valid one (&lt;a class="ext-link" href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods&lt;/a&gt;) .
+&lt;/p&gt;
+&lt;p&gt;
+I think we should have validation for it.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #40030 (Pass User and Comment Objects to rest_get_avatar_urls) updated</title>
+      
+        <dc:creator>pputzer</dc:creator>
+
+      <pubDate>Thu, 02 Aug 2018 09:52:23 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/40030#comment:5</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/40030#comment:5/1533203543825504</guid>
+      <description>&lt;p&gt;
+Can we do something about this? I just stumbled upon the issue in one of my plugins and there don't even seem to be enough hooks in the controllers to implement a workaround :(
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44354 (Improve `WP_Privacy_Requests_Table` to manage columns) updated</title>
+      
+        <dc:creator>7studio</dc:creator>
+
+      <pubDate>Thu, 02 Aug 2018 09:29:52 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44354#comment:4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44354#comment:4/1533202192677741</guid>
+      <description>&lt;p&gt;
+Sorry for this late answer @birgire
+&lt;/p&gt;
+&lt;p&gt;
+Thank you very much for this patch :D IMHO, long hook names are not a problem. Most of the time, it's more understandable ;)
+&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;
+It's interesting to see the mismatch regarding the output of column methods in various list tables.
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+It's the same thing in examples on the Web but I've always used &lt;code&gt;echo&lt;/code&gt; ;)
+&lt;/p&gt;
+&lt;p&gt;
+If I must do something let me know.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44701 (HTML with Unicode text selector shows as emoji instead) updated</title>
+      
+        <dc:creator>superpoincare</dc:creator>
+
+      <pubDate>Thu, 02 Aug 2018 08:33:37 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44701#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44701#comment:1/1533198817625331</guid>
+      <description>&lt;i&gt;Summary&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44701 (HTML with Unicode text selector shows as emoji instead) created</title>
+      
+        <dc:creator>superpoincare</dc:creator>
+
+      <pubDate>Thu, 02 Aug 2018 08:32:12 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44701</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44701/1533198732826092</guid>
+      <description>&lt;p&gt;
+Paste this
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;&amp;amp;#x25B6;&amp;amp;#xFE0E;
+&lt;/pre&gt;&lt;p&gt;
+Somewhere in WordPress, such as a comment or editor.
+&lt;/p&gt;
+&lt;p&gt;
+It should display a black right pointing triangle.
+&lt;/p&gt;
+&lt;p&gt;
+Instead because of the emoji code, it displays as a play sign, which specifically has the variant U+FE0F.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Tickets #36177,​44700 batch updated</title>
+      
+        <dc:creator>swissspidy</dc:creator>
+
+      <pubDate>Thu, 02 Aug 2018 07:44:00 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/query?id=36177%2C44700</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/query?id=36177%2C44700/1533195840900097</guid>
+      <description>duplicate: &lt;p&gt;
+Hey there
+&lt;/p&gt;
+&lt;p&gt;
+This has come up many times before, for example in &lt;a class="new ticket" href="http://core.trac.wordpress.org/ticket/36177" title="#36177: enhancement: default htaccess should include security measures (new)"&gt;#36177&lt;/a&gt;, &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/30806" title="#30806: feature request: Security: Full Path Disclosure (closed: invalid)"&gt;#30806&lt;/a&gt;, and most recently in &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/44663" title="#44663: defect (bug): Disallow direct access to wp-includes php files (closed: duplicate)"&gt;#44663&lt;/a&gt;.
+&lt;/p&gt;
+&lt;p&gt;
+Path disclosure is a server configuration problem. Never enable &lt;code&gt;display_errors&lt;/code&gt; on a production site. See &lt;a class="ext-link" href="https://make.wordpress.org/core/handbook/testing/reporting-security-vulnerabilities/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;Security FAQ&lt;/a&gt;.
+&lt;/p&gt;
+</description>
+      <category>batchmodify</category>
+    </item><item>
+      <title>Ticket #44700 (Full path disclosure on rss-functions.php) created</title>
+      
+        <dc:creator>damithruwan1234</dc:creator>
+
+      <pubDate>Thu, 02 Aug 2018 07:29:45 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44700</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44700/1533194985484262</guid>
+      <description>&lt;p&gt;
+I was running some security test on my WordPress ditr and noticed that all of them have a full path disclosure on the following url.
+&lt;/p&gt;
+&lt;p&gt;
+&lt;a class="ext-link" href="https://mydomains.com/wp-includes/rss-functions.php"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://mydomains.com/wp-includes/rss-functions.php&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Twenty 17 Screen Shot 2018-08-02 at 09.03.18.png attached to Ticket #44699</title>
+      
+        <dc:creator>afercia</dc:creator>
+
+      <pubDate>Thu, 02 Aug 2018 07:11:35 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/44699/Twenty%2017%20Screen%20Shot%202018-08-02%20at%2009.03.18.png</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/44699/Twenty%2017%20Screen%20Shot%202018-08-02%20at%2009.03.18.png/1533193895763804</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #44699 (Twenty Seventeen: Comment form cookies consent checkbox has no focus style) created</title>
+      
+        <dc:creator>afercia</dc:creator>
+
+      <pubDate>Thu, 02 Aug 2018 07:11:02 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44699</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44699/1533193862330986</guid>
+      <description>&lt;p&gt;
+In Twenty Seventeen, the new checkbox in the comments form to consent to cookies has no focus style at all. While the other fields use a slightly darker border (see the field "Website|" in the screenshot below), the there's no specific focus style for checkboxes.
+&lt;/p&gt;
+&lt;p&gt;
+The outline is reset to 0 so, at least in Chrome, Safari, and Opera on mac, there's no indication of focus on the checkbox. Firefox applies some native style.
+&lt;/p&gt;
+&lt;p&gt;
+Seems Twenty Sixteen and Fifteen are OK, as they apply some focus style to checkboxes.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #44698 (Comment Form : Can we move GDPR info and consent box above submit ...) updated</title>
+      
+        <dc:creator>wingo5315</dc:creator>
+
+      <pubDate>Thu, 02 Aug 2018 06:50:44 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44698#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44698#comment:1/1533192644247191</guid>
+      <description>&lt;i&gt;Focuses&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44694 (Extra and un-neccessary query when no posts found in Posts Rest Controller) updated</title>
+      
+        <dc:creator>subrataemfluence</dc:creator>
+
+      <pubDate>Thu, 02 Aug 2018 06:15:21 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44694#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44694#comment:2/1533190521021405</guid>
+      <description>&lt;p&gt;
+Out of curiosity:
+&lt;/p&gt;
+&lt;p&gt;
+What if
+&lt;/p&gt;
+&lt;p&gt;
+&lt;code&gt;$paged&lt;/code&gt; parameter has been specified
+&lt;/p&gt;
+&lt;p&gt;
+&lt;code&gt;$page = 1&lt;/code&gt;  &lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+and &lt;code&gt;$total_posts = 0&lt;/code&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44698 (Comment Form : Can we move GDPR info and consent box above submit ...) created</title>
+      
+        <dc:creator>kartiks16</dc:creator>
+
+      <pubDate>Thu, 02 Aug 2018 06:04:43 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44698</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44698/1533189883206717</guid>
+      <description>&lt;p&gt;
+Hello Support Team,
+&lt;/p&gt;
+&lt;p&gt;
+In your next version can we make it print for "CHECKBOX " for GDPR above the Submit comment button. Also, we can make it better visible? As currently, it is hard to identify in its light orange color.
+&lt;/p&gt;
+&lt;p&gt;
+Sometimes when people are writing their comments, they do not see the boxes below the submit comment and try to hit it and their comments do not get saved. Several people have written to me telling me they can’t get their comments to submit- not realizing there’s more to do.
+&lt;/p&gt;
+&lt;p&gt;
+Would it be possible to move it all up above the submit button?
+&lt;/p&gt;
+&lt;p&gt;
+Let me know the thoughts.
+&lt;/p&gt;
+&lt;p&gt;
+Thanks.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #44697 (Argument type does not match: user.php) updated</title>
+      
+        <dc:creator>subrataemfluence</dc:creator>
+
+      <pubDate>Thu, 02 Aug 2018 05:46:34 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44697#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44697#comment:1/1533188794976470</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>44697.diff attached to Ticket #44697</title>
+      
+        <dc:creator>subrataemfluence</dc:creator>
+
+      <pubDate>Thu, 02 Aug 2018 05:45:42 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/44697/44697.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/44697/44697.diff/1533188742637564</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #44697 (Argument type does not match: user.php) created</title>
+      
+        <dc:creator>subrataemfluence</dc:creator>
+
+      <pubDate>Thu, 02 Aug 2018 05:43:51 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44697</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44697/1533188631218229</guid>
+      <description>&lt;p&gt;
+File location: &lt;code&gt;wp-includes/user.php&lt;/code&gt;
+&lt;/p&gt;
+&lt;div class="wiki-code"&gt;&lt;div class="code"&gt;&lt;pre&gt;&lt;span class="cp"&gt;&amp;lt;?php&lt;/span&gt;
+&lt;span class="cm"&gt;/*
+* ...
+* @param int $for_user_id Optional. User ID to set up global data.
+ */&lt;/span&gt;
+&lt;span class="k"&gt;function&lt;/span&gt; &lt;span class="nf"&gt;setup_userdata&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="nv"&gt;$for_user_id&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s1"&gt;''&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+   &lt;span class="o"&gt;...&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;</description>
+      <category>newticket</category>
+    </item>
+   </channel>
+</rss>

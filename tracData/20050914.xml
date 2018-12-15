@@ -1,0 +1,550 @@
+<?xml version="1.0"?>
+<rss xmlns:dc="http://purl.org/dc/elements/1.1/" version="2.0">
+  <channel>
+    <title>WordPress Trac</title>
+    <link>http://core.trac.wordpress.org/timeline</link>
+    <description>Trac Timeline</description>
+    <language>en-US</language>
+    <generator>Trac 1.2.2</generator>
+    <image>
+      <title>WordPress Trac</title>
+      <url>http://core.trac.wordpress.org/chrome/site/your_project_logo.png</url>
+      <link>http://core.trac.wordpress.org/timeline</link>
+    </image>
+    <item>
+      <title>Changeset [2876]: Allow for more redirect flexibility</title>
+      
+        <dc:creator>matt</dc:creator>
+
+      <pubDate>Wed, 14 Sep 2005 20:57:21 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/2876</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/2876/1126731441801382</guid>
+      <description>&lt;p&gt;
+Allow for more redirect flexibility
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Ticket #1675 (Missing "," in trunk/wp-inst/wp-includes/registration-functions.php) created</title>
+      
+        <dc:creator>donncha</dc:creator>
+
+      <pubDate>Wed, 14 Sep 2005 12:42:51 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/1675</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/1675/1126701771000000</guid>
+      <description>&lt;p&gt;
+(From WPMU svn log)
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;--- trunk/wp-inst/wp-includes/registration-functions.php	2005-09-14 10:40:20 UTC (rev 326)
++++ trunk/wp-inst/wp-includes/registration-functions.php	2005-09-14 12:13:56 UTC (rev 327)
+@@ -35,7 +35,7 @@
+ 		$user_registered = gmdate('Y-m-d H:i:s');
+ 	if ( $update ) {
+-		$query = "UPDATE $wpdb-&amp;gt;users SET user_pass='$user_pass' user_email='$user_email', user_url='$user_url', user_nicename = '$user_nicename', display_name = '$display_name' WHERE ID = '$ID'";
++		$query = "UPDATE $wpdb-&amp;gt;users SET user_pass='$user_pass', user_email='$user_email', user_url='$user_url', user_nicename = '$user_nicename', display_name = '$display_name' WHERE ID = '$ID'";
+ 		$query = apply_filters('update_user_query', $query);
+ 		$wpdb-&amp;gt;query( $query );
+ 		$user_id = $ID;
+&lt;/pre&gt;</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #1674 (Use different kses rules for posts and comments for users who can't ...) created</title>
+      
+        <dc:creator>donncha</dc:creator>
+
+      <pubDate>Wed, 14 Sep 2005 12:30:19 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/1674</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/1674/1126701019000000</guid>
+      <description>&lt;p&gt;
+The following patch feeds post content through kses, but with it's own set of allowed tags. The tags need to be pruned.  I didn't filter on "content_save_pre" because that's destructive of the actual post. On the other hand, the post writer might wonder why his wacky javascript is being deleted when it's displayed...
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;diff -u /home/donncha/dev/wordpress/trunk/wp-includes/default-filters.php ./default-filters.php
+--- /home/donncha/dev/wordpress/trunk/wp-includes/default-filters.php	2005-07-04 06:21:42.000000000 -0400
++++ ./default-filters.php	2005-09-14 07:50:33.000000000 -0400
+@@ -25,7 +25,6 @@
+ add_filter('pre_comment_author_url', 'clean_url');
+ add_filter('pre_comment_content', 'stripslashes', 1);
+-add_filter('pre_comment_content', 'wp_filter_kses');
+ add_filter('pre_comment_content', 'wp_rel_nofollow', 15);
+ add_filter('pre_comment_content', 'balanceTags', 30);
+ add_filter('pre_comment_content', 'addslashes', 50);
+@@ -85,4 +84,4 @@
+ // Actions
+ add_action('publish_post', 'generic_ping');
+diff -u /home/donncha/dev/wordpress/trunk/wp-includes/kses.php ./kses.php
+--- /home/donncha/dev/wordpress/trunk/wp-includes/kses.php	2005-07-04 06:21:43.000000000 -0400
++++ ./kses.php	2005-09-14 07:50:47.000000000 -0400
+@@ -6,14 +6,289 @@
+ #
+ # E-mail:      metaur at users dot sourceforge dot net
+ # Web page:    http://sourceforge.net/projects/kses
+-# Paper mail:  (not at the moment)
++# Paper mail:  Ulf Harnhammar
++#              Ymergatan 17 C
++#              753 25  Uppsala
++#              SWEDEN
+ #
+ # [kses strips evil scripts!]
+ if (!defined('CUSTOM_TAGS'))
+ 	define('CUSTOM_TAGS', false);
+-
++
+ // You can override this in your my-hacks.php file
+ if (!CUSTOM_TAGS) {
++$allowedposttags = array(
++				'address' =&amp;gt; array(),
++				'applet' =&amp;gt; array(
++					'codebase' =&amp;gt; array(),
++					'code' =&amp;gt; array(),
++					'name' =&amp;gt; array(),
++					'alt' =&amp;gt; array()),
++				'area' =&amp;gt; array(
++					'shape' =&amp;gt; array(),
++					'coords' =&amp;gt; array(),
++					'href' =&amp;gt; array(),
++					'alt' =&amp;gt; array()),
++				'a' =&amp;gt; array(
++					'href' =&amp;gt; array(),
++					'title' =&amp;gt; array(),
++					'rel' =&amp;gt; array(),
++					'rev' =&amp;gt; array(),
++					'name' =&amp;gt; array()),
++				'abbr' =&amp;gt; array('title' =&amp;gt; array()),
++				'acronym' =&amp;gt; array('title' =&amp;gt; array()),
++				'b' =&amp;gt; array(),
++				'base' =&amp;gt; array('href' =&amp;gt; array()),
++				'basefont' =&amp;gt; array('size' =&amp;gt; array()),
++				'bdo' =&amp;gt; array('dir' =&amp;gt; array()),
++				'big' =&amp;gt; array(),
++				'blockquote' =&amp;gt; array('cite' =&amp;gt; array()),
++				'body' =&amp;gt; array(
++					'alink' =&amp;gt; array(),
++					'background' =&amp;gt; array(),
++					'bgcolor' =&amp;gt; array(),
++					'link' =&amp;gt; array(),
++					'text' =&amp;gt; array(),
++					'vlink' =&amp;gt; array()),
++				'br' =&amp;gt; array(),
++				'button' =&amp;gt; array(
++					'disabled' =&amp;gt; array(),
++					'name' =&amp;gt; array(),
++					'type' =&amp;gt; array(),
++					'value' =&amp;gt; array()),
++				'caption' =&amp;gt; array('align' =&amp;gt; array()),
++				'code' =&amp;gt; array(),
++				'col' =&amp;gt; array(
++					'align' =&amp;gt; array(),
++					'char' =&amp;gt; array(),
++					'charoff' =&amp;gt; array(),
++					'span' =&amp;gt; array(),
++					'valign' =&amp;gt; array(),
++					'width' =&amp;gt; array()),
++				'del' =&amp;gt; array('datetime' =&amp;gt; array()),
++				'dd' =&amp;gt; array(),
++				'div' =&amp;gt; array('align' =&amp;gt; array()),
++				'dl' =&amp;gt; array(),
++				'dt' =&amp;gt; array(),
++				'em' =&amp;gt; array(),
++				'fieldset' =&amp;gt; array(),
++				'font' =&amp;gt; array(
++					'color' =&amp;gt; array(),
++					'face' =&amp;gt; array(),
++					'size' =&amp;gt; array()),
++				'form' =&amp;gt; array(
++					'action' =&amp;gt; array(),
++					'accept' =&amp;gt; array(),
++					'accept-charset' =&amp;gt; array(),
++					'enctype' =&amp;gt; array(),
++					'method' =&amp;gt; array(),
++					'name' =&amp;gt; array(),
++					'target' =&amp;gt; array()),
++				'frame' =&amp;gt; array(
++					'frameborder' =&amp;gt; array(),
++					'longsesc' =&amp;gt; array(),
++					'marginheight' =&amp;gt; array(),
++					'marginwidth' =&amp;gt; array(),
++					'name' =&amp;gt; array(),
++					'noresize' =&amp;gt; array(),
++					'scrolling' =&amp;gt; array(),
++					'src' =&amp;gt; array()),
++				'frameset' =&amp;gt; array(
++					'cols' =&amp;gt; array(),
++					'rows' =&amp;gt; array()),
++				'head' =&amp;gt; array('profile' =&amp;gt; array()),
++				'h1' =&amp;gt; array('align' =&amp;gt; array()),
++				'h2' =&amp;gt; array('align' =&amp;gt; array()),
++				'h3' =&amp;gt; array('align' =&amp;gt; array()),
++				'h4' =&amp;gt; array('align' =&amp;gt; array()),
++				'h5' =&amp;gt; array('align' =&amp;gt; array()),
++				'h6' =&amp;gt; array('align' =&amp;gt; array()),
++				'hr' =&amp;gt; array(
++					'align' =&amp;gt; array(),
++					'noshade' =&amp;gt; array(),
++					'size' =&amp;gt; array(),
++					'width' =&amp;gt; array()),
++				'html' =&amp;gt; array('xmlns' =&amp;gt; array()),
++				'i' =&amp;gt; array(),
++				'iframe' =&amp;gt; array(
++					'align' =&amp;gt; array(),
++					'frameborder' =&amp;gt; array(),
++					'height' =&amp;gt; array(),
++					'londesc' =&amp;gt; array(),
++					'marginheight' =&amp;gt; array(),
++					'marginwidth' =&amp;gt; array(),
++					'name' =&amp;gt; array(),
++					'scrolling' =&amp;gt; array(),
++					'src' =&amp;gt; array(),
++					'width' =&amp;gt; array()),
++				'img' =&amp;gt; array(
++					'alt' =&amp;gt; array(),
++					'align' =&amp;gt; array(),
++					'border' =&amp;gt; array(),
++					'height' =&amp;gt; array(),
++					'hspace' =&amp;gt; array(),
++					'ismap' =&amp;gt; array(),
++					'longdesc' =&amp;gt; array(),
++					'usemap' =&amp;gt; array(),
++					'vspace' =&amp;gt; array(),
++					'src' =&amp;gt; array(),
++					'width' =&amp;gt; array()),
++				'input' =&amp;gt; array(
++					'accept' =&amp;gt; array(),
++					'align' =&amp;gt; array(),
++					'alt' =&amp;gt; array(),
++					'checked' =&amp;gt; array(),
++					'disabled' =&amp;gt; array(),
++					'maxlength' =&amp;gt; array(),
++					'name' =&amp;gt; array(),
++					'readonly' =&amp;gt; array(),
++					'size' =&amp;gt; array(),
++					'src' =&amp;gt; array(),
++					'type' =&amp;gt; array(),
++					'value' =&amp;gt; array()),
++				'ins' =&amp;gt; array('datetime' =&amp;gt; array(), 'cite' =&amp;gt; array()),
++				'kbd' =&amp;gt; array(),
++				'label' =&amp;gt; array('for' =&amp;gt; array()),
++				'legend' =&amp;gt; array('align' =&amp;gt; array()),
++				'li' =&amp;gt; array(),
++				'link' =&amp;gt; array(
++					'charset' =&amp;gt; array(),
++					'href' =&amp;gt; array(),
++					'hreflang' =&amp;gt; array(),
++					'media' =&amp;gt; array(),
++					'rel' =&amp;gt; array(),
++					'rev' =&amp;gt; array(),
++					'target' =&amp;gt; array(),
++					'type' =&amp;gt; array()),
++				'map' =&amp;gt; array(
++					'id' =&amp;gt; array(),
++					'name' =&amp;gt; array()),
++				'menu' =&amp;gt; array(),
++				'meta' =&amp;gt; array(
++					'content' =&amp;gt; array(),
++					'http-equiv' =&amp;gt; array(),
++					'name' =&amp;gt; array(),
++					'scheme' =&amp;gt; array()),
++				'noframes' =&amp;gt; array(),
++				'noscript' =&amp;gt; array(),
++				'object' =&amp;gt; array(
++					'align' =&amp;gt; array(),
++					'archive' =&amp;gt; array(),
++					'border' =&amp;gt; array(),
++					'classid' =&amp;gt; array(),
++					'codebase' =&amp;gt; array(),
++					'codetype' =&amp;gt; array(),
++					'data' =&amp;gt; array(),
++					'declare' =&amp;gt; array(),
++					'height' =&amp;gt; array(),
++					'hspace' =&amp;gt; array(),
++					'name' =&amp;gt; array(),
++					'standby' =&amp;gt; array(),
++					'type' =&amp;gt; array(),
++					'usemap' =&amp;gt; array(),
++					'vspace' =&amp;gt; array(),
++					'width' =&amp;gt; array()),
++				'ol' =&amp;gt; array(
++					'compact' =&amp;gt; array(),
++					'start' =&amp;gt; array(),
++					'type' =&amp;gt; array()),
++				'optgroup' =&amp;gt; array(
++					'label' =&amp;gt; array(),
++					'disabled' =&amp;gt; array()),
++				'option' =&amp;gt; array(
++					'disabled' =&amp;gt; array(),
++					'label' =&amp;gt; array(),
++					'selected' =&amp;gt; array(),
++					'value' =&amp;gt; array()),
++				'p' =&amp;gt; array('align' =&amp;gt; array()),
++				'param' =&amp;gt; array(
++					'name' =&amp;gt; array(),
++					'type' =&amp;gt; array(),
++					'value' =&amp;gt; array(),
++					'valuetype' =&amp;gt; array()),
++				'pre' =&amp;gt; array('width' =&amp;gt; array()),
++				'q' =&amp;gt; array('cite' =&amp;gt; array()),
++				's' =&amp;gt; array(),
++				'strike' =&amp;gt; array(),
++				'strong' =&amp;gt; array(),
++				'style' =&amp;gt; array(
++					'type' =&amp;gt; array(),
++					'media' =&amp;gt; array()),
++				'sub' =&amp;gt; array(),
++				'sup' =&amp;gt; array(),
++				'table' =&amp;gt; array(
++					'align' =&amp;gt; array(),
++					'bgcolor' =&amp;gt; array(),
++					'border' =&amp;gt; array(),
++					'cellpadding' =&amp;gt; array(),
++					'cellspacing' =&amp;gt; array(),
++					'frame' =&amp;gt; array(),
++					'rules' =&amp;gt; array(),
++					'summary' =&amp;gt; array(),
++					'width' =&amp;gt; array()),
++				'tbody' =&amp;gt; array(
++					'align' =&amp;gt; array(),
++					'char' =&amp;gt; array(),
++					'charoff' =&amp;gt; array(),
++					'valign' =&amp;gt; array()),
++				'td' =&amp;gt; array(
++					'abbr' =&amp;gt; array(),
++					'align' =&amp;gt; array(),
++					'axis' =&amp;gt; array(),
++					'bgcolor' =&amp;gt; array(),
++					'char' =&amp;gt; array(),
++					'charoff' =&amp;gt; array(),
++					'colspan' =&amp;gt; array(),
++					'headers' =&amp;gt; array(),
++					'height' =&amp;gt; array(),
++					'nowrap' =&amp;gt; array(),
++					'rowspan' =&amp;gt; array(),
++					'scope' =&amp;gt; array(),
++					'valign' =&amp;gt; array(),
++					'width' =&amp;gt; array()),
++				'textarea' =&amp;gt; array(
++					'cols' =&amp;gt; array(),
++					'rows' =&amp;gt; array(),
++					'disabled' =&amp;gt; array(),
++					'name' =&amp;gt; array(),
++					'readonly' =&amp;gt; array()),
++				'tfoot' =&amp;gt; array(
++					'align' =&amp;gt; array(),
++					'char' =&amp;gt; array(),
++					'charoff' =&amp;gt; array(),
++					'valign' =&amp;gt; array()),
++				'th' =&amp;gt; array(
++					'abbr' =&amp;gt; array(),
++					'align' =&amp;gt; array(),
++					'axis' =&amp;gt; array(),
++					'bgcolor' =&amp;gt; array(),
++					'char' =&amp;gt; array(),
++					'charoff' =&amp;gt; array(),
++					'colspan' =&amp;gt; array(),
++					'headers' =&amp;gt; array(),
++					'height' =&amp;gt; array(),
++					'nowrap' =&amp;gt; array(),
++					'rowspan' =&amp;gt; array(),
++					'scope' =&amp;gt; array(),
++					'valign' =&amp;gt; array(),
++					'width' =&amp;gt; array()),
++				'thead' =&amp;gt; array(
++					'align' =&amp;gt; array(),
++					'char' =&amp;gt; array(),
++					'charoff' =&amp;gt; array(),
++					'valign' =&amp;gt; array()),
++				'title' =&amp;gt; array(),
++				'tr' =&amp;gt; array(
++					'align' =&amp;gt; array(),
++					'bgcolor' =&amp;gt; array(),
++					'char' =&amp;gt; array(),
++					'charoff' =&amp;gt; array(),
++					'valign' =&amp;gt; array()),
++				'tt' =&amp;gt; array(),
++				'u' =&amp;gt; array(),
++				'ul' =&amp;gt; array(),
++				'var' =&amp;gt; array()
++);
+ $allowedtags = array(
+ 	'a' =&amp;gt; array(
+ 		'href' =&amp;gt; array(),
+@@ -45,7 +320,7 @@
+ 	);
+ }
+ function wp_kses($string, $allowed_html, $allowed_protocols =
+-               array('http', 'https', 'ftp', 'news', 'nntp', 'feed', 'gopher', 'mailto'))
++               array('http', 'https', 'ftp', 'news', 'nntp', 'telnet', 'feed', 'gopher', 'mailto'))
+ ###############################################################################
+ # This function makes sure that only the allowed HTML element names, attribute
+ # names and attribute values plus only sane HTML entities will occur in
+@@ -76,7 +351,7 @@
+ # This function returns kses' version number.
+ ###############################################################################
+ {
+-  return '0.2.1';
++  return '0.2.2';
+ } # function wp_kses_version
+@@ -118,10 +393,14 @@
+   $elem = $matches[2];
+   $attrlist = $matches[3];
+-  if (!is_array($allowed_html[strtolower($elem)]))
++  if (!@is_array($allowed_html[strtolower($elem)]))
+     return '';
+     # They are using a not allowed HTML element
++  if ($slash != '')
++    return "&amp;lt;$slash$elem&amp;gt;";
++  # No attributes are allowed for closing elements
++
+   return wp_kses_attr("$slash$elem", $attrlist, $allowed_html,
+                    $allowed_protocols);
+ } # function wp_kses_split2
+@@ -145,7 +424,7 @@
+ # Are any attributes allowed at all for this element?
+-  if (count($allowed_html[strtolower($element)]) == 0)
++  if (@count($allowed_html[strtolower($element)]) == 0)
+     return "&amp;lt;$element$xhtml_slash&amp;gt;";
+ # Split it
+@@ -159,6 +438,9 @@
+   foreach ($attrarr as $arreach)
+   {
++    if (!@isset($allowed_html[strtolower($element)] [strtolower($arreach['name'])]))
++      continue; # the attribute is not allowed
++
+     $current = $allowed_html[strtolower($element)]
+                             [strtolower($arreach['name'])];
+     if ($current == '')
+@@ -410,6 +692,8 @@
+   $string = preg_replace('/\0+/', '', $string);
+   $string = preg_replace('/(\\\\0)+/', '', $string);
++  $string = preg_replace('/\xad+/', '', $string); # deals with Opera "feature"
++
+   return $string;
+ } # function wp_kses_no_null
+@@ -555,9 +839,28 @@
+   return $string;
+ } # function wp_kses_decode_entities
+-function wp_filter_kses( $string ) {
++function wp_filter_kses($data) {
+ 	global $allowedtags;
+-	return wp_kses($string, $allowedtags);
++	return wp_kses($data, $allowedtags);
+ }
+-?&amp;gt;
+\ No newline at end of file
++function wp_filter_post_kses($data) {
++	global $allowedposttags;
++	return wp_kses($data, $allowedposttags);
++}
++
++
++
++function kses_init() {
++	global $current_user;
++
++	get_currentuserinfo(); // set $current_user
++	if( current_user_can( 'unfiltered_html' ) == false ) {
++		add_filter('comment_author', 'wp_filter_kses');
++		add_filter('comment_text', 'wp_filter_kses');
++		add_filter('comment_post', 'wp_filter_kses');
++		add_filter('the_content', 'wp_filter_post_kses');
++	}
++}
++add_action( 'init', 'kses_init' );
++?&amp;gt;
+&lt;/pre&gt;</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Changeset [2875]: Flesh out MT importer. WIP.</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Wed, 14 Sep 2005 05:17:20 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/2875</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/2875/1126675040170572</guid>
+      <description>&lt;p&gt;
+Flesh out MT importer. WIP.
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Changeset [2874]: Remove inactive roles.  Add unfiltered_html cap to admin and editor roles.</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Wed, 14 Sep 2005 03:26:47 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/2874</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/2874/1126668407707386</guid>
+      <description>&lt;p&gt;
+Remove inactive roles.  Add unfiltered_html cap to admin and editor roles.
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Ticket #1673 (wp_redirect() should redirect to home if empty) created</title>
+      
+        <dc:creator>Viper007Bond</dc:creator>
+
+      <pubDate>Wed, 14 Sep 2005 03:16:23 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/1673</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/1673/1126667783000000</guid>
+      <description>&lt;p&gt;
+The function &lt;code&gt;wp_redirect()&lt;/code&gt; should redirect people to the blog's base page if no URL is set. For example, if a user doesn't have HTTP referrers enabled and they post a comment, they get stuck at &lt;code&gt;wp-comments-post.php&lt;/code&gt;.
+&lt;/p&gt;
+&lt;p&gt;
+See this thread for details: &lt;a class="ext-link" href="http://wordpress.org/support/topic/42727"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;http://wordpress.org/support/topic/42727&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #1257 (Pingbacks sent from wrong URI for posts first published in advanced ...) closed</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Wed, 14 Sep 2005 00:34:06 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/1257</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/1257/1126658046000000</guid>
+      <description>fixed: &lt;p&gt;
+(In &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/2873" title="Add clean_post_cache() and clean_page_cache().  Reset GUID when ..."&gt;[2873]&lt;/a&gt;) Add clean_post_cache() and clean_page_cache().  Reset GUID when transitioning from draft to publish.  fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/1257" title="#1257: defect (bug): Pingbacks sent from wrong URI for posts first published in advanced ... (closed: fixed)"&gt;#1257&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Changeset [2873]: Add clean_post_cache() and clean_page_cache().  Reset GUID when ...</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Wed, 14 Sep 2005 00:34:04 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/2873</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/2873/1126658044412770</guid>
+      <description>&lt;p&gt;
+Add clean_post_cache() and clean_page_cache().  Reset GUID when transitioning from draft to publish.  fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/1257" title="#1257: defect (bug): Pingbacks sent from wrong URI for posts first published in advanced ... (closed: fixed)"&gt;#1257&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Changeset [2872]: User create/update rework.  Introduce wp_insert_user(), ...</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Wed, 14 Sep 2005 00:03:02 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/2872</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/2872/1126656182658818</guid>
+      <description>&lt;p&gt;
+User create/update rework.  Introduce wp_insert_user(), wp_create_user(), wp_update_user(), add_user(), update_user(), wp_new_user_notification().
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Changeset [2871]: Missing that cool fade feel.</title>
+      
+        <dc:creator>matt</dc:creator>
+
+      <pubDate>Tue, 13 Sep 2005 00:52:22 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/2871</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/2871/1126572742402121</guid>
+      <description>&lt;p&gt;
+Missing that cool fade feel.
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item>
+   </channel>
+</rss>

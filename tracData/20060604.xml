@@ -1,0 +1,1083 @@
+<?xml version="1.0"?>
+<rss xmlns:dc="http://purl.org/dc/elements/1.1/" version="2.0">
+  <channel>
+    <title>WordPress Trac</title>
+    <link>http://core.trac.wordpress.org/timeline</link>
+    <description>Trac Timeline</description>
+    <language>en-US</language>
+    <generator>Trac 1.2.2</generator>
+    <image>
+      <title>WordPress Trac</title>
+      <url>http://core.trac.wordpress.org/chrome/site/your_project_logo.png</url>
+      <link>http://core.trac.wordpress.org/timeline</link>
+    </image>
+    <item>
+      <title>Ticket #2787 (New Method of storing and calculating cap2user and user2cap) updated</title>
+      
+        <dc:creator>markjaquith</dc:creator>
+
+      <pubDate>Sun, 04 Jun 2006 23:08:00 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/2787</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/2787/1149462480000000</guid>
+      <description>&lt;p&gt;
+Hm, Usermeta API doesn't support multiple entries with the same Key, like postmeta does.  That's a bummer, but it'd not a big deal in this case.  Since the lifting is done on the backend, we could just have the roles in an array in usermeta, one for each blog.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #2787 (New Method of storing and calculating cap2user and user2cap) updated</title>
+      
+        <dc:creator>markjaquith</dc:creator>
+
+      <pubDate>Sun, 04 Jun 2006 23:03:22 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/2787</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/2787/1149462202000000</guid>
+      <description>&lt;i&gt;Owner&lt;/i&gt;, &lt;i&gt;Status&lt;/i&gt;, &lt;i&gt;Description&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #2787 (New Method of storing and calculating cap2user and user2cap) created</title>
+      
+        <dc:creator>markjaquith</dc:creator>
+
+      <pubDate>Sun, 04 Jun 2006 23:00:04 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/2787</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/2787/1149462004000000</guid>
+      <description>&lt;p&gt;
+This idea came from a conversation I had with Ryan in #wordpress-dev
+&lt;/p&gt;
+&lt;h1 id="TheProblem"&gt;The Problem&lt;/h1&gt;
+&lt;p&gt;
+The role/cap system is hindered by having much of its data buried in arrays.  User2cap is ridiculous.
+&lt;/p&gt;
+&lt;h1 id="TheSolution"&gt;The Solution&lt;/h1&gt;
+&lt;p&gt;
+Roles are meaningless.  Getting users who have role X proves nothing, because they could have extra capabilities.  Capabilities are the thing you want. &lt;strong&gt;'Roles are just a capability container... a short way of granting a bunch of capabilities to a user.&lt;/strong&gt;'  Once you realize that, you see that what you really need is a cap2users table, that could double as a users2cap table.  That gives you one-query access to "what users can do X?" and "What can user X do?"
+&lt;/p&gt;
+&lt;h1 id="HowRolesFitIn"&gt;How Roles Fit In&lt;/h1&gt;
+&lt;p&gt;
+In order for the role2cap table to be correct, it would need to be updated whenever:
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;A user is given an extra capability
+&lt;/li&gt;&lt;li&gt;A user is stripped of an extra capability
+&lt;/li&gt;&lt;li&gt;A role is given an extra capability
+&lt;/li&gt;&lt;li&gt;A role is stripped of an extra capability
+&lt;/li&gt;&lt;li&gt;A user is moved to a different role
+&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;
+So we'd need a solid API for this.  This is the heavy lifting... done only when something is changed on the back end (infrequent).
+&lt;/p&gt;
+&lt;h1 id="Schema"&gt;Schema&lt;/h1&gt;
+&lt;ul&gt;&lt;li&gt;$wpdb-&amp;gt;user2cap (per blog)
+&lt;ul&gt;&lt;li&gt;u2cid
+&lt;/li&gt;&lt;li&gt;user_id
+&lt;/li&gt;&lt;li&gt;cap_id
+&lt;/li&gt;&lt;li&gt;extra_cap
+&lt;/li&gt;&lt;/ul&gt;&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;
+extra_cap would be a binary flag.  Basically, it would say whether or not this cap is associated with a role or not.  It would be used on the backend.  The scenario is this:
+&lt;/p&gt;
+&lt;p&gt;
+User gets granted an extra cap, foo_bar.  Then, they get upgrade to a new role that includes foo_bar.  The "extra_cap" flag stays on, because they were granted this capability specifically.  If they are then subsequently downgraded in roles, or if the role is edited to now have foo_bar cap anymore, they keep foo_bar cap, because it is an extra role.  To strip users of extra roles, you should have to specifically take it away.  Changing their role, or editing the role they have shouldn't mess with their extra caps.
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;$wpdb-&amp;gt;usermeta (multiple blogs can share this)
+&lt;ul&gt;&lt;li&gt;wp_role =&amp;gt; Administrator
+&lt;/li&gt;&lt;li&gt;wp_otherblog_role =&amp;gt; Garbage Collector
+&lt;/li&gt;&lt;li&gt;wp_otherblog_role =&amp;gt; Little League Coach
+&lt;/li&gt;&lt;/ul&gt;&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;
+Note that a usermeta table can have roles for that user on different blogs and that there can be multiple roles for each user, even on the same blog.  That just means that cap2user has all the capabilities of all the roles that the user has, along with all extra caps (marked with extra_cap = 1).
+&lt;/p&gt;
+&lt;p&gt;
+The array that stores the Role =&amp;gt; Cap information could stay as an array.  It would only be used in API functions on the back end.
+&lt;/p&gt;
+&lt;h1 id="Originalconversation"&gt;Original conversation&lt;/h1&gt;
+&lt;pre class="wiki"&gt;MarkJaquith: what do you think about doing all the heavy lifting on the back end?
+[6:32pm] MarkJaquith: like... just have user2cap
+[6:33pm] MarkJaquith: don't grab the roles live when doing current_user_can() or users_with_cap()
+[6:33pm] MarkJaquith: calculate that when a user is changed or when roles are changed, and populate user2cap
+[6:34pm] MarkJaquith: who really cares if editing a user takes 4 queries... it's seldom done.
+[6:34pm] rboren: That's fine.
+[6:34pm] MarkJaquith: Roles are meaningless anyway
+[6:34pm] MarkJaquith: this tells people to focus on capabilities
+[6:34pm] MarkJaquith: define their role in usermeta.  keep role2caps in an array, it's only used when updating the user.
+[6:35pm] rboren: We should be able to retrieve all users with a given cap though.
+[6:35pm] rboren: We don't do that very well now.
+[6:35pm] MarkJaquith: user2cap doubles as cap2user, right?
+[6:36pm] rboren: It can.
+[6:36pm] MarkJaquith: SELECT DISTINCT user_id FROM $wpdb-&amp;gt;cap2user WHERE cap = 'foo';
+[6:37pm] rboren: As long as cap2user contains the caps inherited from the role.
+[6:37pm] MarkJaquith: yes... calculated when things are changed
+[6:37pm] rboren: We'd have to make sure that a role change updated all affected users too.
+[6:37pm] MarkJaquith: yep.  we'd need that to be solid
+[6:38pm] MarkJaquith: And we'd need to deactivate older versions of Owen's Role Manager... they could really screw things up with that
+[6:38pm] rboren: Okay.  That sounds like a good possibility.
+&lt;/pre&gt;&lt;p&gt;
+Paging Owen... your feedback is important on this one.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #2525 (Restructure wp-includes) updated</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Sun, 04 Jun 2006 22:41:31 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/2525</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/2525/1149460891000000</guid>
+      <description>&lt;p&gt;
+Oops. I checked in from wp-includes instead of trunk.  Fixed.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Changeset [3844]: Reorg category functions.  #2525</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Sun, 04 Jun 2006 22:40:53 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/3844</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/3844/1149460853051487</guid>
+      <description>&lt;p&gt;
+Reorg category functions.  &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/2525" title="#2525: defect (bug): Restructure wp-includes (closed: fixed)"&gt;#2525&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>wp-settings.php.diff attached to Ticket #2525</title>
+      
+        <dc:creator>filosofo</dc:creator>
+
+      <pubDate>Sun, 04 Jun 2006 22:36:39 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/2525/wp-settings.php.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/2525/wp-settings.php.diff/1149460599000000</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #2786 (when you delete a post with a comment) created</title>
+      
+        <dc:creator>Denis-de-Bernardy</dc:creator>
+
+      <pubDate>Sun, 04 Jun 2006 22:15:12 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/2786</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/2786/1149459312000000</guid>
+      <description>&lt;p&gt;
+the ajax script that refreshes teh post list does not refresh the comment list.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #2525 (Restructure wp-includes) updated</title>
+      
+        <dc:creator>filosofo</dc:creator>
+
+      <pubDate>Sun, 04 Jun 2006 22:07:06 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/2525</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/2525/1149458826000000</guid>
+      <description>&lt;p&gt;
+You deleted template-functions-category.php but wp-settings.php still includes it.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #2525 (Restructure wp-includes) updated</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Sun, 04 Jun 2006 21:37:16 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/2525</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/2525/1149457036000000</guid>
+      <description>&lt;p&gt;
+&lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/3843" title="Reorg category functions.  #2525"&gt;[3843]&lt;/a&gt; reorgs category functions.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Changeset [3843]: Reorg category functions.  #2525</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Sun, 04 Jun 2006 21:36:52 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/3843</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/3843/1149457012223104</guid>
+      <description>&lt;p&gt;
+Reorg category functions.  &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/2525" title="#2525: defect (bug): Restructure wp-includes (closed: fixed)"&gt;#2525&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Ticket #2782 (Editing links not properly nonced) updated</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Sun, 04 Jun 2006 21:11:51 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/2782</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/2782/1149455511000000</guid>
+      <description>&lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #2776 (Editing other users is not properly nonced) updated</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Sun, 04 Jun 2006 21:11:14 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/2776</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/2776/1149455474000000</guid>
+      <description>&lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #2778 (oops-smiley doesn work anymore) updated</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Sun, 04 Jun 2006 21:10:57 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/2778</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/2778/1149455457000000</guid>
+      <description>&lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #2780 (Notice: Undefined variable: new_function_list in ...) updated</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Sun, 04 Jun 2006 21:10:45 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/2780</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/2780/1149455445000000</guid>
+      <description>&lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #2774 (\${1} causing problems for people) updated</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Sun, 04 Jun 2006 21:10:32 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/2774</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/2774/1149455432000000</guid>
+      <description>&lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #2780 (Notice: Undefined variable: new_function_list in ...) closed</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Sun, 04 Jun 2006 21:07:57 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/2780</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/2780/1149455277000000</guid>
+      <description>fixed: &lt;p&gt;
+(In &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/3842" title="Undef var fix from Denis-de-Bernardy.  fixes #2780"&gt;[3842]&lt;/a&gt;) Undef var fix from Denis-de-Bernardy.  fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/2780" title="#2780: defect (bug): Notice: Undefined variable: new_function_list in ... (closed: fixed)"&gt;#2780&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Changeset [3842]: Undef var fix from Denis-de-Bernardy.  fixes #2780</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Sun, 04 Jun 2006 21:07:41 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/3842</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/3842/1149455261574712</guid>
+      <description>&lt;p&gt;
+Undef var fix from Denis-de-Bernardy.  fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/2780" title="#2780: defect (bug): Notice: Undefined variable: new_function_list in ... (closed: fixed)"&gt;#2780&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Ticket #2780 (Notice: Undefined variable: new_function_list in ...) closed</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Sun, 04 Jun 2006 21:07:20 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/2780</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/2780/1149455240000000</guid>
+      <description>fixed: &lt;p&gt;
+(In &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/3841" title="Undef var fix from Denis-de-Bernardy.  fixes #2780"&gt;[3841]&lt;/a&gt;) Undef var fix from Denis-de-Bernardy.  fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/2780" title="#2780: defect (bug): Notice: Undefined variable: new_function_list in ... (closed: fixed)"&gt;#2780&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Changeset [3841]: Undef var fix from Denis-de-Bernardy.  fixes #2780</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Sun, 04 Jun 2006 21:07:18 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/3841</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/3841/1149455238006428</guid>
+      <description>&lt;p&gt;
+Undef var fix from Denis-de-Bernardy.  fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/2780" title="#2780: defect (bug): Notice: Undefined variable: new_function_list in ... (closed: fixed)"&gt;#2780&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Ticket #2782 (Editing links not properly nonced) closed</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Sun, 04 Jun 2006 21:00:35 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/2782</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/2782/1149454835000000</guid>
+      <description>fixed: &lt;p&gt;
+(In &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/3840" title="Nonce fix from Mark Jaquith. fixes #2782"&gt;[3840]&lt;/a&gt;) Nonce fix from Mark Jaquith. fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/2782" title="#2782: defect (bug): Editing links not properly nonced (closed: fixed)"&gt;#2782&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Changeset [3840]: Nonce fix from Mark Jaquith. fixes #2782</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Sun, 04 Jun 2006 21:00:32 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/3840</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/3840/1149454832661452</guid>
+      <description>&lt;p&gt;
+Nonce fix from Mark Jaquith. fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/2782" title="#2782: defect (bug): Editing links not properly nonced (closed: fixed)"&gt;#2782&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Ticket #2774 (\${1} causing problems for people) updated</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Sun, 04 Jun 2006 18:21:30 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/2774</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/2774/1149445290000000</guid>
+      <description>&lt;p&gt;
+backslashit() is always used in a PCRE context, at least within WP core, so this would work fine.  I wonder if plugins are using backslashit() in other contexts though. Perhaps we should introduce preg_backslashit().  Also, should slash only the digit that occurs at the head of the string?  That's the only unsafe one, I believe.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #2725 (Unclear Menu navigation with Import as sub-menu) updated</title>
+      
+        <dc:creator>ryanscheuermann</dc:creator>
+
+      <pubDate>Sun, 04 Jun 2006 16:35:33 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/2725</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/2725/1149438933000000</guid>
+      <description>&lt;p&gt;
+Second patch highlights the Import submenu also.  The devs can commit whichever one they deem correct.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>2725b.patch attached to Ticket #2725</title>
+      
+        <dc:creator>ryanscheuermann</dc:creator>
+
+      <pubDate>Sun, 04 Jun 2006 16:34:20 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/2725/2725b.patch</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/2725/2725b.patch/1149438860000000</guid>
+      <description>&lt;p&gt;
+highlights Manage menu &amp;amp; Import submenu
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #2725 (Unclear Menu navigation with Import as sub-menu) closed</title>
+      
+        <dc:creator>ryanscheuermann</dc:creator>
+
+      <pubDate>Sun, 04 Jun 2006 16:28:33 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/2725</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/2725/1149438513000000</guid>
+      <description>fixed: &lt;p&gt;
+Attached patch highlights Manage menu when you are on an import page.  The original method didn't highlight "Import" as the submenu item, so I left it unhighlighted, but this can be changed easily.
+&lt;/p&gt;
+</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>2725.patch attached to Ticket #2725</title>
+      
+        <dc:creator>ryanscheuermann</dc:creator>
+
+      <pubDate>Sun, 04 Jun 2006 16:24:32 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/2725/2725.patch</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/2725/2725.patch/1149438272000000</guid>
+      <description>&lt;p&gt;
+fix parent_file for imports
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #2610 (New menu permissions code messes up plugins using globals) closed</title>
+      
+        <dc:creator>ryanscheuermann</dc:creator>
+
+      <pubDate>Sun, 04 Jun 2006 15:45:09 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/2610</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/2610/1149435909000000</guid>
+      <description>fixed: &lt;p&gt;
+changeset &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/3756" title="Check menu privs after plugins add their menus.  fixes #2696"&gt;[3756]&lt;/a&gt; - fixed this issue (just doing some ticket cleanup)
+&lt;/p&gt;
+</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Ticket #2783 (Registered user can't see in the post their comments awaiting moderation ) updated</title>
+      
+        <dc:creator>west54</dc:creator>
+
+      <pubDate>Sun, 04 Jun 2006 15:38:50 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/2783</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/2783/1149435530000000</guid>
+      <description>&lt;p&gt;
+Yes now works fine for logged users, but not for unregistered.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #2783 (Registered user can't see in the post their comments awaiting moderation ) updated</title>
+      
+        <dc:creator>west54</dc:creator>
+
+      <pubDate>Sun, 04 Jun 2006 14:35:21 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/2783</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/2783/1149431721000000</guid>
+      <description>&lt;p&gt;
+in wp-comments-post.php
+&lt;/p&gt;
+&lt;p&gt;
+at about line 53
+&lt;/p&gt;
+&lt;p&gt;
+I changed:
+if ( !$user-&amp;gt;ID ) :
+&lt;/p&gt;
+&lt;p&gt;
+with:
+if ( $user-&amp;gt;ID ) :
+&lt;/p&gt;
+&lt;p&gt;
+and now it works fine.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #2784 (Make all foreach() loops cast to array) updated</title>
+      
+        <dc:creator>davidhouse</dc:creator>
+
+      <pubDate>Sun, 04 Jun 2006 13:46:51 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/2784</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/2784/1149428811000000</guid>
+      <description>&lt;p&gt;
+The _real_ solution is for PHP to change their crappy foreach semantics :) But yeah, nice.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #2785 (wp-includes/classes.php loop not incrementing $tok_index) created</title>
+      
+        <dc:creator>debuntu</dc:creator>
+
+      <pubDate>Sun, 04 Jun 2006 12:12:31 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/2785</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/2785/1149423151000000</guid>
+      <description>&lt;p&gt;
+It seems that something is missing in wp-includes/classes.php . At line 1022:
+&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;
+$tok_index = 1;
+&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;
+foreach ($tokens&lt;a class="missing changeset" title="No changeset 0 in the repository"&gt;[0]&lt;/a&gt; as $token) {
+&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;
+if ( ($token == '%post_id%') &amp;amp;&amp;amp; ($tok_index &amp;lt;= 3) ) {
+&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;
+$front = $front . 'date/';
+break;
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+}
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+}
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+$tok_index is never increased?!? This force writing "date/" in front of archives pages.
+there should be $tok_index++ after the if(){} condition.
+Check this thread:
+&lt;a class="ext-link" href="http://wordpress.org/support/topic/67914"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;http://wordpress.org/support/topic/67914&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #1526 (have wp-atom.php generate Atom 1.0 (fix attached)) updated</title>
+      
+        <dc:creator>yngwin</dc:creator>
+
+      <pubDate>Sun, 04 Jun 2006 11:38:42 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/1526</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/1526/1149421122000000</guid>
+      <description>&lt;p&gt;
+enrico: we &lt;strong&gt;&lt;em&gt;must&lt;/em&gt;&lt;/strong&gt; wrap the content in a CDATA block, because WordPress in no way guarantees well-formed content, and the great majority (and then I mean 99,99%) of WP users don't have the slightest clue about what well-formed X(HT)ML is!
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>cast_to_array.diff attached to Ticket #2784</title>
+      
+        <dc:creator>markjaquith</dc:creator>
+
+      <pubDate>Sun, 04 Jun 2006 09:52:20 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/2784/cast_to_array.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/2784/cast_to_array.diff/1149414740000000</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #2784 (Make all foreach() loops cast to array) created</title>
+      
+        <dc:creator>markjaquith</dc:creator>
+
+      <pubDate>Sun, 04 Jun 2006 09:51:30 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/2784</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/2784/1149414690000000</guid>
+      <description>&lt;p&gt;
+Every so often, we get bitten by a random &lt;code&gt;foreach()&lt;/code&gt; error due to the input not being an array.
+&lt;/p&gt;
+&lt;p&gt;
+The elegant solution is this:
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;foreach ( (array) $maybe_array as $foo ) :
+&lt;/pre&gt;&lt;p&gt;
+The attached patch is just the result of a giant regular expressions find/replace:
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;search: foreach( *)\(( *)\$
+replace: foreach$1( (array) $
+&lt;/pre&gt;&lt;p&gt;
+this is more proof of concept than anything else.  I'm not getting any errors after applying it.  I'd love to banish foreach errors once and for all.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #2783 (Registered user can't see in the post their comments awaiting moderation ) updated</title>
+      
+        <dc:creator>markjaquith</dc:creator>
+
+      <pubDate>Sun, 04 Jun 2006 09:28:42 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/2783</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/2783/1149413322000000</guid>
+      <description>&lt;p&gt;
+Seems inconsistent.
+&lt;/p&gt;
+&lt;p&gt;
+Maybe &lt;code&gt;comments_template()&lt;/code&gt; needs to have a third type of query: one for logged-in users.  Currently it just checks the comment cookie.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #2783 (Registered user can't see in the post their comments awaiting moderation ) created</title>
+      
+        <dc:creator>west54</dc:creator>
+
+      <pubDate>Sun, 04 Jun 2006 08:51:28 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/2783</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/2783/1149411088000000</guid>
+      <description>&lt;p&gt;
+If an &lt;strong&gt;unregistered user&lt;/strong&gt; puts a comment (under moderation), &lt;strong&gt;he can see&lt;/strong&gt; his comment in the Post with the advice " Your comment is awaiting moderation". (this is right)
+&lt;/p&gt;
+&lt;p&gt;
+If a &lt;strong&gt;registered user&lt;/strong&gt; puts a comment (under moderation), &lt;strong&gt;he can't see&lt;/strong&gt; his comment in the Post with the advice " Your comment is awaiting moderation", he doesn't see his comment at all until it will be approved. (is this a bug?)
+&lt;/p&gt;
+&lt;p&gt;
+Thanks
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #2767 (Missing tags (2.0.2, 2.0.3) from Subversion repository) closed</title>
+      
+        <dc:creator>markjaquith</dc:creator>
+
+      <pubDate>Sun, 04 Jun 2006 06:19:16 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/2767</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/2767/1149401956000000</guid>
+      <description>fixed: &lt;p&gt;
+Yay, they've been added!
+&lt;/p&gt;
+</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>properly_nonce_link_editing.diff attached to Ticket #2782</title>
+      
+        <dc:creator>markjaquith</dc:creator>
+
+      <pubDate>Sun, 04 Jun 2006 06:10:21 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/2782/properly_nonce_link_editing.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/2782/properly_nonce_link_editing.diff/1149401421000000</guid>
+      <description>&lt;p&gt;
+patch for /branches/2.0/
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #2782 (Editing links not properly nonced) created</title>
+      
+        <dc:creator>markjaquith</dc:creator>
+
+      <pubDate>Sun, 04 Jun 2006 06:09:56 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/2782</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/2782/1149401396000000</guid>
+      <description>&lt;p&gt;
+When you edit a link in WordPress 2.0.3, you generate an "Are you sure?" dialog.  The nonce fields don't match.  Patch fixes it.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #2774 (\${1} causing problems for people) updated</title>
+      
+        <dc:creator>tenpura</dc:creator>
+
+      <pubDate>Sun, 04 Jun 2006 05:46:29 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/2774</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/2774/1149399989000000</guid>
+      <description>&lt;p&gt;
+2744.diff seems to work fine. I think you counted them right.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #2776 (Editing other users is not properly nonced) closed</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Sun, 04 Jun 2006 03:41:35 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/2776</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/2776/1149392495000000</guid>
+      <description>fixed: &lt;p&gt;
+(In &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/3839" title="Edit profile nonce fix from markjaquith. fixes #2776"&gt;[3839]&lt;/a&gt;) Edit profile nonce fix from markjaquith. fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/2776" title="#2776: defect (bug): Editing other users is not properly nonced (closed: fixed)"&gt;#2776&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Changeset [3839]: Edit profile nonce fix from markjaquith. fixes #2776</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Sun, 04 Jun 2006 03:41:33 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/3839</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/3839/1149392493710889</guid>
+      <description>&lt;p&gt;
+Edit profile nonce fix from markjaquith. fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/2776" title="#2776: defect (bug): Editing other users is not properly nonced (closed: fixed)"&gt;#2776&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Ticket #2776 (Editing other users is not properly nonced) closed</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Sun, 04 Jun 2006 03:41:28 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/2776</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/2776/1149392488000000</guid>
+      <description>fixed: &lt;p&gt;
+(In &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/3838" title="Edit profile nonce fix from markjaquith. fixes #2776"&gt;[3838]&lt;/a&gt;) Edit profile nonce fix from markjaquith. fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/2776" title="#2776: defect (bug): Editing other users is not properly nonced (closed: fixed)"&gt;#2776&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Changeset [3838]: Edit profile nonce fix from markjaquith. fixes #2776</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Sun, 04 Jun 2006 03:41:26 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/3838</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/3838/1149392486452713</guid>
+      <description>&lt;p&gt;
+Edit profile nonce fix from markjaquith. fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/2776" title="#2776: defect (bug): Editing other users is not properly nonced (closed: fixed)"&gt;#2776&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Ticket #2781 (Notice: Undefined variable: template in ...) updated</title>
+      
+        <dc:creator>Denis-de-Bernardy</dc:creator>
+
+      <pubDate>Sat, 03 Jun 2006 19:31:40 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/2781</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/2781/1149363100000000</guid>
+      <description>&lt;p&gt;
+likewise:
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;function get_theme_data($theme_file) {
+	$theme_data = implode('', file($theme_file));
+	preg_match("|Theme Name:(.*)|i", $theme_data, $theme_name);
+	preg_match("|Theme URI:(.*)|i", $theme_data, $theme_uri);
+	preg_match("|Description:(.*)|i", $theme_data, $description);
+	preg_match("|Author:(.*)|i", $theme_data, $author_name);
+	preg_match("|Author URI:(.*)|i", $theme_data, $author_uri);
+	preg_match("|Template:(.*)|i", $theme_data, $template);
+	if ( preg_match("|Version:(.*)|i", $theme_data, $version) )
+		$version = $version[1];
+	else
+		$version ='';
+	if ( preg_match("|Status:(.*)|i", $theme_data, $status) )
+		$status = $status[1];
+	else
+		$status ='publish';
+	$description = isset($description[1]) ? wptexturize($description[1]) : '';
+	$name = isset($theme_name[1]) ? $theme_name[1] : '';
+	$name = trim($name);
+	$theme = $name;
+	if ( isset($author_name[1]) &amp;amp;&amp;amp; isset($author_uri[1]) &amp;amp;&amp;amp; '' == $author_uri[1] ) {
+		$author = $author_name[1];
+	} elseif (isset($author_name[1]) &amp;amp;&amp;amp; isset($author_uri[1])) {
+		$author = '&amp;lt;a href="' . $author_uri[1] . '" title="' . __('Visit author homepage') . '"&amp;gt;' . $author_name[1] . '&amp;lt;/a&amp;gt;';
+	} else {
+		$author = '';
+	}
+	$template = isset($template[1]) ? $template[1] : '';
+	return array('Name' =&amp;gt; $name, 'Title' =&amp;gt; $theme, 'Description' =&amp;gt; $description, 'Author' =&amp;gt; $author, 'Version' =&amp;gt; $version, 'Template' =&amp;gt; $template, 'Status' =&amp;gt; $status);
+}
+&lt;/pre&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #2781 (Notice: Undefined variable: template in ...) updated</title>
+      
+        <dc:creator>Denis-de-Bernardy</dc:creator>
+
+      <pubDate>Sat, 03 Jun 2006 19:27:02 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/2781</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/2781/1149362822000000</guid>
+      <description>&lt;pre class="wiki"&gt;function get_plugin_data($plugin_file) {
+	$plugin_data = implode('', file($plugin_file));
+	preg_match("|Plugin Name:(.*)|i", $plugin_data, $plugin_name);
+	preg_match("|Plugin URI:(.*)|i", $plugin_data, $plugin_uri);
+	preg_match("|Description:(.*)|i", $plugin_data, $description);
+	preg_match("|Author:(.*)|i", $plugin_data, $author_name);
+	preg_match("|Author URI:(.*)|i", $plugin_data, $author_uri);
+	if (preg_match("|Version:(.*)|i", $plugin_data, $version))
+		$version = $version[1];
+	else
+		$version = '';
+	$description = isset($description[1]) ? wptexturize($description[1]) : '';
+	$name = isset($plugin_name[1]) ? $plugin_name[1] : '';
+	$name = trim($name);
+	$plugin = $name;
+	if (isset($plugin_uri[1]) &amp;amp;&amp;amp; '' != $plugin_uri[1] &amp;amp;&amp;amp; '' != $name) {
+		$plugin = '&amp;lt;a href="'.$plugin_uri[1].'" title="'.__('Visit plugin homepage').'"&amp;gt;'.$plugin.'&amp;lt;/a&amp;gt;';
+	}
+	if (isset($author_name[1]) &amp;amp;&amp;amp; isset($author_uri[1]) &amp;amp;&amp;amp; '' == $author_uri[1]) {
+		$author = $author_name[1];
+	} elseif (isset($author_name[1]) &amp;amp;&amp;amp; isset($author_uri[1])) {
+		$author = '&amp;lt;a href="'.$author_uri[1].'" title="'.__('Visit author homepage').'"&amp;gt;'.$author_name[1].'&amp;lt;/a&amp;gt;';
+	} else {
+		$author = '';
+	}
+	return array ('Name' =&amp;gt; $name, 'Title' =&amp;gt; $plugin, 'Description' =&amp;gt; $description, 'Author' =&amp;gt; $author, 'Version' =&amp;gt; $version);
+}
+&lt;/pre&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #2781 (Notice: Undefined variable: template in ...) updated</title>
+      
+        <dc:creator>Denis-de-Bernardy</dc:creator>
+
+      <pubDate>Sat, 03 Jun 2006 19:17:47 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/2781</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/2781/1149362267000000</guid>
+      <description>&lt;p&gt;
+also of interest, in the same area:
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;
+Notice: Undefined offset: 1 in c:\Inetpub\wwwroot\wp\wp-admin\admin-functions.php on line 1489
+Notice: Undefined offset: 1 in c:\Inetpub\wwwroot\wp\wp-admin\admin-functions.php on line 1491
+Notice: Undefined offset: 1 in c:\Inetpub\wwwroot\wp\wp-admin\admin-functions.php on line 1494
+Notice: Undefined offset: 1 in c:\Inetpub\wwwroot\wp\wp-admin\admin-functions.php on line 1498
+Notice: Undefined offset: 1 in c:\Inetpub\wwwroot\wp\wp-admin\admin-functions.php on line 1499
+Notice: Undefined offset: 1 in c:\Inetpub\wwwroot\wp\wp-admin\admin-functions.php on line 1494
+&lt;/pre&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #2781 (Notice: Undefined variable: template in ...) updated</title>
+      
+        <dc:creator>Denis-de-Bernardy</dc:creator>
+
+      <pubDate>Sat, 03 Jun 2006 19:16:16 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/2781</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/2781/1149362176000000</guid>
+      <description>&lt;p&gt;
+should likely be:
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;	return array ('Name' =&amp;gt; $name, 'Title' =&amp;gt; $plugin, 'Description' =&amp;gt; $description, 'Author' =&amp;gt; $author, 'Version' =&amp;gt; $version);
+&lt;/pre&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #2781 (Notice: Undefined variable: template in ...) created</title>
+      
+        <dc:creator>Denis-de-Bernardy</dc:creator>
+
+      <pubDate>Sat, 03 Jun 2006 19:15:30 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/2781</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/2781/1149362130000000</guid>
+      <description>&lt;p&gt;
+Notice: Undefined variable: template in c:\Inetpub\wwwroot\wp\wp-admin\admin-functions.php on line 1504
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #2780 (Notice: Undefined variable: new_function_list in ...) updated</title>
+      
+        <dc:creator>Denis-de-Bernardy</dc:creator>
+
+      <pubDate>Sat, 03 Jun 2006 18:49:29 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/2780</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/2780/1149360569000000</guid>
+      <description>&lt;p&gt;
+fix:
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;function remove_filter($tag, $function_to_remove, $priority = 10, $accepted_args = 1) {
+	global $wp_filter;
+	// rebuild the list of filters
+	if ( isset($wp_filter[$tag]["$priority"]) ) {
+		$new_function_list = array();
+		foreach($wp_filter[$tag]["$priority"] as $filter) {
+			if ( $filter['function'] != $function_to_remove ) {
+				$new_function_list[] = $filter;
+			}
+		}
+		$wp_filter[$tag]["$priority"] = $new_function_list;
+	}
+	return true;
+}
+&lt;/pre&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #2780 (Notice: Undefined variable: new_function_list in ...) created</title>
+      
+        <dc:creator>Denis-de-Bernardy</dc:creator>
+
+      <pubDate>Sat, 03 Jun 2006 18:47:07 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/2780</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/2780/1149360427000000</guid>
+      <description>&lt;p&gt;
+Notice: Undefined variable: new_function_list in c:\Inetpub\wwwroot\wp\wp-includes\functions.php on line 1260
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #2779 (Visited and default link colors are too similar in admin) created</title>
+      
+        <dc:creator>Huvet</dc:creator>
+
+      <pubDate>Sat, 03 Jun 2006 18:39:33 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/2779</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/2779/1149359973000000</guid>
+      <description>&lt;p&gt;
+Hi,
+It has annoyed me for a while that it's soo hard to see which of the links in the admin interface I have visited or not. I like to check out all my referers on the first page of the admin interface but since they are so damn similar I often visit pages several times. I know my color vision is excellent so I can just guess how it's like for people where it's not.
+&lt;/p&gt;
+&lt;p&gt;
+Suggestion: Change the visited link color to something that is easy to tell apart from the default one.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #2778 (oops-smiley doesn work anymore) updated</title>
+      
+        <dc:creator>HenkvandeKamer</dc:creator>
+
+      <pubDate>Sat, 03 Jun 2006 18:20:53 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/2778</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/2778/1149358853000000</guid>
+      <description>&lt;p&gt;
+I do not know how to create the diff's used here (they are different from the normal diff's). But the solution is indeed place the :oops: above the :o lines. Ther is also a double :) line BTW. After the changes:
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;if (!isset($wpsmiliestrans)) {
+        $wpsmiliestrans = array(
+        ' :)'        =&amp;gt; 'icon_smile.gif',
+        ' :-)'       =&amp;gt; 'icon_smile.gif',
+        ':smile:'    =&amp;gt; 'icon_smile.gif',
+        ' :D'        =&amp;gt; 'icon_biggrin.gif',
+        ' :-D'       =&amp;gt; 'icon_biggrin.gif',
+        ':grin:'     =&amp;gt; 'icon_biggrin.gif',
+        ' :('        =&amp;gt; 'icon_sad.gif',
+        ' :-('       =&amp;gt; 'icon_sad.gif',
+        ':sad:'      =&amp;gt; 'icon_sad.gif',
+        ':oops:'     =&amp;gt; 'icon_redface.gif',
+        ' :o'        =&amp;gt; 'icon_surprised.gif',
+        ' :-o'       =&amp;gt; 'icon_surprised.gif',
+        ':eek:'      =&amp;gt; 'icon_surprised.gif',
+&lt;/pre&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #2778 (oops-smiley doesn work anymore) created</title>
+      
+        <dc:creator>HenkvandeKamer</dc:creator>
+
+      <pubDate>Sat, 03 Jun 2006 18:07:34 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/2778</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/2778/1149358054000000</guid>
+      <description>&lt;p&gt;
+After the upgrade to WordPress 2.0.3 the :oops: doesn give the oops-smiley. I think the problem is the removal of the sort in &lt;a class="ext-link" href="http://trac.wordpress.org/ticket/2550"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;ticket 2550&lt;/a&gt;. The solution is probably a one time sort of the array above the removed code? In there the :o comes before the :oops:.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #2768 (quotation marks are double escaped when editing a comment) updated</title>
+      
+        <dc:creator>mdawaffe</dc:creator>
+
+      <pubDate>Sat, 03 Jun 2006 18:02:50 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/2768</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/2768/1149357770000000</guid>
+      <description>&lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #2764 (Redirection on comment editing broken.) updated</title>
+      
+        <dc:creator>mdawaffe</dc:creator>
+
+      <pubDate>Sat, 03 Jun 2006 18:02:12 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/2764</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/2764/1149357732000000</guid>
+      <description>&lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #2777 (query_string_array filter) updated</title>
+      
+        <dc:creator>ryanscheuermann</dc:creator>
+
+      <pubDate>Sat, 03 Jun 2006 16:30:22 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/2777</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/2777/1149352222000000</guid>
+      <description>&lt;p&gt;
++1 - Instead of parsing and then recreating again, why not have build_query_string create an array first (in the foreachs), filter that array, then create the query string from the filtered array?  That way you can ensure the filtered query string is rawurlencoded (in case the plugin writer forgets or is unaware).
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>query_string_array.diff attached to Ticket #2777</title>
+      
+        <dc:creator>markjaquith</dc:creator>
+
+      <pubDate>Sat, 03 Jun 2006 15:06:48 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/2777/query_string_array.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/2777/query_string_array.diff/1149347208000000</guid>
+      <description>&lt;p&gt;
+Patch for /trunk/
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #2777 (query_string_array filter) created</title>
+      
+        <dc:creator>markjaquith</dc:creator>
+
+      <pubDate>Sat, 03 Jun 2006 15:05:54 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/2777</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/2777/1149347154000000</guid>
+      <description>&lt;p&gt;
+Right now, you can filter the query string, but it is passed, well, as a query string.  So to do anything useful, you have to use parse_str(), and then get it back to its original form when you are done.  How about a hook that extracts it all into an array first?
+&lt;/p&gt;
+&lt;p&gt;
+Check out the attached patch.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #2776 (Editing other users is not properly nonced) updated</title>
+      
+        <dc:creator>markjaquith</dc:creator>
+
+      <pubDate>Sat, 03 Jun 2006 10:38:44 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/2776</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/2776/1149331124000000</guid>
+      <description>&lt;i&gt;Owner&lt;/i&gt;, &lt;i&gt;Status&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+I updated my "WordPress 2.0.3 Tuneup" plugin to fix this issue (version 0.2), so WordPress 2.0.3 users aren't stuck with this annoyance until our next release.
+&lt;/p&gt;
+&lt;p&gt;
+&lt;a class="ext-link" href="http://txfx.net/code/wordpress/wordpress-203-tuneup/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;http://txfx.net/code/wordpress/wordpress-203-tuneup/&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>correctly_nonce_user_editing.diff attached to Ticket #2776</title>
+      
+        <dc:creator>markjaquith</dc:creator>
+
+      <pubDate>Sat, 03 Jun 2006 10:33:57 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/2776/correctly_nonce_user_editing.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/2776/correctly_nonce_user_editing.diff/1149330837000000</guid>
+      <description>&lt;p&gt;
+patch for /branches/2.0/
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #2776 (Editing other users is not properly nonced) created</title>
+      
+        <dc:creator>markjaquith</dc:creator>
+
+      <pubDate>Sat, 03 Jun 2006 10:32:50 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/2776</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/2776/1149330770000000</guid>
+      <description>&lt;p&gt;
+If you edit another user's profile/information, you get the "Are you sure?" prompt.  Attached patch fixes it.
+&lt;/p&gt;
+&lt;p&gt;
+&lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/2761" title="#2761: defect (bug): AYS Dialog adds slashes to quotes (closed: fixed)"&gt;#2761&lt;/a&gt; compounds matters, naturally.
+&lt;/p&gt;
+&lt;p&gt;
+Version: 2.0.3
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #2775 (Ability for all users to add users with less capabilities) updated</title>
+      
+        <dc:creator>markjaquith</dc:creator>
+
+      <pubDate>Sat, 03 Jun 2006 09:05:56 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/2775</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/2775/1149325556000000</guid>
+      <description>&lt;p&gt;
+I know what you're saying.  Basically, "edit_users" is God mode.  You can edit yourself and give yourself any other capabilities you want, or upgrade other users to have capabilities that you didn't originally have.
+&lt;/p&gt;
+&lt;p&gt;
+The only way I see around it is to have two capabilities... edit_users and edit_lesser_users.  People with edit_lesser_users wouldn't be able to edit their own capabilities, and would only be allowed to give other people capabilities that they have themselves (minus edit_lesser_users, natch), and wouldn't be allowed to edit users who have capabilities that they don't have themselves.
+&lt;/p&gt;
+&lt;p&gt;
+The word "lesser" suggests a hierarchy, but it's a binary hierarchy... they can only edit people whose capabilities are common to their own.  It's really more like edit_less_capable_users.  It's also role-agnostic, which is very important.
+&lt;/p&gt;
+&lt;p&gt;
+Otherwise, you have to resign yourself to the fact that anyone who can edit users can do anything they want.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #2775 (Ability for all users to add users with less capabilities) updated</title>
+      
+        <dc:creator>doit-cu</dc:creator>
+
+      <pubDate>Sat, 03 Jun 2006 01:29:49 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/2775</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/2775/1149298189000000</guid>
+      <description>&lt;p&gt;
+I guess I was thinking more along the lines that a user should not be able to edit a user who has a capability that the editing user does not have.  So, for instance, if role foo has capabilities biz and baz, and role bar has capabilities biz, baz, and bam, foo should not be able to edit bar, but bar should be able to edit foo.  The reasoning in my mind is that bar is more trusted in the system, having the ability to "bam."  Also, if gaz has capability qux, and zxc has the capability asd, neither should be able to edit the other.
+&lt;/p&gt;
+&lt;p&gt;
+The real point of what I'm trying for in my instance is not really editing though, but the ability to create users with a subset (defined as a role) of capabilities.  Now this ability can be added in to the wordpress code base without changing the default functionality- as far as I know, only administrator has the edit_users capability out of the gate.  I guess it seems to me that user management should be a bit more granular than an on/off switch.
+&lt;/p&gt;
+&lt;p&gt;
+I agree that there should not be a hierarchy set up between roles, and I can understand that this might not be desireable default behavior.  What this would do though is make the application more amenable to Plugins and other "aftermarket" modifications.  I believe it will make the application more customizable, rather than simply being a customization in and of itself.
+&lt;/p&gt;
+&lt;p&gt;
+I have the code all written up, I just need to drop in some cleaner UI errors as opposed to simply die().  I'll upload a diff later this weekend and see what you all think... this seems to be a difficult one for me to get my choice of words correct on.
+&lt;/p&gt;
+&lt;p&gt;
+Barring that, I think the cleanest way to provide a plugin with this ability would be to allow redefinition of the current_user_can function.  users.php and user-edit.php would need to pass in a WP_User object or an array of said objects by reference (so that you can clean out the denied users while maintaining the allowed users) into current_user_can in order for that to be of any real use.  I still see a problem here, because if someone has edit_user and activate_plugins, they could turn off the filtering plugin and be able to edit and users again.  The protection should, in my opinion, really be a part of the application.
+&lt;/p&gt;
+&lt;p&gt;
+Finally, thank you both for your time on this.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item>
+   </channel>
+</rss>

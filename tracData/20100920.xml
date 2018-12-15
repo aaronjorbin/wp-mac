@@ -1,0 +1,1788 @@
+<?xml version="1.0"?>
+<rss xmlns:dc="http://purl.org/dc/elements/1.1/" version="2.0">
+  <channel>
+    <title>WordPress Trac</title>
+    <link>http://core.trac.wordpress.org/timeline</link>
+    <description>Trac Timeline</description>
+    <language>en-US</language>
+    <generator>Trac 1.2.2</generator>
+    <image>
+      <title>WordPress Trac</title>
+      <url>http://core.trac.wordpress.org/chrome/site/your_project_logo.png</url>
+      <link>http://core.trac.wordpress.org/timeline</link>
+    </image>
+    <item>
+      <title>Ticket #14912 (Introduce register_update_hook()) updated</title>
+      
+        <dc:creator>nacin</dc:creator>
+
+      <pubDate>Mon, 20 Sep 2010 23:57:58 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/14912#comment:8</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/14912#comment:8/1285027078000000</guid>
+      <description>&lt;p&gt;
+Suggesting wontfix here, and address the root problem: &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/14915" title="#14915: defect (bug): Fix activation hook inconsistency (closed: fixed)"&gt;#14915&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #14915 (Fix activation hook inconsistency) created</title>
+      
+        <dc:creator>nacin</dc:creator>
+
+      <pubDate>Mon, 20 Sep 2010 23:57:25 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/14915</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/14915/1285027045000000</guid>
+      <description>&lt;p&gt;
+The activation hook fires whenever a plugin is updated through the admin, but not during bulk updates.
+&lt;/p&gt;
+&lt;p&gt;
+We need to resolve this inconsistency, and either A) fire activation hooks for bulk updates, or B) stop activation hooks from firing for single updates.
+&lt;/p&gt;
+&lt;p&gt;
+I think I suggest (B), despite the backwards compatibility issue. It's unintuitive for an activation hook to be fired on update, and additionally it is not reliable due to manual updates (including SVN). As it is, we silence deactivation hooks on update.
+&lt;/p&gt;
+&lt;p&gt;
+Related, a register_upgrade_hook() ticket &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/14912" title="#14912: enhancement: Introduce register_update_hook() (closed: wontfix)"&gt;#14912&lt;/a&gt;, that I believe should be wontfix'd. Schema updates require special handling at the plugin level IMO for now.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #14429 (Faster is_serialized) updated</title>
+      
+        <dc:creator>Denis-de-Bernardy</dc:creator>
+
+      <pubDate>Mon, 20 Sep 2010 23:51:35 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/14429#comment:10</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/14429#comment:10/1285026695000000</guid>
+      <description>&lt;p&gt;
+&lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/15636" title="Speed up is_serialized() with strpbrk().  Props Rasmus. see #14429"&gt;r15636&lt;/a&gt; honestly doesn't seem to make any sense. Shouldn't we be using something more like this?
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;if ( isset($data[1]) &amp;amp;&amp;amp; $data[1] == ':' &amp;amp;&amp;amp; strpbrk($data[0],'adObis') == $data[0] ) {
+&lt;/pre&gt;&lt;p&gt;
+or even:
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;if ( isset($data[1]) &amp;amp;&amp;amp; $data[1] == ':' &amp;amp;&amp;amp; in_array($data[0], array('a', 'd', 'O', 'b', 'i', 's') ) {
+&lt;/pre&gt;&lt;p&gt;
+It's like... there's absolutely no point in a) calculating the length of a 1MB string to verifying that its second char is set, b) doing some complex comparison involving strpbrk() (which could potentially amount to finding the first of these chars at the very end of a 1MB string) and c) only *then* verifying that the second character works for our sake.
+&lt;/p&gt;
+&lt;p&gt;
+Better: a) check that the second character exists at all, b) verify that it works, and c) finally look at the first chars to see if it works...
+&lt;/p&gt;
+&lt;p&gt;
+My $.02...
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #14914 (Potential Bug in wp_update_term() when using get_term filter) created</title>
+      
+        <dc:creator>jfarthing84</dc:creator>
+
+      <pubDate>Mon, 20 Sep 2010 23:48:02 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/14914</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/14914/1285026482000000</guid>
+      <description>&lt;p&gt;
+Here's the situation: I am using the "get_term" filter to automatically load other related term objects.
+&lt;/p&gt;
+&lt;p&gt;
+For instance, I have a "widget" taxonomy that is related to the "factory" taxonomy. I store the "factory" ID in the "widget" term taxonomy meta table I have created. Then, using the "get_term" filter, I automatically load the "factory" term object as a property of the "widget" term object.
+&lt;/p&gt;
+&lt;p&gt;
+The problem arises when wp_update_term() is called with an object as a property of the term because of the call to add_magic_quotes() call on the term immediately. It expects strings only.
+&lt;/p&gt;
+&lt;p&gt;
+This seems like it defeats the purpose of the "get_term" filter if I can't add to the object without crashing WP.
+&lt;/p&gt;
+&lt;p&gt;
+So, in order to prevent this from happening, there should be some kind of filtering mechanism when wp_update_term() is called, as to only pass the default term properties into the validation functions. Perhaps even a "pre_update_term" filter would work, called before get_term() so that the "get_term" filter could be removed before hand.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #14912 (Introduce register_update_hook()) updated</title>
+      
+        <dc:creator>Denis-de-Bernardy</dc:creator>
+
+      <pubDate>Mon, 20 Sep 2010 23:39:32 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/14912#comment:7</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/14912#comment:7/1285025972000000</guid>
+      <description>&lt;p&gt;
++1 to nacin's comment. An upgrade hook is not going to work for users who upgrade through SVN or FTP.
+&lt;/p&gt;
+&lt;p&gt;
+Eric's idea is impractical: fetching the version of plugins on all page loads involves parsing their headers. That remained quite slow last I checked.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #14912 (Introduce register_update_hook()) updated</title>
+      
+        <dc:creator>mikeschinkel</dc:creator>
+
+      <pubDate>Mon, 20 Sep 2010 22:58:17 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/14912#comment:6</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/14912#comment:6/1285023497000000</guid>
+      <description>&lt;i&gt;Cc&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #14385 (Allow flagging of a blog as mature via a URL) updated</title>
+      
+        <dc:creator>nacin</dc:creator>
+
+      <pubDate>Mon, 20 Sep 2010 22:53:25 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/14385#comment:7</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/14385#comment:7/1285023205000000</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Needs refresh per ryan's guidance.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #14912 (Introduce register_update_hook()) updated</title>
+      
+        <dc:creator>scribu</dc:creator>
+
+      <pubDate>Mon, 20 Sep 2010 22:16:20 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/14912#comment:5</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/14912#comment:5/1285020980000000</guid>
+      <description>&lt;p&gt;
+Eric, that's a great idea. It combines the best-practice suggested on wp-hackers with a consistent approach.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #14912 (Introduce register_update_hook()) updated</title>
+      
+        <dc:creator>ericmann</dc:creator>
+
+      <pubDate>Mon, 20 Sep 2010 22:05:28 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/14912#comment:4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/14912#comment:4/1285020328000000</guid>
+      <description>&lt;i&gt;Cc&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #14912 (Introduce register_update_hook()) updated</title>
+      
+        <dc:creator>ericmann</dc:creator>
+
+      <pubDate>Mon, 20 Sep 2010 21:54:27 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/14912#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/14912#comment:3/1285019667000000</guid>
+      <description>&lt;p&gt;
+WordPress could automatically verify plug-in versions on &lt;code&gt;init&lt;/code&gt;.  We already store a list of active plug-ins in the DB ... it would be fairly trivial to pass an expected plug-in version with the upgrade hook and check it against whatever version was "active" on the site.  If the two version numbers are different, we can assume an update has happened (either though the UI, via SVN, or via FTP) and call the appropriate function.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #14912 (Introduce register_update_hook()) updated</title>
+      
+        <dc:creator>nacin</dc:creator>
+
+      <pubDate>Mon, 20 Sep 2010 21:47:28 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/14912#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/14912#comment:2/1285019248000000</guid>
+      <description>&lt;p&gt;
+As said over wp-hackers by someone else: I don't think it is a good idea to assume that upgrades to plugins/themes are made through the WP admin interface.
+&lt;/p&gt;
+&lt;p&gt;
+Take, for example, SVN. Introducing a new hook here is only going to cause inconsistencies. At least activation and deactivation we can largely control. (Deactivation less so, as the files can vanish.) Schema upgrades are probably best handled on a case by case basis.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #14913 (MS Requires Client Information to Load Files) updated</title>
+      
+        <dc:creator>nacin</dc:creator>
+
+      <pubDate>Mon, 20 Sep 2010 20:58:29 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/14913#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/14913#comment:1/1285016309000000</guid>
+      <description>&lt;p&gt;
+To add to this, as it's somewhat related... It's impossible to execute wp-cron on multisite for ! is_main_site().
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #14913 (MS Requires Client Information to Load Files) created</title>
+      
+        <dc:creator>filosofo</dc:creator>
+
+      <pubDate>Mon, 20 Sep 2010 20:55:36 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/14913</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/14913/1285016136000000</guid>
+      <description>&lt;p&gt;
+When installed as multi-site, WP in &lt;code&gt;ms-settings.php&lt;/code&gt; tries to parse the Host header request to determine which domain is requested.  If none, it prints a redirecting Location header and exits.
+&lt;/p&gt;
+&lt;p&gt;
+This is problematic if you are loading WP but not using a client that sends headers to the server; for example, if you have another app on the same server that tries to include &lt;code&gt;wp-load.php&lt;/code&gt; directly.
+&lt;/p&gt;
+&lt;p&gt;
+Example:
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;&amp;lt;?php
+include '/path/to/wp/wp-load.php';
+// let's do some stuff with WP programatically...
+&lt;/pre&gt;&lt;p&gt;
+The above aborts in MS as it tries to redirect the nonexistent requesting client to the main blog's front page.
+&lt;/p&gt;
+&lt;p&gt;
+The problems I see with this:
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;&lt;code&gt;wp-load.php&lt;/code&gt; is supposed to provide a means of circumventing the template printing, so it shouldn't assume a typical browser client is making the request
+&lt;/li&gt;&lt;li&gt;&lt;code&gt;wp-load.php&lt;/code&gt; &lt;em&gt;can&lt;/em&gt; be used this way on non-MS setups
+&lt;/li&gt;&lt;li&gt;In general, it's a bad jumble of MVC.
+&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;
+Currently I'm not sure what the best route is to fix this, but I will try to come back later with a solution.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #14911 (Don't fetch theme_roots on every page load.) updated</title>
+      
+        <dc:creator>scribu</dc:creator>
+
+      <pubDate>Mon, 20 Sep 2010 20:48:00 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/14911#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/14911#comment:1/1285015680000000</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>14911.2.diff attached to Ticket #14911</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Mon, 20 Sep 2010 20:47:54 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/14911/14911.2.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/14911/14911.2.diff/1285015674000000</guid>
+      <description>&lt;p&gt;
+Don't bother caching at all if only one theme dir registered.
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #14912 (Introduce register_update_hook()) updated</title>
+      
+        <dc:creator>scribu</dc:creator>
+
+      <pubDate>Mon, 20 Sep 2010 20:39:09 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/14912#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/14912#comment:1/1285015149000000</guid>
+      <description>&lt;p&gt;
+Related discussion: &lt;a class="ext-link" href="http://lists.automattic.com/pipermail/wp-hackers/2010-September/035030.html"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;http://lists.automattic.com/pipermail/wp-hackers/2010-September/035030.html&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #14912 (Introduce register_update_hook()) created</title>
+      
+        <dc:creator>scribu</dc:creator>
+
+      <pubDate>Mon, 20 Sep 2010 20:34:52 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/14912</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/14912/1285014892000000</guid>
+      <description>&lt;p&gt;
+Currently, plugin authors overload the activation hook with routines for upgrading from older versions.
+&lt;/p&gt;
+&lt;p&gt;
+We should have a dedicated hook for when plugins are upgraded.
+&lt;/p&gt;
+&lt;p&gt;
+The activation hook should only be fired when the plugin is activated by the user.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>14911.diff attached to Ticket #14911</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Mon, 20 Sep 2010 20:15:36 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/14911/14911.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/14911/14911.diff/1285013736000000</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #14911 (Don't fetch theme_roots on every page load.) created</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Mon, 20 Sep 2010 20:09:36 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/14911</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/14911/1285013376000000</guid>
+      <description>&lt;p&gt;
+As part of setting up the directories for the current theme, get_theme_roots() and thus get_site_transient( 'theme_roots' ) is called on every page load.  If you have many themes (typical for multisite setups) this means a lot of data is being pulled from the cache.  If using a remote cache like memcached all of this data is going over the wire.  An active multisite install with many themes and memcached can waste 100s of MBs of bandwidth pulling the same data over and over.
+&lt;/p&gt;
+&lt;p&gt;
+To avoid fetching theme_roots on every page load, lets store the roots for the current stylesheet and template in the options table as template_root and stylesheet_root.  If these are present we can avoid calling get_theme_roots() for almost all page loads.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Changeset [15639]: Revert [15637]. Still needed for PHP4.</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Mon, 20 Sep 2010 19:17:47 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/15639</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/15639/1285010267469700</guid>
+      <description>&lt;p&gt;
+Revert &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/15637" title="Remove annoying, useless construcotrs. Props Rasmus. ..."&gt;[15637]&lt;/a&gt;. Still needed for PHP4.
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Ticket #14508 (Always require wp-db.php) closed</title>
+      
+        <dc:creator>nacin</dc:creator>
+
+      <pubDate>Mon, 20 Sep 2010 19:13:50 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/14508#comment:14</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/14508#comment:14/1285010030000000</guid>
+      <description>fixed: &lt;p&gt;
+(In &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/15638" title="Always include wp-db.php. Prevents a conditional include and allows db ..."&gt;[15638]&lt;/a&gt;) Always include wp-db.php. Prevents a conditional include and allows db dropins to cleanly extend the wpdb class. Move require_wp_db() to load.php for consistency with bootloader helpers. fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/14508" title="#14508: task (blessed): Always require wp-db.php (closed: fixed)"&gt;#14508&lt;/a&gt;.
+&lt;/p&gt;
+</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Changeset [15638]: Always include wp-db.php. Prevents a conditional include and allows db ...</title>
+      
+        <dc:creator>nacin</dc:creator>
+
+      <pubDate>Mon, 20 Sep 2010 19:13:47 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/15638</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/15638/1285010027484918</guid>
+      <description>&lt;p&gt;
+Always include wp-db.php. Prevents a conditional include and allows db dropins to cleanly extend the wpdb class. Move require_wp_db() to load.php for consistency with bootloader helpers. fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/14508" title="#14508: task (blessed): Always require wp-db.php (closed: fixed)"&gt;#14508&lt;/a&gt;.
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Ticket #14459 (Rotate Full Size Images on Upload) updated</title>
+      
+        <dc:creator>Otto42</dc:creator>
+
+      <pubDate>Mon, 20 Sep 2010 19:03:15 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/14459#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/14459#comment:1/1285009395000000</guid>
+      <description>&lt;p&gt;
++1, the EXIF Orientation tag is not respected by the image handler. This happens to iPhone images that are uploaded through the media uploader.
+&lt;/p&gt;
+&lt;p&gt;
+Documentation on the tag and the values therein can be found here:
+&lt;a class="ext-link" href="http://sylvana.net/jpegcrop/exif_orientation.html"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;http://sylvana.net/jpegcrop/exif_orientation.html&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>14508.2.diff attached to Ticket #14508</title>
+      
+        <dc:creator>nacin</dc:creator>
+
+      <pubDate>Mon, 20 Sep 2010 18:54:47 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/14508/14508.2.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/14508/14508.2.diff/1285008887000000</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Changeset [15637]: Remove annoying, useless construcotrs. Props Rasmus. ...</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Mon, 20 Sep 2010 18:53:03 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/15637</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/15637/1285008783896533</guid>
+      <description>&lt;p&gt;
+Remove annoying, useless construcotrs. Props Rasmus. &lt;a class="ext-link" href="http://talks.php.net/show/confoo10/8"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;http://talks.php.net/show/confoo10/8&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Ticket #14429 (Faster is_serialized) updated</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Mon, 20 Sep 2010 18:11:08 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/14429#comment:9</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/14429#comment:9/1285006268000000</guid>
+      <description>&lt;p&gt;
+(In &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/15636" title="Speed up is_serialized() with strpbrk().  Props Rasmus. see #14429"&gt;[15636]&lt;/a&gt;) Speed up is_serialized() with strpbrk().  Props Rasmus. see &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/14429" title="#14429: enhancement: Faster is_serialized (closed: fixed)"&gt;#14429&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Changeset [15636]: Speed up is_serialized() with strpbrk().  Props Rasmus. see #14429</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Mon, 20 Sep 2010 18:11:06 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/15636</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/15636/1285006266146222</guid>
+      <description>&lt;p&gt;
+Speed up is_serialized() with strpbrk().  Props Rasmus. see &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/14429" title="#14429: enhancement: Faster is_serialized (closed: fixed)"&gt;#14429&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Ticket #8714 (Ellipses instead of ... in UI) updated</title>
+      
+        <dc:creator>RyanMurphy</dc:creator>
+
+      <pubDate>Mon, 20 Sep 2010 17:38:34 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/8714#comment:9</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/8714#comment:9/1285004314000000</guid>
+      <description>&lt;p&gt;
+Possible for 3.1?
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #14798 (Twenty Ten Theme - adding an extra skip link) updated</title>
+      
+        <dc:creator>iammattthomas</dc:creator>
+
+      <pubDate>Mon, 20 Sep 2010 16:32:00 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/14798#comment:7</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/14798#comment:7/1285000320000000</guid>
+      <description>&lt;p&gt;
+Thinking about it more, since the menu links are white on hover, white would make the most sense for the skip links, as they're focused when visible.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #14037 (XMLRPC posts failing since upgrade from WP 2.9.2 to WP 3.0) updated</title>
+      
+        <dc:creator>nacin</dc:creator>
+
+      <pubDate>Mon, 20 Sep 2010 16:31:19 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/14037#comment:16</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/14037#comment:16/1285000279000000</guid>
+      <description>&lt;p&gt;
+is_multisite() checks for a few different constants and will return true for a new MS network, or for an updated MU network.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #14798 (Twenty Ten Theme - adding an extra skip link) updated</title>
+      
+        <dc:creator>iammattthomas</dc:creator>
+
+      <pubDate>Mon, 20 Sep 2010 16:28:48 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/14798#comment:6</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/14798#comment:6/1285000128000000</guid>
+      <description>&lt;p&gt;
+Font family and color should match the grey Helvetica/Arial/sans-serif menu links.
+&lt;/p&gt;
+&lt;p&gt;
+If you remove the bottom 1px border from #branding img, I think that would compensate for the extra 1px you've added here, so the design can remain the same. That'd be the best of both worlds.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #14037 (XMLRPC posts failing since upgrade from WP 2.9.2 to WP 3.0) updated</title>
+      
+        <dc:creator>skinnydog</dc:creator>
+
+      <pubDate>Mon, 20 Sep 2010 16:28:04 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/14037#comment:15</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/14037#comment:15/1285000084000000</guid>
+      <description>&lt;i&gt;Cc&lt;/i&gt;, &lt;i&gt;Keywords&lt;/i&gt;, &lt;i&gt;Severity&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Replying to &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/14037#comment:14" title="Comment 14"&gt;westi&lt;/a&gt;:
+&lt;/p&gt;
+&lt;p&gt;
+Is this being resolved? Still an issue for us after upgrading a WordPress MU install to 3.0.
+&lt;/p&gt;
+&lt;p&gt;
+I wonder if it is from this change:
+&lt;/p&gt;
+&lt;p&gt;
+On 2.9.2 Line 442...
+&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;
+if( !function_exists( 'is_site_admin' ) ) {
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+On 3.0 Line 441...
+&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;
+if ( !is_multisite() ) {
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+When upgrading an MU install you do not have to define Mult-isite is that the issue?
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #14799 (Twenty Ten Theme - adding a back to top link) updated</title>
+      
+        <dc:creator>iammattthomas</dc:creator>
+
+      <pubDate>Mon, 20 Sep 2010 16:24:15 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/14799#comment:7</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/14799#comment:7/1284999855000000</guid>
+      <description>&lt;p&gt;
+This looks better, but as I mentioned above I think it'd make more sense to the right of the homepage link, not the powered by link.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #14909 (Pass "_e('Press This')" through filter) updated</title>
+      
+        <dc:creator>joehoyle</dc:creator>
+
+      <pubDate>Mon, 20 Sep 2010 15:49:37 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/14909#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/14909#comment:2/1284997777000000</guid>
+      <description>&lt;p&gt;
+I did considered hooking into _e(), but I wouldn't be able to check what I was changing, or example, the header "Press This" on the tools page as does "_e( 'Press This' )", doing a replace on that would do it site wide, which may have unwanted effects.
+&lt;/p&gt;
+&lt;p&gt;
+I don't really see this as branding - the point is to make the Press This bookmarklet more usable, having a bunch of "Press This" titles bookmarlkets on your bookmarks toolbar for 5 different WP sites IMO is not very usable.
+&lt;/p&gt;
+&lt;p&gt;
+The Press This bookmarklet is a special feature, it's not just some arbitrary text - it's a specific button tool made for drag n drop.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #14909 (Pass "_e('Press This')" through filter) updated</title>
+      
+        <dc:creator>nacin</dc:creator>
+
+      <pubDate>Mon, 20 Sep 2010 15:42:54 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/14909#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/14909#comment:1/1284997374000000</guid>
+      <description>&lt;p&gt;
+&lt;code&gt;_e()&lt;/code&gt; runs through the gettext filter. This seems like a good case where I would recommend not a separate filter, but the existing string filter, as this is a branding thing.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #14910 (Simplify sanitize_key() and use it in more places) updated</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Mon, 20 Sep 2010 15:30:09 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/14910#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/14910#comment:2/1284996609000000</guid>
+      <description>&lt;p&gt;
+sanitize_key() could be simplified a little more, but I want to audit how plugins are using it and what kind of strings are being used from post type and status keys.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #12257 (wpdb Scales Badly Due to Unnecessary Copies of All Query Results) updated</title>
+      
+        <dc:creator>nacin</dc:creator>
+
+      <pubDate>Mon, 20 Sep 2010 15:29:31 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/12257#comment:6</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/12257#comment:6/1284996571000000</guid>
+      <description>&lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Looks good.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #14910 (Simplify sanitize_key() and use it in more places) updated</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Mon, 20 Sep 2010 15:29:20 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/14910#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/14910#comment:1/1284996560000000</guid>
+      <description>&lt;p&gt;
+&lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/15635" title="Simplify sanitize_key() and use it in more places. see #14910"&gt;[15635]&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Changeset [15635]: Simplify sanitize_key() and use it in more places. see #14910</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Mon, 20 Sep 2010 15:28:58 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/15635</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/15635/1284996538418073</guid>
+      <description>&lt;p&gt;
+Simplify sanitize_key() and use it in more places. see &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/14910" title="#14910: defect (bug): Simplify sanitize_key() and use it in more places (closed: fixed)"&gt;#14910&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Ticket #14910 (Simplify sanitize_key() and use it in more places) created</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Mon, 20 Sep 2010 15:21:56 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/14910</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/14910/1284996116000000</guid>
+      <description>&lt;p&gt;
+sanitize_key() does some unnecessary work that can be eliminated.
+&lt;/p&gt;
+&lt;p&gt;
+sanitize_user() is still being called in places where sanitize_key() should be used and can burn up to a percent of page load time.    It is called 26 times for a default install.  Using a simplified sanitize_key() instead of sanitize_user() will save a little time.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #14909 (Pass "_e('Press This')" through filter) created</title>
+      
+        <dc:creator>joehoyle</dc:creator>
+
+      <pubDate>Mon, 20 Sep 2010 15:01:23 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/14909</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/14909/1284994883000000</guid>
+      <description>&lt;p&gt;
+Currently, there is no way for a plugin to change the "Press This" bookmarklet text in the Tools page. I recently had a client request to change the text, as they have an MS install - and want it to use "%blog name% - press this".
+&lt;/p&gt;
+&lt;p&gt;
+It would be good to pass that text through a filter 'press_this_bookmarklet' or something so plugins could alter it (as users drag it to their bookmarks, so the link's text is used).
+&lt;/p&gt;
+&lt;p&gt;
+I don't mind writing the patch if needed
+&lt;/p&gt;
+&lt;p&gt;
+For reference: &lt;a class="ext-link" href="http://core.trac.wordpress.org/browser/trunk/wp-admin/tools.php#L36"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;http://core.trac.wordpress.org/browser/trunk/wp-admin/tools.php#L36&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #14883 (Header of Twenty Ten moved to right in IE9 beta) updated</title>
+      
+        <dc:creator>iandstewart</dc:creator>
+
+      <pubDate>Mon, 20 Sep 2010 14:58:27 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/14883#comment:4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/14883#comment:4/1284994707000000</guid>
+      <description>&lt;p&gt;
+I've attached a diff that floats the header image left for a LTR view and right in RTL. It corrects the display issue with IE9 and looks as expected in IE6/7/8, Opera, Safari, and Firefox.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>r15634-header-image-floating.diff attached to Ticket #14883</title>
+      
+        <dc:creator>iandstewart</dc:creator>
+
+      <pubDate>Mon, 20 Sep 2010 14:56:35 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/14883/r15634-header-image-floating.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/14883/r15634-header-image-floating.diff/1284994595000000</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #14145 (Allow custom post types to be a submenu) updated</title>
+      
+        <dc:creator>husobj</dc:creator>
+
+      <pubDate>Mon, 20 Sep 2010 13:49:58 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/14145#comment:15</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/14145#comment:15/1284990598000000</guid>
+      <description>&lt;i&gt;Cc&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #14908 (Incorrect top-level threading in non-singular Atom comment feed) created</title>
+      
+        <dc:creator>mdgl</dc:creator>
+
+      <pubDate>Mon, 20 Sep 2010 13:32:04 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/14908</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/14908/1284989524000000</guid>
+      <description>&lt;p&gt;
+In non-singular Atom comment feeds (i.e. those for archives, search and home), incorrect threading information is provided for top-level comments (i.e. comments that refer directly to a post/page, not ones made in reply to another comment).
+&lt;/p&gt;
+&lt;p&gt;
+Instead of the correct and specific parent post in each case, the threading information for such comments always refers to the same single (random) post from the feed.
+&lt;/p&gt;
+&lt;p&gt;
+To reproduce the bug, create several new top-level comments on distinct posts and then view the generated XML for the Atom comments feed on your blog home page, inspecting the "&amp;lt;thr:in-reply-to&amp;gt;" elements as defined by RFC 4685.
+&lt;/p&gt;
+&lt;p&gt;
+The erroneous code seems to be in file "feed-atom-comments.php" at line 76 (at WP 3.0.1), where the parent link is output using "the_guid()" and "the_permalink_rss()".  I think these functions need to refer to the correct and specific parent post using the variable "$comment_post".  See the related code outputting the "&amp;lt;title&amp;gt;" element earlier in this file.
+&lt;/p&gt;
+&lt;p&gt;
+Also in this file at line 46 is what appears to be a redundant call to "get_post_custom" where the output is simply thrown away [this is also in file "feed-rss-comments.php" line 66].  Perhaps this was part of some earlier attempt to get the appropriate global variables updated, but in any case it doesn't work and seems completely unnecessary!
+&lt;/p&gt;
+&lt;p&gt;
+I'm surprised this threading issue hasn't been noticed before.  It looks like nobody uses this stuff :-)
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #14883 (Header of Twenty Ten moved to right in IE9 beta) updated</title>
+      
+        <dc:creator>hmemcpy</dc:creator>
+
+      <pubDate>Mon, 20 Sep 2010 13:31:54 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/14883#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/14883#comment:3/1284989514000000</guid>
+      <description>&lt;p&gt;
+I also encountered this, and I implemented the fix as suggested. However, there's a white space now between the image and the "access" div.
+&lt;/p&gt;
+&lt;p&gt;
+To fix it, add the following directly below the &lt;code&gt;#branding img&lt;/code&gt; block:
+&lt;/p&gt;
+&lt;p&gt;
+#branding {
+&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;
+line-height: 0;
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+}
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #14903 (Expand theme support removal for 3.0 features) updated</title>
+      
+        <dc:creator>nacin</dc:creator>
+
+      <pubDate>Mon, 20 Sep 2010 13:25:30 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/14903#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/14903#comment:2/1284989130000000</guid>
+      <description>&lt;p&gt;
+Replying to &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/14903#comment:1" title="Comment 1"&gt;Denis-de-Bernardy&lt;/a&gt;:
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+Removing menus would also be sweet.
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+See unregister_nav_menu()
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #10141 (URL Functions for: login, logout, lostpasword and the new register) updated</title>
+      
+        <dc:creator>mrmist</dc:creator>
+
+      <pubDate>Mon, 20 Sep 2010 13:22:50 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/10141#comment:10</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/10141#comment:10/1284988970000000</guid>
+      <description>&lt;i&gt;Version&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>14579-lower-bulk.diff attached to Ticket #14579</title>
+      
+        <dc:creator>duck_</dc:creator>
+
+      <pubDate>Mon, 20 Sep 2010 13:08:59 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/14579/14579-lower-bulk.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/14579/14579-lower-bulk.diff/1284988139000000</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #14579 (Ajaxify list-type screens in the admin) updated</title>
+      
+        <dc:creator>duck_</dc:creator>
+
+      <pubDate>Mon, 20 Sep 2010 13:08:34 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/14579#comment:67</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/14579#comment:67/1284988114000000</guid>
+      <description>&lt;p&gt;
+Replying to &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/14579#comment:66" title="Comment 66"&gt;demetris&lt;/a&gt;:
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+The bottom group of bulk actions in plugins screens has not been working for some time now.  I suppose it is something to do with the ajaxification.
+&lt;/p&gt;
+&lt;p&gt;
+I can look and narrow it down to a revision, if needed.
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+This is because $_REQUEST&lt;a class="missing wiki"&gt;action?&lt;/a&gt; is never empty as it will either be the bulk action selected (from the top dropdown) or &lt;a class="ext-link" href="http://core.trac.wordpress.org/browser/trunk/wp-admin/includes/list-table.php#L241"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;"-1" by default&lt;/a&gt;, therefore $_REQUEST&lt;a class="missing wiki"&gt;action2?&lt;/a&gt; (set by the lower bulk actions dropdown) never gets a chance. See attached patch for fix, change the default value of the bulk actions to be value='0' or alternatively could just be left blank (I think this is the case pre-3.1: value="")
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #14907 (Comment type is not correctly passed to wp_notify_postauthor in ...) closed</title>
+      
+        <dc:creator>scribu</dc:creator>
+
+      <pubDate>Mon, 20 Sep 2010 12:32:18 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/14907#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/14907#comment:1/1284985938000000</guid>
+      <description>fixed: &lt;p&gt;
+This has already been fixed: &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/15491" title="Ajaxify list-type screens in the admin. See #14579"&gt;[15491]&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Ticket #14579 (Ajaxify list-type screens in the admin) updated</title>
+      
+        <dc:creator>demetris</dc:creator>
+
+      <pubDate>Mon, 20 Sep 2010 12:28:22 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/14579#comment:66</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/14579#comment:66/1284985702000000</guid>
+      <description>&lt;p&gt;
+The bottom group of bulk actions in plugins screens has not been working for some time now.  I suppose it is something to do with the ajaxification.
+&lt;/p&gt;
+&lt;p&gt;
+I can look and narrow it down to a revision, if needed.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>correct_notify_postauthor.patch attached to Ticket #14907</title>
+      
+        <dc:creator>solarissmoke</dc:creator>
+
+      <pubDate>Mon, 20 Sep 2010 11:51:35 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/14907/correct_notify_postauthor.patch</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/14907/correct_notify_postauthor.patch/1284983495000000</guid>
+      <description>&lt;p&gt;
+Check for !empty() instead of empty()
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #14907 (Comment type is not correctly passed to wp_notify_postauthor in ...) created</title>
+      
+        <dc:creator>solarissmoke</dc:creator>
+
+      <pubDate>Mon, 20 Sep 2010 11:50:54 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/14907</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/14907/1284983454000000</guid>
+      <description>&lt;p&gt;
+Line 1285 of wp-includes/comment.php (part of wp_new_comment) reads as follows:
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;wp_notify_postauthor($comment_ID, empty( $commentdata['comment_type'] ) ? $commentdata['comment_type'] : '' );
+&lt;/pre&gt;&lt;p&gt;
+The ternary operation is flawed. If $commentdata&lt;a class="missing wiki"&gt;comment_type?&lt;/a&gt; is empty, then that empty value is returned. If it isn't empty, then an empty string is returned. Either way, an empty value is always passed to wp_notify_postauthor.
+&lt;/p&gt;
+&lt;p&gt;
+I think the check should be !empty() instead. That way a non-empty value is passed properly to the function. Proposed patch attached.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #7795 (Activate and Deactivate Theme hooks) updated</title>
+      
+        <dc:creator>azizur</dc:creator>
+
+      <pubDate>Mon, 20 Sep 2010 10:54:26 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/7795#comment:26</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/7795#comment:26/1284980066000000</guid>
+      <description>&lt;i&gt;Cc&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #14906 (post-thumbnail is not a valid thumbnail size) closed</title>
+      
+        <dc:creator>scribu</dc:creator>
+
+      <pubDate>Mon, 20 Sep 2010 10:50:23 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/14906#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/14906#comment:1/1284979823000000</guid>
+      <description>invalid: &lt;p&gt;
+From the docs of the_post_thumbnail():
+&lt;/p&gt;
+&lt;pre class="wiki"&gt; * @param int $size Optional. Image size.  Defaults to 'post-thumbnail', which theme sets using set_post_thumbnail_size( $width, $height, $crop_flag );.
+&lt;/pre&gt;</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Ticket #10141 (URL Functions for: login, logout, lostpasword and the new register) updated</title>
+      
+        <dc:creator>Axel_germany</dc:creator>
+
+      <pubDate>Mon, 20 Sep 2010 10:43:33 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/10141#comment:9</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/10141#comment:9/1284979413000000</guid>
+      <description>&lt;p&gt;
+Replying to &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/10141#comment:8" title="Comment 8"&gt;Axel_germany&lt;/a&gt;:
+I'm using svn revision 15634.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #10141 (URL Functions for: login, logout, lostpasword and the new register) updated</title>
+      
+        <dc:creator>Axel_germany</dc:creator>
+
+      <pubDate>Mon, 20 Sep 2010 10:36:23 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/10141#comment:8</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/10141#comment:8/1284978983000000</guid>
+      <description>&lt;i&gt;Type&lt;/i&gt;, &lt;i&gt;Version&lt;/i&gt;, &lt;i&gt;Component&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Hi Ramiy,
+&lt;/p&gt;
+&lt;p&gt;
+thanks for implementing the function wp_lostpassword_url($redirect);
+Is there a reason why it is not yet used in wp-login.php line 616 and 618? (development version (3.1-alpha)). The reason I'm asking is because I want to use the plugin hook 'lostpassword_url'  (&lt;a class="ext-link" href="http://codex.wordpress.org/Function_Reference/wp_lostpassword_url"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;http://codex.wordpress.org/Function_Reference/wp_lostpassword_url&lt;/a&gt;) in a plugin and this hook only works when &lt;code&gt;wp_lostpassword_url($)&lt;/code&gt;
+is called.
+&lt;/p&gt;
+&lt;p&gt;
+Thanks
+&lt;/p&gt;
+&lt;p&gt;
+Axel
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #14795 (Twenty Ten Theme - skip link CSS fixes) updated</title>
+      
+        <dc:creator>elfin</dc:creator>
+
+      <pubDate>Mon, 20 Sep 2010 10:29:08 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/14795#comment:6</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/14795#comment:6/1284978548000000</guid>
+      <description>&lt;p&gt;
+I won't correct this one as &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/14798" title="#14798: defect (bug): Twenty Ten Theme - adding an extra skip link (closed: wontfix)"&gt;#14798&lt;/a&gt; supercedes it.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #14798 (Twenty Ten Theme - adding an extra skip link) updated</title>
+      
+        <dc:creator>elfin</dc:creator>
+
+      <pubDate>Mon, 20 Sep 2010 10:25:28 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/14798#comment:5</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/14798#comment:5/1284978328000000</guid>
+      <description>&lt;p&gt;
+Re-attached a patch. Downside is that it is adding one pixel to the height of the menu. A necessary evil to overcome an issue within webkit(Safari/Chrome).
+&lt;/p&gt;
+&lt;p&gt;
+Amended color to be a yellowish color to highlight the link even more.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>extra-skip-link.patch attached to Ticket #14798</title>
+      
+        <dc:creator>elfin</dc:creator>
+
+      <pubDate>Mon, 20 Sep 2010 10:23:27 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/14798/extra-skip-link.patch</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/14798/extra-skip-link.patch/1284978207000000</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #10880 (New wp-config constant for Google Chrome Frame) updated</title>
+      
+        <dc:creator>hakre</dc:creator>
+
+      <pubDate>Mon, 20 Sep 2010 10:10:54 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/10880#comment:6</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/10880#comment:6/1284977454000000</guid>
+      <description>&lt;p&gt;
+Related: &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/14537" title="#14537: feature request: Support Google Chrome Frame (closed: fixed)"&gt;#14537&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #14537 (Support Google Chrome Frame) updated</title>
+      
+        <dc:creator>hakre</dc:creator>
+
+      <pubDate>Mon, 20 Sep 2010 10:09:40 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/14537#comment:6</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/14537#comment:6/1284977380000000</guid>
+      <description>&lt;p&gt;
+I would have already closed it as wontfix, even close being a duplicate as of &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/10880" title="#10880: feature request: New wp-config constant for Google Chrome Frame (closed: duplicate)"&gt;#10880&lt;/a&gt;. so +1 for closing.
+&lt;/p&gt;
+&lt;p&gt;
+For those who are in a barely need for such a (in my eyes not core material) feature, there's now an execlusive plugin available in the scope of this ticket: &lt;a class="ext-link" href="http://wordpress.org/extend/plugins/chrome-frame/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;Chrome Frame (WordPress Plugin)&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #14906 (post-thumbnail is not a valid thumbnail size) created</title>
+      
+        <dc:creator>oncletom</dc:creator>
+
+      <pubDate>Mon, 20 Sep 2010 09:51:15 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/14906</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/14906/1284976275000000</guid>
+      <description>&lt;p&gt;
+If I refer to the documentation or the source code, if I pass no argument to &lt;code&gt;the_post_thumbnail&lt;/code&gt;, we are supposed to have a thumbnail.
+&lt;/p&gt;
+&lt;p&gt;
+However, I always get the full size picture (which is pretty bad).
+&lt;/p&gt;
+&lt;p&gt;
+&lt;code&gt;the_post_thumbnail('post-thumbnail')&lt;/code&gt; gives the full size.
+&lt;code&gt;the_post_thumbnail()&lt;/code&gt; gives the full size.
+&lt;code&gt;the_post_thumbnail('thumbnail')&lt;/code&gt; gives the thumbnail size.
+&lt;/p&gt;
+&lt;p&gt;
+I guess there is a problem there. The default value should be &lt;em&gt;thumbnail&lt;/em&gt; and not &lt;strong&gt;&lt;em&gt;post-&lt;/em&gt;&lt;/strong&gt;&lt;em&gt;thumbnail&lt;/em&gt;.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #14799 (Twenty Ten Theme - adding a back to top link) updated</title>
+      
+        <dc:creator>elfin</dc:creator>
+
+      <pubDate>Mon, 20 Sep 2010 09:29:45 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/14799#comment:6</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/14799#comment:6/1284974985000000</guid>
+      <description>&lt;p&gt;
+Patch updated, although I'm a little unhappy about having 2 links next to each other.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>back-link.patch attached to Ticket #14799</title>
+      
+        <dc:creator>elfin</dc:creator>
+
+      <pubDate>Mon, 20 Sep 2010 09:29:09 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/14799/back-link.patch</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/14799/back-link.patch/1284974949000000</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #14905 (Plugin Search Term gets lost on Activation) created</title>
+      
+        <dc:creator>hakre</dc:creator>
+
+      <pubDate>Mon, 20 Sep 2010 09:19:38 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/14905</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/14905/1284974378000000</guid>
+      <description>&lt;p&gt;
+With Javascript Switched of on Trunk, searching for a plugin in the Backend does work.
+&lt;/p&gt;
+&lt;p&gt;
+But when such a search has been runned and a plugin of the serach result is being activated, after activation the plugin screen returns to a search result w/o searching for anything.
+&lt;/p&gt;
+&lt;p&gt;
+The search term is lost.
+&lt;/p&gt;
+&lt;p&gt;
+Expected result: The search term must be preserved with the request, not removed.
+&lt;/p&gt;
+&lt;p&gt;
+This problem exists in 3.0.1 (with a notice even) and 3.1-alpha.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #14513 (Time for a wp_post_relationships table?) updated</title>
+      
+        <dc:creator>husobj</dc:creator>
+
+      <pubDate>Mon, 20 Sep 2010 09:09:24 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/14513#comment:50</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/14513#comment:50/1284973764000000</guid>
+      <description>&lt;i&gt;Cc&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #14903 (Expand theme support removal for 3.0 features) updated</title>
+      
+        <dc:creator>Denis-de-Bernardy</dc:creator>
+
+      <pubDate>Mon, 20 Sep 2010 08:09:02 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/14903#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/14903#comment:1/1284970142000000</guid>
+      <description>&lt;p&gt;
+Removing menus would also be sweet.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #14904 (Install page not redirecting to wp-admin/ on IIS6) updated</title>
+      
+        <dc:creator>Denis-de-Bernardy</dc:creator>
+
+      <pubDate>Mon, 20 Sep 2010 07:21:52 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/14904#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/14904#comment:1/1284967312000000</guid>
+      <description>&lt;p&gt;
+&lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/10187" title="#10187: defect (bug): wp_redirect and canonical redirect do not work as expected on IIS (closed: fixed)"&gt;#10187&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #4337 (Blog by Email: No content is assumed) updated</title>
+      
+        <dc:creator>westi</dc:creator>
+
+      <pubDate>Mon, 20 Sep 2010 07:09:40 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/4337#comment:34</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/4337#comment:34/1284966580000000</guid>
+      <description>&lt;p&gt;
+Replying to &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/4337#comment:33" title="Comment 33"&gt;RyanMurphy&lt;/a&gt;:
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+Since blog-by-email is/has moved to a plugin, and since there hasn't been anything on here for 11 months, should the ticket be wontfix'd?
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+Once the plugin is released and we have confirmed this bug is resolved the ticket will be closed.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #14899 (Remove Theme Support not Working) updated</title>
+      
+        <dc:creator>adeptris</dc:creator>
+
+      <pubDate>Mon, 20 Sep 2010 05:39:28 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/14899#comment:5</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/14899#comment:5/1284961168000000</guid>
+      <description>&lt;p&gt;
+Many Thanks,
+I can proceed on that basis, de-register the default images, create a default header image with text overlaid, and change the &amp;lt;body&amp;gt; element, they will still be there but have no impack on the theme.
+&lt;/p&gt;
+&lt;p&gt;
+Thanks again to everybody, I know sometimes writing code for free seems like a thankless task.
+&lt;/p&gt;
+&lt;p&gt;
+David
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #14904 (Install page not redirecting to wp-admin/ on IIS6) created</title>
+      
+        <dc:creator>knutsp</dc:creator>
+
+      <pubDate>Mon, 20 Sep 2010 04:39:21 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/14904</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/14904/1284957561000000</guid>
+      <description>&lt;p&gt;
+Steps to reproduce:
+&lt;/p&gt;
+&lt;ol&gt;&lt;li&gt;Download and extract to Windows Server 2003 with IIS6 (fast-cgi, PHP 5.3.3)&lt;br /&gt;
+&lt;/li&gt;&lt;li&gt;Create a wp-config.php file pointing to an empty database or any database with no tables matching the selected prefix.&lt;br /&gt;
+&lt;/li&gt;&lt;li&gt;Create a new virtual directory on IIS site example.com named myblog, pointing to the newly created wordpress directory, hence accessible as URL &lt;a class="ext-link" href="http://example.com/myblog/[[BR"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;http://example.com/myblog/[[BR&lt;/a&gt;]]
+&lt;/li&gt;&lt;li&gt;Point your browser to this (root) URL (you will &lt;strong&gt;not&lt;/strong&gt; be redirected), and the WordPress install page (step 1) will appear&lt;br /&gt;
+&lt;/li&gt;&lt;li&gt;Fill out the form and hit Install WordPress&lt;br /&gt;
+&lt;/li&gt;&lt;li&gt;Tthe browser will show URL &lt;a class="ext-link" href="http://example.com/myblog/install.php?step=2"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;http://example.com/myblog/install.php?step=2&lt;/a&gt; and status 404 Not found is shown.
+&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;
+I think that the error is in step 4. You should be redirected to &lt;a class="ext-link" href="http://example.com/myblog/wp-admin/install.php"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;http://example.com/myblog/wp-admin/install.php&lt;/a&gt;
+&lt;/p&gt;
+&lt;p&gt;
+If you in step 4 direct yout browser to &lt;a class="ext-link" href="http://example.com/myblog/wp-admin/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;http://example.com/myblog/wp-admin/&lt;/a&gt; the installation will go on without this error.
+&lt;/p&gt;
+&lt;p&gt;
+Tested with Firefox and Chrome. Works fine on IIS7.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #14901 (Make "Uncategorized" transparent) updated</title>
+      
+        <dc:creator>knutsp</dc:creator>
+
+      <pubDate>Mon, 20 Sep 2010 03:44:43 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/14901#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/14901#comment:1/1284954283000000</guid>
+      <description>&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+Listing Uncategorized in the categories table presents the illusion that it is a
+separate category by itself that can be modified and removed - it can't [...]
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+This is not true. "Uncategorized" is just another category. After a fresh install a category is created with tag_ID = 1 and named "Uncategorized" (in English, or as the translation file specifies). A link category named "Blogroll" is also created.
+&lt;/p&gt;
+&lt;p&gt;
+To start categorizing your posts, select what the name of your default category should be and rename this category. Later you may change the default category to another one.
+&lt;/p&gt;
+&lt;p&gt;
+The is no such thing as uncatagorized posts. They just have the initial category named "Uncategorized". Nothing else is special about that.
+&lt;/p&gt;
+&lt;p&gt;
+If anything should be done to make this a bit clearer, I would suggest an initial description of this category to be set to "You may rename this category (name and slug)".
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #13386 (Add ability to filter the text "Enter title here" which appears within ...) updated</title>
+      
+        <dc:creator>nacin</dc:creator>
+
+      <pubDate>Mon, 20 Sep 2010 03:29:54 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/13386#comment:8</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/13386#comment:8/1284953394000000</guid>
+      <description>&lt;i&gt;Owner&lt;/i&gt;, &lt;i&gt;Status&lt;/i&gt;, &lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #5678 (Respectfully strip newlines in some importers) updated</title>
+      
+        <dc:creator>nacin</dc:creator>
+
+      <pubDate>Mon, 20 Sep 2010 01:53:31 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/5678#comment:15</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/5678#comment:15/1284947611000000</guid>
+      <description>&lt;p&gt;
+Replying to &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/5678#comment:14" title="Comment 14"&gt;RyanMurphy&lt;/a&gt;:
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+Since the importers are now plugins, wontfix?
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+Not necessarily. They are core plugins so we still manage them as an extension of core.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #5678 (Respectfully strip newlines in some importers) updated</title>
+      
+        <dc:creator>RyanMurphy</dc:creator>
+
+      <pubDate>Mon, 20 Sep 2010 01:50:03 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/5678#comment:14</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/5678#comment:14/1284947403000000</guid>
+      <description>&lt;p&gt;
+Since the importers are now plugins, wontfix?
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #4337 (Blog by Email: No content is assumed) updated</title>
+      
+        <dc:creator>RyanMurphy</dc:creator>
+
+      <pubDate>Mon, 20 Sep 2010 01:37:19 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/4337#comment:33</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/4337#comment:33/1284946639000000</guid>
+      <description>&lt;p&gt;
+Since blog-by-email is/has moved to a plugin, and since there hasn't been anything on here for 11 months, should the ticket be wontfix'd?
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #2870 (Make installation form pluggable (was: allow user to set password)) updated</title>
+      
+        <dc:creator>RyanMurphy</dc:creator>
+
+      <pubDate>Mon, 20 Sep 2010 01:33:33 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/2870#comment:40</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/2870#comment:40/1284946413000000</guid>
+      <description>&lt;p&gt;
+Does the Password Reset part fit into the scope for 3.1?
+&lt;/p&gt;
+&lt;p&gt;
+The Default Password part no longer applies, since the user is able to set it when they install WordPress, and users created after it is installed get the nag notice.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #14899 (Remove Theme Support not Working) updated</title>
+      
+        <dc:creator>nacin</dc:creator>
+
+      <pubDate>Mon, 20 Sep 2010 01:06:14 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/14899#comment:4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/14899#comment:4/1284944774000000</guid>
+      <description>&lt;p&gt;
+&lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/14903" title="#14903: task (blessed): Expand theme support removal for 3.0 features (closed: fixed)"&gt;#14903&lt;/a&gt; opened.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #14837 (Themes should allow custom headers to be selectable, but not uploadable) updated</title>
+      
+        <dc:creator>nacin</dc:creator>
+
+      <pubDate>Mon, 20 Sep 2010 01:05:25 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/14837#comment:11</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/14837#comment:11/1284944725000000</guid>
+      <description>&lt;p&gt;
+Also consider consistent implementation with &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/14903" title="#14903: task (blessed): Expand theme support removal for 3.0 features (closed: fixed)"&gt;#14903&lt;/a&gt;.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #14903 (Expand theme support removal for 3.0 features) created</title>
+      
+        <dc:creator>nacin</dc:creator>
+
+      <pubDate>Mon, 20 Sep 2010 01:04:50 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/14903</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/14903/1284944690000000</guid>
+      <description>&lt;p&gt;
+We need remove_editor_style(), remove_custom_header_image(), and remove_custom_background().
+&lt;/p&gt;
+&lt;p&gt;
+These should internally remove theme support. I suppose the blacklist in that function needs to go.
+&lt;/p&gt;
+&lt;p&gt;
+Alternatively, we can simply add a switch statement in remove_theme_support() and handle the special instances there, but then that introduces an inconsistency, as add_theme_support() is used only internally there.
+&lt;/p&gt;
+&lt;p&gt;
+Also consider aligning the implementation of this with &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/14837" title="#14837: enhancement: Themes should allow custom headers to be selectable, but not uploadable (closed: fixed)"&gt;#14837&lt;/a&gt;.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #14899 (Remove Theme Support not Working) closed</title>
+      
+        <dc:creator>nacin</dc:creator>
+
+      <pubDate>Mon, 20 Sep 2010 00:58:53 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/14899#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/14899#comment:3/1284944333000000</guid>
+      <description>invalid: &lt;p&gt;
+I've rewritten the Codex page. &lt;a class="ext-link" href="http://codex.wordpress.org/Function_Reference/add_theme_support"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;http://codex.wordpress.org/Function_Reference/add_theme_support&lt;/a&gt;
+&lt;/p&gt;
+&lt;p&gt;
+There are no API calls for disabling the header, background, or editor style features. (There are for menu locations and widget sidebars.)
+&lt;/p&gt;
+&lt;p&gt;
+Those should probably be proposed and dealt with in 3.1.
+&lt;/p&gt;
+</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Ticket #14902 (weblogUpdates.extendedPing does not implement standard) updated</title>
+      
+        <dc:creator>Scott Schram</dc:creator>
+
+      <pubDate>Sun, 19 Sep 2010 23:37:38 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/14902#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/14902#comment:1/1284939458000000</guid>
+      <description>&lt;p&gt;
+Notifying the receiving service of the changedURL would allow (for example) a service that sends SMS or email messages to interested parties about which pages that have been changed on their site.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #14902 (weblogUpdates.extendedPing does not implement standard) created</title>
+      
+        <dc:creator>Scott Schram</dc:creator>
+
+      <pubDate>Sun, 19 Sep 2010 23:35:37 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/14902</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/14902/1284939337000000</guid>
+      <description>&lt;p&gt;
+When a blog post is published or updated, Update Services are notified if they are listed in the Wordpress Writing Settings panel.
+&lt;/p&gt;
+&lt;p&gt;
+The services are notified by the weblog_ping() function in comment.php
+&lt;/p&gt;
+&lt;p&gt;
+That function first attempts an XMLRPC call to the service's weblogUpdates.extendedPing.  If that fails, it attempts to notify weblogUpdates.ping.
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;if ( !$client-&amp;gt;query('weblogUpdates.extendedPing', get_option('blogname'), $home, get_bloginfo('rss2_url') ) ) // then try a normal ping
+	$client-&amp;gt;query('weblogUpdates.ping', get_option('blogname'), $home);
+&lt;/pre&gt;&lt;p&gt;
+&lt;strong&gt;1) The weblogUpdates.extendedPing does not match the published standard.&lt;/strong&gt;
+&lt;/p&gt;
+&lt;p&gt;
+See:
+&lt;/p&gt;
+&lt;p&gt;
+&lt;a class="ext-link" href="http://www.google.com/help/blogsearch/pinging_API.html"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;http://www.google.com/help/blogsearch/pinging_API.html&lt;/a&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Where 5 parameters are specified:
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;Name of site
+&lt;/li&gt;&lt;li&gt;URL of site
+&lt;/li&gt;&lt;li&gt;URL of the page to be checked for changes
+&lt;/li&gt;&lt;li&gt;URL of RSS, RDF, or Atom feed
+&lt;/li&gt;&lt;li&gt;Optional a name (or "tag") categorizing your site content. You may delimit multiple values by using the '|' character.
+&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;
+The third parameter should be the page to be checked for changes, and not the RSS feed.
+&lt;/p&gt;
+&lt;p&gt;
+No 4th or 5th parameter is passed.
+&lt;/p&gt;
+&lt;p&gt;
+&lt;strong&gt;2) The weblogUpdates.extendedPing does not take advantage of notifying the service of the exact page that changed (as is provided in the standard)&lt;/strong&gt;
+&lt;/p&gt;
+&lt;p&gt;
+If implemented correctly, this would allow the receiving service (perhaps a search engine) to come directly to the correct page for re-indexing, instead of trying to figure it out from the RSS feed.
+&lt;/p&gt;
+&lt;p&gt;
+I am unable to find if pingomatic.com publishes a competing version of the standard.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #14901 (Make "Uncategorized" transparent) created</title>
+      
+        <dc:creator>ericmann</dc:creator>
+
+      <pubDate>Sun, 19 Sep 2010 23:22:39 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/14901</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/14901/1284938559000000</guid>
+      <description>&lt;p&gt;
+When posts are created, they are placed into the Uncategorized category by default if no other category is specified.  This causes problems when re-categorizing later on because you have to both add the new category and remove the "uncategorized" category at the same time.
+&lt;/p&gt;
+&lt;p&gt;
+"Uncategorized" should be automatically removed when marking categories on a post.
+&lt;/p&gt;
+&lt;p&gt;
+"Uncategorized" should not appear in the list of categories on the "Categories" page but in a separate section below reading "You currently have XX uncategorized posts."
+&lt;/p&gt;
+&lt;p&gt;
+Listing Uncategorized in the categories table presents the illusion that it is a separate category by itself that can be modified and removed - it can't, so it shouldn't be listed there.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #14321 (The permalink field should not show for post types that are not public) updated</title>
+      
+        <dc:creator>markjaquith</dc:creator>
+
+      <pubDate>Sun, 19 Sep 2010 23:12:17 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/14321#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/14321#comment:2/1284937937000000</guid>
+      <description>&lt;p&gt;
+It still shows up after the first autosave, with this patch.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #14899 (Remove Theme Support not Working) updated</title>
+      
+        <dc:creator>adeptris</dc:creator>
+
+      <pubDate>Sun, 19 Sep 2010 19:23:49 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/14899#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/14899#comment:2/1284924229000000</guid>
+      <description>&lt;p&gt;
+Hi Nacin,
+Not sure what Blacklist means, in codex we have add_theme_support('custom-header'), and the remove_theme_support() listed for use with child themes.
+&lt;/p&gt;
+&lt;p&gt;
+In the "twenty ten" theme these are added in the functions.php, in a best practice using a child theme, how would we remove the Header and Background sections from Admin &amp;gt; Appearance, if not with this call is there another way or function we could use?
+&lt;/p&gt;
+&lt;p&gt;
+Kind Regards
+&lt;/p&gt;
+&lt;p&gt;
+David
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>link-template.diff attached to Ticket #14900</title>
+      
+        <dc:creator>niallkennedy</dc:creator>
+
+      <pubDate>Sun, 19 Sep 2010 18:41:22 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/14900/link-template.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/14900/link-template.diff/1284921682000000</guid>
+      <description>&lt;p&gt;
+staticize strings. escape some strings for HTML output.
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #14900 (link-template string builder cleanup) created</title>
+      
+        <dc:creator>niallkennedy</dc:creator>
+
+      <pubDate>Sun, 19 Sep 2010 18:40:48 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/14900</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/14900/1284921648000000</guid>
+      <description>&lt;p&gt;
+Convert dynamic strings to static strings where quick wins are available.
+&lt;/p&gt;
+&lt;p&gt;
+Wrap output such as translated strings in an esc_attr or esc_html just in case HTML can better handle what a parent page's character encoding can't.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #14899 (Remove Theme Support not Working) updated</title>
+      
+        <dc:creator>nacin</dc:creator>
+
+      <pubDate>Sun, 19 Sep 2010 17:11:40 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/14899#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/14899#comment:1/1284916300000000</guid>
+      <description>&lt;p&gt;
+These are internal only. Removing theme support will only cause an issue.
+&lt;/p&gt;
+&lt;p&gt;
+I'm not sure if we have proper callback deregistration functions for headers and backgrounds. Point is even if we didn't blacklist these in remove_theme_support, it wouldn't do anything.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #14899 (Remove Theme Support not Working) created</title>
+      
+        <dc:creator>adeptris</dc:creator>
+
+      <pubDate>Sun, 19 Sep 2010 17:04:37 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/14899</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/14899/1284915877000000</guid>
+      <description>&lt;p&gt;
+I have a "twenty ten" child theme and I want to disable the Custom Header and Custom Background Support, I added this code to my functions.php but it is not working.
+&lt;/p&gt;
+&lt;p&gt;
+I have tried the following in the Child Theme function.php
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;/* Remove theme support for Background and Headers */
+function remove_custom_theme_support(){
+	remove_theme_support('custom-header');
+	remove_theme_support('custom-background');
+}
+add_action( 'after_setup_theme', 'remove_custom_theme_support', 11 );
+&lt;/pre&gt;&lt;p&gt;
+I have also tried
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;/* Remove theme support for Background and Headers */
+function remove_custom_theme_support(){
+	remove_theme_support('custom-header');
+	remove_theme_support('custom-background');
+}
+add_action( 'init', 'remove_custom_theme_support' );
+&lt;/pre&gt;&lt;p&gt;
+I have tried Google and Codex, is this a know bug. or my code?
+&lt;/p&gt;
+&lt;p&gt;
+Codex says!
+Allows a theme to de-register its support of a certain feature. Should be called in the theme's functions.php file. Generally would be used for child themes to override support from the parent theme.
+&lt;/p&gt;
+&lt;p&gt;
+David
+&lt;/p&gt;
+&lt;p&gt;
+David
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #8050 (is_child()) updated</title>
+      
+        <dc:creator>scribu</dc:creator>
+
+      <pubDate>Sun, 19 Sep 2010 15:52:48 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/8050#comment:12</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/8050#comment:12/1284911568000000</guid>
+      <description>&lt;p&gt;
+I was about to make cat_is_ancestor_of() use get_ancestors().
+&lt;/p&gt;
+&lt;p&gt;
+Then I realized that cat_is_ancestor_of(), as it is now, will stop once it finds a match, whereas get_ancestors() wouldn't.
+&lt;/p&gt;
+&lt;p&gt;
+So yeah, disregard &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/8050#comment:8" title="Comment 8"&gt;comment:8&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #14897 (Selecting Network Themes &amp; Appearance selection) updated</title>
+      
+        <dc:creator>scribu</dc:creator>
+
+      <pubDate>Sun, 19 Sep 2010 11:11:33 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/14897#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/14897#comment:1/1284894693000000</guid>
+      <description>&lt;i&gt;Cc&lt;/i&gt;, &lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+I find myself wasting a lot of time with the current UI, so +1 for a makeover.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #14896 (Code cleanup: Missing braces, confusing wrong indent in functions.php) updated</title>
+      
+        <dc:creator>scribu</dc:creator>
+
+      <pubDate>Sun, 19 Sep 2010 11:08:35 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/14896#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/14896#comment:2/1284894515000000</guid>
+      <description>&lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #14896 (Code cleanup: Missing braces, confusing wrong indent in functions.php) closed</title>
+      
+        <dc:creator>scribu</dc:creator>
+
+      <pubDate>Sun, 19 Sep 2010 11:08:23 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/14896#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/14896#comment:1/1284894503000000</guid>
+      <description>fixed: &lt;p&gt;
+(In &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/15634" title="Clarify code in wp_load_alloptions(). Props joelhardi. Fixes #14896"&gt;[15634]&lt;/a&gt;) Clarify code in wp_load_alloptions(). Props joelhardi. Fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/14896" title="#14896: defect (bug): Code cleanup: Missing braces, confusing wrong indent in functions.php (closed: fixed)"&gt;#14896&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Changeset [15634]: Clarify code in wp_load_alloptions(). Props joelhardi. Fixes #14896</title>
+      
+        <dc:creator>scribu</dc:creator>
+
+      <pubDate>Sun, 19 Sep 2010 11:08:20 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/15634</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/15634/1284894500638096</guid>
+      <description>&lt;p&gt;
+Clarify code in wp_load_alloptions(). Props joelhardi. Fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/14896" title="#14896: defect (bug): Code cleanup: Missing braces, confusing wrong indent in functions.php (closed: fixed)"&gt;#14896&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Ticket #14895 (Why doesn't exists a term metadata table yet?) closed</title>
+      
+        <dc:creator>scribu</dc:creator>
+
+      <pubDate>Sun, 19 Sep 2010 11:02:16 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/14895#comment:5</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/14895#comment:5/1284894136000000</guid>
+      <description>duplicate: &lt;p&gt;
+&lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/10142" title="#10142: feature request: Add metadata support for taxonomy terms (closed: fixed)"&gt;#10142&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Ticket #14898 (Twenty-ten: Featured image doesn't work for pages (works only on posts)) created</title>
+      
+        <dc:creator>intersol</dc:creator>
+
+      <pubDate>Sun, 19 Sep 2010 10:19:47 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/14898</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/14898/1284891587000000</guid>
+      <description>&lt;p&gt;
+On default theme, twenty-ten the featured image doesn't work for pages - it works only on posts.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #14897 (Selecting Network Themes &amp; Appearance selection) created</title>
+      
+        <dc:creator>nonegiven</dc:creator>
+
+      <pubDate>Sun, 19 Sep 2010 07:57:09 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/14897</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/14897/1284883029000000</guid>
+      <description>&lt;p&gt;
+In 'Super Admin &amp;gt; Themes' there is
+&lt;/p&gt;
+&lt;p&gt;
+a) no way to enable all themes, e.g. as there is to Posts &amp;gt; Select Title.
+&lt;/p&gt;
+&lt;p&gt;
+Additionally, by default all themes are disabled. This makes it tiresome for admins of MS sites to enable new themes when setting up a blog farm with a lot of themes (must manual click each one). At the very least, there is a strong need for an "enable all themes" option.
+&lt;/p&gt;
+&lt;p&gt;
+b) there is no way to sort themes, e.g. enable/disabled (like plugins), find newly added ones from amongst old themes, tag or categorize.
+&lt;/p&gt;
+&lt;p&gt;
+Again, this makes it tiresome for admins of MS sites to find and enable new themes. The above would also fix this.
+&lt;/p&gt;
+&lt;p&gt;
+c) there is no way to search for a specific themes, e.g. by name, by feature, by tag, date added etc.
+&lt;/p&gt;
+&lt;p&gt;
+i) This latter issue also arises in the users' Appearance &amp;gt; Manage Themes pane.
+&lt;/p&gt;
+&lt;p&gt;
+The 3 column, widely spaced design might be wonderful for sites where there are just a few themes but in farms where they are many, it makes finding and choosing tiresome.
+&lt;/p&gt;
+&lt;p&gt;
+ii) Specific to this, when testing themes, Manage Themes defaults to returning to the very first page of themes making finding where one was tiresome. It should default to which ever page of themes was being looked at.
+&lt;/p&gt;
+&lt;p&gt;
+iii) Only the first three page plus last page is shown, this could easily be replaced with a list, dropdown or scroll showing all pages of themes.
+&lt;/p&gt;
+&lt;p&gt;
+d) One suggest to resolving and improving this area could be to adopt a simple slideshow type display or one similar to Apple's Cover Flow.
+&lt;/p&gt;
+&lt;p&gt;
+e) It seems that many of the code components to improve this area already exist in the code, e.g. selecting, tagging, categorizing, gallery display, an many of the features of the post and page admin pages could be applied to improve it, e,g, the "quick edit, view, move to trash" type options.
+&lt;/p&gt;
+&lt;p&gt;
+f) Indeed, it would make more sense from a UI point of view to have the Appearance page follow the models of the Post and Pages page with smaller thumbnails.
+&lt;/p&gt;
+&lt;p&gt;
+And why are the PNGs thumbs all so large in size!?!
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #14895 (Why doesn't exists a term metadata table yet?) updated</title>
+      
+        <dc:creator>sirzooro</dc:creator>
+
+      <pubDate>Sun, 19 Sep 2010 06:53:37 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/14895#comment:4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/14895#comment:4/1284879217000000</guid>
+      <description>&lt;i&gt;Cc&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Taxonomy Metadata plugin is based on existing ticket - &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/10142" title="#10142: feature request: Add metadata support for taxonomy terms (closed: fixed)"&gt;#10142&lt;/a&gt;.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>wp-db.php.15633.diff attached to Ticket #12257</title>
+      
+        <dc:creator>joelhardi</dc:creator>
+
+      <pubDate>Sun, 19 Sep 2010 06:23:09 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/12257/wp-db.php.15633.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/12257/wp-db.php.15633.diff/1284877389000000</guid>
+      <description>&lt;p&gt;
+Updated patch with more conservative changeset to get_results(). Also, now diffs with &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/15633" title="Map 'approved' comment view to 'approve' comment status. See #14579"&gt;r15633&lt;/a&gt;.
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #7795 (Activate and Deactivate Theme hooks) updated</title>
+      
+        <dc:creator>dd32</dc:creator>
+
+      <pubDate>Sun, 19 Sep 2010 06:20:22 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/7795#comment:25</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/7795#comment:25/1284877222000000</guid>
+      <description>&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+For the deactivation hook to work, the functions.php of the old theme has to be loaded. I think the most logical time to call it would be just before switching to the new theme.
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+Current generation themes utilise the 'switch_themes' action, which fires on the processing of the theme-change option. That should be the last "page load" which utilises that theme in its current state.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #14895 (Why doesn't exists a term metadata table yet?) updated</title>
+      
+        <dc:creator>lucaswxp</dc:creator>
+
+      <pubDate>Sun, 19 Sep 2010 04:24:50 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/14895#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/14895#comment:3/1284870290000000</guid>
+      <description>&lt;p&gt;
+These are nice plugins, but a built-in implementation would be better, don't you think?
+'Cause if there was a built-in implementation, the WP team could make a "add_custom_taxonomy_box" like the current "add_meta_box", for example. (of course, over time..)
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>functions.php.15633.diff attached to Ticket #14896</title>
+      
+        <dc:creator>joelhardi</dc:creator>
+
+      <pubDate>Sun, 19 Sep 2010 02:30:04 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/14896/functions.php.15633.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/14896/functions.php.15633.diff/1284863404000000</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #14896 (Code cleanup: Missing braces, confusing wrong indent in functions.php) created</title>
+      
+        <dc:creator>joelhardi</dc:creator>
+
+      <pubDate>Sun, 19 Sep 2010 02:29:48 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/14896</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/14896/1284863388000000</guid>
+      <description>&lt;p&gt;
+Patch is for current trunk &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/15633" title="Map 'approved' comment view to 'approve' comment status. See #14579"&gt;r15633&lt;/a&gt;.
+&lt;/p&gt;
+&lt;p&gt;
+This is code cleanup only. There's a one-line foreach loop missing braces (per &lt;a class="ext-link" href="http://codex.wordpress.org/WordPress_Coding_Standards#Brace_Style"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;WordPress code style&lt;/a&gt;) immediately followed by misindented code that makes it look like it is inside the foreach loop, when it is not.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item>
+   </channel>
+</rss>

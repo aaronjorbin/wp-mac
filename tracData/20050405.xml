@@ -1,0 +1,418 @@
+<?xml version="1.0"?>
+<rss xmlns:dc="http://purl.org/dc/elements/1.1/" version="2.0">
+  <channel>
+    <title>WordPress Trac</title>
+    <link>http://core.trac.wordpress.org/timeline</link>
+    <description>Trac Timeline</description>
+    <language>en-US</language>
+    <generator>Trac 1.2.2</generator>
+    <image>
+      <title>WordPress Trac</title>
+      <url>http://core.trac.wordpress.org/chrome/site/your_project_logo.png</url>
+      <link>http://core.trac.wordpress.org/timeline</link>
+    </image>
+    <item>
+      <title>Ticket #1214 (url_to_postid() for subpages returns ID of its parent, fails without ...) updated</title>
+      
+        <dc:creator>MC_incubus</dc:creator>
+
+      <pubDate>Tue, 05 Apr 2005 21:51:21 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/1214</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/1214/1112737881000000</guid>
+      <description>&lt;i&gt;Owner&lt;/i&gt;, &lt;i&gt;Status&lt;/i&gt;, &lt;i&gt;Patch&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+functions.php.diff (1,512 bytes) fixes both.  I'd appreciate it if someone looked this over to see if there isn't a better way to do it.
+&lt;/p&gt;
+&lt;p&gt;
+for the page_id situation, I modified this:
+&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;
+preg_match('#&lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/1214?" title="#1214: defect (bug): url_to_postid() for subpages returns ID of its parent, fails without ... (closed: fixed)"&gt;?&amp;amp;&lt;/a&gt;p=(\d+)#', $uri, $values);
+$p = intval($values&lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/1" title="New repository initialized by cvs2svn."&gt;[1]&lt;/a&gt;);
+if ($p) return $p;
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+to this:
+&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;
+preg_match('#&lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/1214?" title="#1214: defect (bug): url_to_postid() for subpages returns ID of its parent, fails without ... (closed: fixed)"&gt;?&amp;amp;&lt;/a&gt;(p|page_id)=(\d+)#', $uri, $values);
+$p = intval($values&lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/2" title="*** empty log message ***
+"&gt;[2]&lt;/a&gt;);
+if ($p) return $p;
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+The problem with subpage URIs was that the first "/post-slug/" was being grabbed, and everything after was dropped.  So I added code that tests to see if only a post_name was found, which means that it's a page.  If it is a page, it grabs "/post-slug/possible-subpage/grandchild-page/", strips off the trailing "/", uses explode() to put it into an array, and grabs the last value as $postname (in this case, it would be "grandchild-page") and then it overwrites the $where.
+&lt;/p&gt;
+&lt;p&gt;
+Works for me.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #1214 (url_to_postid() for subpages returns ID of its parent, fails without ...) updated</title>
+      
+        <dc:creator>MC_incubus</dc:creator>
+
+      <pubDate>Tue, 05 Apr 2005 20:22:50 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/1214</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/1214/1112732570000000</guid>
+      <description>&lt;p&gt;
+functions.php.diff (592 bytes) fixes the page_id=X situation.  I'm going to take a stab at fixing the other thing, but I might be in over my head!
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #1214 (url_to_postid() for subpages returns ID of its parent, fails without ...) updated</title>
+      
+        <dc:creator>MC_incubus</dc:creator>
+
+      <pubDate>Tue, 05 Apr 2005 19:44:20 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/1214</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/1214/1112730260000000</guid>
+      <description>&lt;i&gt;Patch&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #1214 (url_to_postid() for subpages returns ID of its parent, fails without ...) created</title>
+      
+        <dc:creator>MC_incubus</dc:creator>
+
+      <pubDate>Tue, 05 Apr 2005 19:44:20 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/1214</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/1214/1112730260000000</guid>
+      <description>&lt;p&gt;
+the url_to_postid() for subpages returns the ID of its parent page.
+&lt;/p&gt;
+&lt;p&gt;
+e.g. /page/ id=1 and /page/subpage/ id=2
+url_to_postid('&lt;a class="ext-link" href="http://site.com/page/subpage/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;http://site.com/page/subpage/&lt;/a&gt;') returns 1.
+&lt;/p&gt;
+&lt;p&gt;
+Same happens for /index.php/ type permalinks
+&lt;/p&gt;
+&lt;p&gt;
+when using no permalink rewrite style, &lt;a class="ext-link" href="http://site.com/?page_id=2"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;http://site.com/?page_id=2&lt;/a&gt;, the ID is not properly extracted (need to add similar code to the code that extracts ?p=X type permalinks.)
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #1212 (permalinks don't work with wp in a subdirectory) updated</title>
+      
+        <dc:creator>anonymousbugger</dc:creator>
+
+      <pubDate>Tue, 05 Apr 2005 18:51:21 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/1212</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/1212/1112727081000000</guid>
+      <description>&lt;p&gt;
+i had changed the blog address, though, before i tried to redo the htaccess.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #929 (html entities should not appear in rss2 title) updated</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Tue, 05 Apr 2005 17:26:15 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/929</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/929/1112721975000000</guid>
+      <description>&lt;p&gt;
+&lt;a class="ext-link" href="http://trac.wordpress.org/changeset/2517"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;http://trac.wordpress.org/changeset/2517&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Changeset [2517]: Add entity 2 ncr converter.  ...</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Tue, 05 Apr 2005 17:25:57 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/2517</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/2517/1112721957301031</guid>
+      <description>&lt;p&gt;
+Add entity 2 ncr converter.  &lt;a class="ext-link" href="http://mosquito.wordpress.org/view.php?id=929"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;http://mosquito.wordpress.org/view.php?id=929&lt;/a&gt; Props: Kaf Oseo
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Ticket #1213 (default - #wp-calendar #next - no font-size) updated</title>
+      
+        <dc:creator>cay</dc:creator>
+
+      <pubDate>Tue, 05 Apr 2005 00:10:36 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/1213</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/1213/1112659836000000</guid>
+      <description>&lt;i&gt;Patch&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #1213 (default - #wp-calendar #next - no font-size) created</title>
+      
+        <dc:creator>cay</dc:creator>
+
+      <pubDate>Tue, 05 Apr 2005 00:10:36 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/1213</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/1213/1112659836000000</guid>
+      <description>&lt;p&gt;
+there is no font-size for #wp-calendar #next. different font-size between next and prev month.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #1211 (Move replaceable functions into a separate file) closed</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Mon, 04 Apr 2005 23:26:36 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/1211</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/1211/1112657196000000</guid>
+      <description>20</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Ticket #1211 (Move replaceable functions into a separate file) updated</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Mon, 04 Apr 2005 23:26:23 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/1211</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/1211/1112657183000000</guid>
+      <description>&lt;p&gt;
+&lt;a class="ext-link" href="http://trac.wordpress.org/changeset/2516"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;http://trac.wordpress.org/changeset/2516&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Changeset [2516]: Move plugin replacebale functions to pluggable-functions.php.  ...</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Mon, 04 Apr 2005 23:25:51 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/2516</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/2516/1112657151063059</guid>
+      <description>&lt;p&gt;
+Move plugin replacebale functions to pluggable-functions.php.  &lt;a class="ext-link" href="http://mosquito.wordpress.org/view.php?id=1211"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;http://mosquito.wordpress.org/view.php?id=1211&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Ticket #1211 (Move replaceable functions into a separate file) updated</title>
+      
+        <dc:creator>matt</dc:creator>
+
+      <pubDate>Mon, 04 Apr 2005 23:24:53 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/1211</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/1211/1112657093000000</guid>
+      <description>&lt;p&gt;
++1 commit
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #1210 (Make wp_mail replaceable) closed</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Mon, 04 Apr 2005 22:36:27 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/1210</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/1210/1112654187000000</guid>
+      <description>20: &lt;p&gt;
+&lt;a class="ext-link" href="http://trac.wordpress.org/changeset/2515"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;http://trac.wordpress.org/changeset/2515&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Changeset [2515]: Make wp_mail() replaceable.  http://mosquito.wordpress.org/view.php?id=1210</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Mon, 04 Apr 2005 22:36:09 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/2515</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/2515/1112654169751384</guid>
+      <description>&lt;p&gt;
+Make wp_mail() replaceable.  &lt;a class="ext-link" href="http://mosquito.wordpress.org/view.php?id=1210"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;http://mosquito.wordpress.org/view.php?id=1210&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Ticket #1212 (permalinks don't work with wp in a subdirectory) updated</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Mon, 04 Apr 2005 20:55:45 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/1212</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/1212/1112648145000000</guid>
+      <description>&lt;p&gt;
+WP lookd for .htaccess in the directory that corresponds to the "Blog Address" settings in Options-&amp;gt;General.
+&lt;/p&gt;
+&lt;p&gt;
+Permalinks should work just fine in a subdirectory.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #1212 (permalinks don't work with wp in a subdirectory) updated</title>
+      
+        <dc:creator>anonymousbugger</dc:creator>
+
+      <pubDate>Mon, 04 Apr 2005 20:22:18 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/1212</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/1212/1112646138000000</guid>
+      <description>&lt;i&gt;Patch&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #1212 (permalinks don't work with wp in a subdirectory) created</title>
+      
+        <dc:creator>anonymousbugger</dc:creator>
+
+      <pubDate>Mon, 04 Apr 2005 20:22:18 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/1212</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/1212/1112646138000000</guid>
+      <description>&lt;p&gt;
+i couldn't seem to get my permalinks to work after i moved my wp files around, even though i totally removed the htaccess, tried to do it all manually, etc. wp said it couldn't find my htaccess, and i gave up.
+&lt;/p&gt;
+&lt;p&gt;
+as soon as i moved my wp files to the root directory, however, everything cleared up - wp said my permalinks were updated, etc. seems like there is a bug with permalinks and subdirectories?
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #1206 (improperly internationalized string in theme) closed</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Mon, 04 Apr 2005 19:45:32 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/1206</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/1206/1112643932000000</guid>
+      <description>20: &lt;p&gt;
+Yes.  We'll see about getting trac setup for wordpress-i18n.
+&lt;/p&gt;
+</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Ticket #1211 (Move replaceable functions into a separate file) updated</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Mon, 04 Apr 2005 19:42:31 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/1211</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/1211/1112643751000000</guid>
+      <description>&lt;i&gt;Patch&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #1211 (Move replaceable functions into a separate file) created</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Mon, 04 Apr 2005 19:42:30 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/1211</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/1211/1112643750000000</guid>
+      <description>&lt;p&gt;
+Move replaceable functions into a separate file that is included after plugins are loaded.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #1210 (Make wp_mail replaceable) updated</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Mon, 04 Apr 2005 19:40:09 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/1210</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/1210/1112643609000000</guid>
+      <description>&lt;i&gt;Patch&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #1210 (Make wp_mail replaceable) created</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Mon, 04 Apr 2005 19:40:09 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/1210</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/1210/1112643609000000</guid>
+      <description>&lt;p&gt;
+Wrap wp_mail in a function_exists() call so that it can bre replaced by plugins.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #1209 (Comments RSS Wrong Time) updated</title>
+      
+        <dc:creator>anonymousbugger</dc:creator>
+
+      <pubDate>Mon, 04 Apr 2005 19:08:23 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/1209</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/1209/1112641703000000</guid>
+      <description>&lt;i&gt;Patch&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #1209 (Comments RSS Wrong Time) created</title>
+      
+        <dc:creator>anonymousbugger</dc:creator>
+
+      <pubDate>Mon, 04 Apr 2005 19:08:23 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/1209</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/1209/1112641703000000</guid>
+      <description>&lt;p&gt;
+wp-commentsrss2 produces the wrong time stamp in the pubdate field.  It does not allow for different time zones.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #1206 (improperly internationalized string in theme) updated</title>
+      
+        <dc:creator>nbachiyski</dc:creator>
+
+      <pubDate>Mon, 04 Apr 2005 07:11:43 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/1206</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/1206/1112598703000000</guid>
+      <description>&lt;p&gt;
+I thought I had commit access only to the bg_BG directory. Thanks for the note.
+&lt;/p&gt;
+&lt;p&gt;
+Patch applied. Issue resolved.
+&lt;/p&gt;
+&lt;p&gt;
+P.S. Isn't it a good idea to make trac handle and the wordpress-i18n repository?
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #1208 (extended characters are wrong on upload.php) updated</title>
+      
+        <dc:creator>felixe</dc:creator>
+
+      <pubDate>Mon, 04 Apr 2005 03:23:08 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/1208</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/1208/1112584988000000</guid>
+      <description>&lt;i&gt;Patch&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #1208 (extended characters are wrong on upload.php) created</title>
+      
+        <dc:creator>felixe</dc:creator>
+
+      <pubDate>Mon, 04 Apr 2005 03:23:08 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/1208</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/1208/1112584988000000</guid>
+      <description>&lt;p&gt;
+When using extended characters in the alt tag description for upload.php they don't get translated correctly.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Changeset [2514]: Active plugins array sanity check.  If the array isn't an array, reset it.</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Mon, 04 Apr 2005 02:48:18 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/2514</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/2514/1112582898746252</guid>
+      <description>&lt;p&gt;
+Active plugins array sanity check.  If the array isn't an array, reset it.
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item>
+   </channel>
+</rss>

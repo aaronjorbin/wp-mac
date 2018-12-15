@@ -1,0 +1,389 @@
+<?xml version="1.0"?>
+<rss xmlns:dc="http://purl.org/dc/elements/1.1/" version="2.0">
+  <channel>
+    <title>WordPress Trac</title>
+    <link>http://core.trac.wordpress.org/timeline</link>
+    <description>Trac Timeline</description>
+    <language>en-US</language>
+    <generator>Trac 1.2.2</generator>
+    <image>
+      <title>WordPress Trac</title>
+      <url>http://core.trac.wordpress.org/chrome/site/your_project_logo.png</url>
+      <link>http://core.trac.wordpress.org/timeline</link>
+    </image>
+    <item>
+      <title>Ticket #2962 ("Resetting" a blog and re-running install.php does not work) created</title>
+      
+        <dc:creator>RuddO</dc:creator>
+
+      <pubDate>Thu, 20 Jul 2006 23:57:01 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/2962</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/2962/1153439821000000</guid>
+      <description>&lt;p&gt;
+I encountered a problem using WP 2.0.3 + nonce fixes patch.  It's basically the following:
+&lt;/p&gt;
+&lt;ol&gt;&lt;li&gt;delete all the WP tables' contents using delete from wp_...
+&lt;/li&gt;&lt;li&gt;re-run install.php to have the tables repopulated with default values
+&lt;/li&gt;&lt;li&gt;try to log in with the newly created admin user
+&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;
+You can log in, but you can't access any of the admin pages (You do not have sufficient permissions... that menu.php prints).
+&lt;/p&gt;
+&lt;p&gt;
+This is what's going on, after running install.php:
+&lt;/p&gt;
+&lt;p&gt;
+mysql&amp;gt; select * from test_usermeta;
++----------+---------+-------------------+---------------------------------+
+| umeta_id | user_id | meta_key          | meta_value                      |
++----------+---------+-------------------+---------------------------------+
+|        5 |       1 | test_user_level   | 10                              |
+|        6 |       5 | test_capabilities | a:1:{s:13:&amp;#34;administrator&amp;#34;;b:1;} |
++----------+---------+-------------------+---------------------------------+
+&lt;/p&gt;
+&lt;p&gt;
+As you can see, the row keyed 6 is using the user_id 5 (non-existant, probably taken from some autoincrement in MySQL).  The test_users table has the following:
+&lt;/p&gt;
+&lt;p&gt;
+mysql&amp;gt; select * from test_users;
++----+------------+----------------------------------+---------------+-------------------+----------+---------------------+---------------------+-------------+--------------+
+| ID | user_login | user_pass                        | user_nicename | user_email        | user_url | user_registered     | user_activation_key | user_status | display_name |
++----+------------+----------------------------------+---------------+-------------------+----------+---------------------+---------------------+-------------+--------------+
+|  1 | admin      | 65313ed4218de7c45b1425624632756b | admin         | asantos@… |          | 2006-07-20 18:18:17 |                     |           0 | asantos      |
++----+------------+----------------------------------+---------------+-------------------+----------+---------------------+---------------------+-------------+--------------+
+&lt;/p&gt;
+&lt;p&gt;
+so you can see the correct user ID is 1.
+&lt;/p&gt;
+&lt;p&gt;
+A simple
+&lt;/p&gt;
+&lt;p&gt;
+mysql&amp;gt; update test_usermeta set user_id = 1;
+&lt;/p&gt;
+&lt;p&gt;
+fixes the issue.
+&lt;/p&gt;
+&lt;p&gt;
+I admit, and I know, emptying a table does not guarantee that the autoincrement counter will be reset.  But this simple fact shouldn't have any impact on WP performance.
+&lt;/p&gt;
+&lt;p&gt;
+Who knows what other kinds of bugs like this lie around in WP's source code?
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #2395 (Minor addition to _page_level_out) updated</title>
+      
+        <dc:creator>FireMotion</dc:creator>
+
+      <pubDate>Thu, 20 Jul 2006 17:45:38 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/2395</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/2395/1153417538000000</guid>
+      <description>&lt;i&gt;Severity&lt;/i&gt;, &lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Currently in Internet Explorer (6.0), if you define: &lt;code&gt;ul li {}&lt;/code&gt; then any following &lt;code&gt;ul li li {}&lt;/code&gt; or &lt;code&gt;ul li li li {}&lt;/code&gt; doesn't work, it gets whatever is defined under &lt;code&gt;ul li {}&lt;/code&gt; (because IE processes this as: &lt;em&gt;any&lt;/em&gt; &lt;code&gt;li&lt;/code&gt; that is contained within &lt;code&gt;ul&lt;/code&gt;, even if nested within other tags).
+&lt;/p&gt;
+&lt;p&gt;
+In other good browsers you can use &lt;code&gt;ul&amp;gt;li {}&lt;/code&gt; then &lt;code&gt;ul&amp;gt;li&amp;gt;ul&amp;gt;li&lt;/code&gt; to get the correct results (this is processed as: the &lt;code&gt;li&lt;/code&gt; that is contained within &lt;code&gt;ul&lt;/code&gt; but not enclosed within other tags).
+&lt;/p&gt;
+&lt;p&gt;
+&lt;strong&gt;Back to the problem&lt;/strong&gt;&lt;br /&gt;
+&lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/2437" title="#2437: enhancement: Add CSS classes to parents of the current item in the output of ... (closed: fixed)"&gt;#2437&lt;/a&gt; seems like a solution, but it only covers current items: it adds a class for the parent whenever a child is active. A combination of these two tickets would be better indeed:
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;* page_item page_item_top
+  * page_item
+  * page_item
+* page_item page_item_top current_page_item_top
+  * page_item current_page_item
+  * page_item
+  * page_item
+* page_item page_item_top
+* page_item page_item_top
+&lt;/pre&gt;&lt;p&gt;
+I called them &lt;code&gt;top&lt;/code&gt; because these are the top items/parents. This, however, poses a problem. If there are sub-sub-items, what whould happen:
+1)
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;* page_item page_item_top
+  * page_item page_item_parent
+    * page_item page_item_parent
+      * page_item
+&lt;/pre&gt;&lt;p&gt;
+or 2)
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;* page_item page_item_top
+  * page_item page_item_top
+    * page_item page_item_top
+      * page_item
+&lt;/pre&gt;&lt;p&gt;
+or 3) (preferred)
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;* page_item page_item_top
+  * page_item
+    * page_item
+      * page_item
+&lt;/pre&gt;&lt;p&gt;
+Furthermore, if the function is called, and asked only to get child nodes of a parent, should the top node get the &lt;code&gt;page_item_top&lt;/code&gt; class (it's not the real top item, but it's the sub-item of the node that is asked for)?
+&lt;/p&gt;
+&lt;p&gt;
+Customization through parameters seems preferred (through &lt;code&gt;wp_list_pages&lt;/code&gt;): &lt;code&gt;page_item_top=&lt;/code&gt; or &lt;code&gt;page_item_parent=&lt;/code&gt; and &lt;code&gt;current_item_top=&lt;/code&gt; or &lt;code&gt;current_page_item_parent=&lt;/code&gt;.
+&lt;/p&gt;
+&lt;p&gt;
+In addition, fixing this ticket would obsolete &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/2364" title="#2364: enhancement: Create is_page_or_child() Template Tag (closed: duplicate)"&gt;#2364&lt;/a&gt;.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #2961 (get_calendar() bug with futurepost) created</title>
+      
+        <dc:creator>murky</dc:creator>
+
+      <pubDate>Thu, 20 Jul 2006 12:33:24 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/2961</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/2961/1153398804000000</guid>
+      <description>&lt;p&gt;
+I've searched and haven't seen this reported, apologies if this is a duplicate.
+&lt;/p&gt;
+&lt;p&gt;
+With the &amp;lt;?php get_calendar(); ?&amp;gt; function, there is a bug with futureposts which have the status of 'publish'.
+&lt;/p&gt;
+&lt;p&gt;
+If the futurepost is in a future month, a navigation link for that month is displayed. Of course, this yields a 404.
+&lt;/p&gt;
+&lt;p&gt;
+E.g. On &lt;a class="ext-link" href="http://www.murky.org/blg"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;http://www.murky.org/blg&lt;/a&gt; I have a post scheduled for Feb 2007 (a long way off, I know), and a link for Feb 2007 is present.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #2958 (Editing a page converts page to post) closed</title>
+      
+        <dc:creator>MtDewVirus</dc:creator>
+
+      <pubDate>Thu, 20 Jul 2006 03:05:58 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/2958</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/2958/1153364758000000</guid>
+      <description>invalid: &lt;p&gt;
+Tracked it down. I was using the edit option on the WP admin bar plugin. Post pages it is sending to post.php instead of page.php
+&lt;/p&gt;
+</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Ticket #2958 (Editing a page converts page to post) reopened</title>
+      
+        <dc:creator>MtDewVirus</dc:creator>
+
+      <pubDate>Thu, 20 Jul 2006 02:06:07 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/2958</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/2958/1153361167000000</guid>
+      <description>&lt;p&gt;
+I'm running revision 4017.
+&lt;/p&gt;
+&lt;p&gt;
+I just published a test page, went back in to edit it, saved it, and again it's changed to a post. Did it on two different sites running that revision just to make sure and the same thing happened on both.
+&lt;/p&gt;
+</description>
+      <category>reopenedticket</category>
+    </item><item>
+      <title>Ticket #2959 (wp_list_pages does not add current_page_item class on page_for_posts) closed</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Thu, 20 Jul 2006 02:05:27 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/2959</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/2959/1153361127000000</guid>
+      <description>fixed: &lt;p&gt;
+(In &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/4023" title="Fix current page handling when using page_for_posts.  Props skeltoac.  ..."&gt;[4023]&lt;/a&gt;) Fix current page handling when using page_for_posts.  Props skeltoac.  fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/2959" title="#2959: defect (bug): wp_list_pages does not add current_page_item class on page_for_posts (closed: fixed)"&gt;#2959&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Changeset [4023]: Fix current page handling when using page_for_posts.  Props skeltoac.  ...</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Thu, 20 Jul 2006 02:05:25 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/4023</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/4023/1153361125954711</guid>
+      <description>&lt;p&gt;
+Fix current page handling when using page_for_posts.  Props skeltoac.  fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/2959" title="#2959: defect (bug): wp_list_pages does not add current_page_item class on page_for_posts (closed: fixed)"&gt;#2959&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Ticket #2958 (Editing a page converts page to post) closed</title>
+      
+        <dc:creator>technosailor</dc:creator>
+
+      <pubDate>Thu, 20 Jul 2006 01:43:53 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/2958</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/2958/1153359833000000</guid>
+      <description>worksforme: &lt;p&gt;
+Ditto. Works fine for me. Take 2 votes as an anomaly.
+&lt;/p&gt;
+</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Ticket #2960 (Don't allow blank categories to be added) updated</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Thu, 20 Jul 2006 01:30:52 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/2960</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/2960/1153359052000000</guid>
+      <description>&lt;i&gt;Version&lt;/i&gt;, &lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #2960 (Don't allow blank categories to be added) closed</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Thu, 20 Jul 2006 01:30:38 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/2960</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/2960/1153359038000000</guid>
+      <description>fixed: &lt;p&gt;
+(In &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/4022" title="Don't allow blank cats.  Props donncha. fixes #2960"&gt;[4022]&lt;/a&gt;) Don't allow blank cats.  Props donncha. fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/2960" title="#2960: defect (bug): Don't allow blank categories to be added (closed: fixed)"&gt;#2960&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Changeset [4022]: Don't allow blank cats.  Props donncha. fixes #2960</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Thu, 20 Jul 2006 01:30:37 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/4022</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/4022/1153359037218667</guid>
+      <description>&lt;p&gt;
+Don't allow blank cats.  Props donncha. fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/2960" title="#2960: defect (bug): Don't allow blank categories to be added (closed: fixed)"&gt;#2960&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>patch.txt attached to Ticket #2960</title>
+      
+        <dc:creator>donncha</dc:creator>
+
+      <pubDate>Wed, 19 Jul 2006 13:36:11 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/2960/patch.txt</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/2960/patch.txt/1153316171210000</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #2960 (Don't allow blank categories to be added) created</title>
+      
+        <dc:creator>donncha</dc:creator>
+
+      <pubDate>Wed, 19 Jul 2006 13:35:53 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/2960</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/2960/1153316153000000</guid>
+      <description>&lt;p&gt;
+It's possible to add blank categories. Here's a patch to fix that.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #2959 (wp_list_pages does not add current_page_item class on page_for_posts) updated</title>
+      
+        <dc:creator>skeltoac</dc:creator>
+
+      <pubDate>Wed, 19 Jul 2006 10:48:52 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/2959</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/2959/1153306132000000</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt;, &lt;i&gt;Owner&lt;/i&gt;, &lt;i&gt;Status&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Attached patch introducing $wp_query-&amp;gt;is_posts_page and modifying $wp_query-&amp;gt;get_queried_object().
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>posts-page.diff attached to Ticket #2959</title>
+      
+        <dc:creator>skeltoac</dc:creator>
+
+      <pubDate>Wed, 19 Jul 2006 10:47:20 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/2959/posts-page.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/2959/posts-page.diff/1153306040320000</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #2959 (wp_list_pages does not add current_page_item class on page_for_posts) created</title>
+      
+        <dc:creator>skeltoac</dc:creator>
+
+      <pubDate>Wed, 19 Jul 2006 10:46:28 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/2959</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/2959/1153305988000000</guid>
+      <description>&lt;p&gt;
+Menus that rely on wp_list_pages are broken when page_for_posts is accessed.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #2957 ([patch] RSS importer doesn't import Wordpress.com comments) closed</title>
+      
+        <dc:creator>swillison</dc:creator>
+
+      <pubDate>Wed, 19 Jul 2006 08:10:30 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/2957</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/2957/1153296630000000</guid>
+      <description>invalid: &lt;p&gt;
+D'oh! Should have checked the development version before I wrote this. Aah well.
+&lt;/p&gt;
+</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Ticket #2958 (Editing a page converts page to post) updated</title>
+      
+        <dc:creator>JeremyVisser</dc:creator>
+
+      <pubDate>Wed, 19 Jul 2006 06:10:42 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/2958</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/2958/1153289442000000</guid>
+      <description>&lt;p&gt;
+It works fine for me on my WordPress 2.1 based blog on SVN trunk revision 4021.
+&lt;/p&gt;
+&lt;p&gt;
+What revision are you running? You can find out by typing &lt;code&gt;svn info&lt;/code&gt;.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #2958 (Editing a page converts page to post) created</title>
+      
+        <dc:creator>MtDewVirus</dc:creator>
+
+      <pubDate>Wed, 19 Jul 2006 04:15:34 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/2958</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/2958/1153282534000000</guid>
+      <description>&lt;p&gt;
+When editing a page and saving the changes, the page is converted to a post.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #2957 ([patch] RSS importer doesn't import Wordpress.com comments) updated</title>
+      
+        <dc:creator>technosailor</dc:creator>
+
+      <pubDate>Wed, 19 Jul 2006 02:28:03 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/2957</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/2957/1153276083000000</guid>
+      <description>&lt;p&gt;
+Probably because the WP XML importer is not supported (except by my plugin) in 2.0.3?
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #2957 ([patch] RSS importer doesn't import Wordpress.com comments) updated</title>
+      
+        <dc:creator>matt</dc:creator>
+
+      <pubDate>Wed, 19 Jul 2006 02:23:44 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/2957</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/2957/1153275824000000</guid>
+      <description>&lt;p&gt;
+Why would people use the RSS importer instead of the WP XML importer, and why should e duplicate code between them?
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item>
+   </channel>
+</rss>

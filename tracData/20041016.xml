@@ -1,0 +1,537 @@
+<?xml version="1.0"?>
+<rss xmlns:dc="http://purl.org/dc/elements/1.1/" version="2.0">
+  <channel>
+    <title>WordPress Trac</title>
+    <link>http://core.trac.wordpress.org/timeline</link>
+    <description>Trac Timeline</description>
+    <language>en-US</language>
+    <generator>Trac 1.2.2</generator>
+    <image>
+      <title>WordPress Trac</title>
+      <url>http://core.trac.wordpress.org/chrome/site/your_project_logo.png</url>
+      <link>http://core.trac.wordpress.org/timeline</link>
+    </image>
+    <item>
+      <title>Ticket #379 (Remember Me checkbox for login page) created</title>
+      
+        <dc:creator>Jenn99</dc:creator>
+
+      <pubDate>Sat, 16 Oct 2004 23:48:56 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/379</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/379/1097970536000000</guid>
+      <description>&lt;p&gt;
+Attached is a diff (I think?! I don't know really know how to create these - so let me know if I did it correctly!) and my version of wp-login.php based off the latest CVS (10-16-2004) which adds the a checkbox "Remember me". This makes it so that if users do NOT check the box, when they close their browser window, they are effectively logged out (this way, if they forget to logout, their login is not remembered the next time someone uses the same machine and opens the browser).
+&lt;/p&gt;
+&lt;p&gt;
+If the checkbox is checked, the login functions normally as it does currently.
+&lt;/p&gt;
+&lt;p&gt;
+Please email me if you have any quesitons - or if I need to submit this change/suggestion elsewhere.
+scripty at scriptygoddess dot com
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #376 (Without Having Logged in - can see too much info!) updated</title>
+      
+        <dc:creator>nickromney</dc:creator>
+
+      <pubDate>Sat, 16 Oct 2004 21:39:05 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/376</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/376/1097962745000000</guid>
+      <description>&lt;p&gt;
+There are several issues around this:
+&lt;/p&gt;
+&lt;ol&gt;&lt;li&gt;If the admin URL is known, anyone can access menu pages which have a user level of 0.
+&lt;/li&gt;&lt;/ol&gt;&lt;ol start="2"&gt;&lt;li&gt;Menu options are hidden, if $user_level is lower than the menu page level. The same is not true for submenu options.
+&lt;/li&gt;&lt;/ol&gt;&lt;ol start="3"&gt;&lt;li&gt;Individual pages set their own user levels within the scripts.
+&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;
+Here are the ways I've resolved this:
+&lt;/p&gt;
+&lt;p&gt;
+Menu array now includes the test for whether to include upload.php (as detailed in bug 000371)
+&lt;/p&gt;
+&lt;p&gt;
+If the page is the current page, the css class is set to current, and I've added a variable: $page_access_level (set to 10 as default).
+&lt;/p&gt;
+&lt;p&gt;
+$menu_string and $submenu_string are set.
+&lt;/p&gt;
+&lt;p&gt;
+admin-header.php
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;requires menu.php
+&lt;/li&gt;&lt;li&gt;tests ($user_nickname) to see if user is logged in. If not, provide link to login page. Don't provide blog admin e-mail, in case this is a snoop attack.
+&lt;/li&gt;&lt;li&gt;tests ($user_level &amp;gt; $page_access_level) to see if user can access that page. If not, echo user's current level, and the page access level which would be required. Give access to blog admin e-mail.
+&lt;/li&gt;&lt;li&gt;if both these tests are passed, $menu_string, and $submenu_string are echoed, creating the admin menu.
+&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;
+Many individual pages test $user_level independently (per case).
+E.g. wp-admin/categories.php. Lines 47 is currently:
+&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;
+if ($user_level &amp;lt; 3)
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+This can be updated to:
+&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;
+if ($user_level &amp;lt; $page_access_level)
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+(These per case tests can still be left in if there are different levels per page - e.g. level 1 to rename a category; level 3 to delete a category, or relative to $page_access_level).
+&lt;/p&gt;
+&lt;p&gt;
+I've uploaded my altered versions of these two files. I don't know how to do a diff. Hope this helps.
+&lt;/p&gt;
+&lt;p&gt;
+Update: for users with a level of 0, they are directed to the dashboard (index.php), which requires a level of 0. The profile page submenu has a level of 5, which, now that the submenu verification works, won't be displayed.
+Update the users submenu lines to read:
+&lt;/p&gt;
+&lt;p&gt;
+$submenu&lt;a class="missing wiki"&gt;users.php?&lt;/a&gt;&lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/5" title="Major updates to default structure, Some minor class/id issues still ..."&gt;[5]&lt;/a&gt; = array(&lt;span class="underline"&gt;('Authors &amp;amp;amp; Users'), 3, 'users.php');
+$submenu&lt;a class="missing wiki"&gt;users.php?&lt;/a&gt;&lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/10" title="WordPress branding.
+"&gt;[10]&lt;/a&gt; = array(&lt;/span&gt;('Your Profile'), 0, 'profile.php');
+&lt;/p&gt;
+&lt;p&gt;
+In a standard WP installation (i.e. user level to write set at 1, I suggest that Dashboard be set to 1 also) - i.e. the only thing users of level 0 can do is edit their profile.
+&lt;/p&gt;
+&lt;p&gt;
+Of the two menu.php files I've uploaded, the most recent is the one to use.
+&lt;/p&gt;
+&lt;p&gt;
+edited on: 10-16-04 22:08
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #377 (CVS 2004-10-16: Error on accessing site admin) updated</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Sat, 16 Oct 2004 16:49:38 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/377</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/377/1097945378000000</guid>
+      <description>&lt;p&gt;
+You need to upgrade admin-functions.php.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #378 (CVS 2004-10-14/16: Not able to log in, session expires) updated</title>
+      
+        <dc:creator>anonymousbugger</dc:creator>
+
+      <pubDate>Sat, 16 Oct 2004 13:36:15 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/378</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/378/1097933775000000</guid>
+      <description>&lt;p&gt;
+CVS 2004-10-12 doesn't have this problem.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #378 (CVS 2004-10-14/16: Not able to log in, session expires) created</title>
+      
+        <dc:creator>anonymousbugger</dc:creator>
+
+      <pubDate>Sat, 16 Oct 2004 13:23:29 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/378</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/378/1097933009000000</guid>
+      <description>&lt;p&gt;
+Some builds ago, when wordpress said that my session was expired I had just to logout and login again to get it working.
+&lt;/p&gt;
+&lt;p&gt;
+As today, even if I logout or manually delete the wordpress cookie from my browser, I cannot login successfully.
+It continues to say "Your session has expired.".
+&lt;/p&gt;
+&lt;p&gt;
+Tried on Firefox and IE, cleaning cache and cookies. Tried cvs 2004-10-14 and 2004-10-16.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #377 (CVS 2004-10-16: Error on accessing site admin) created</title>
+      
+        <dc:creator>anonymousbugger</dc:creator>
+
+      <pubDate>Sat, 16 Oct 2004 13:16:19 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/377</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/377/1097932579000000</guid>
+      <description>&lt;p&gt;
+If a user, who's not logged in, tries to access to the admin area (wordpress/wp-admin) he gets the following error instead of being prompted for the user/pass:
+&lt;/p&gt;
+&lt;p&gt;
+Fatal error: Cannot redeclare get_theme_data() (previously declared in /var/www/html/wordpress/wp-includes/functions.php:1872) in /var/www/html/wordpress/wp-admin/admin-functions.php on line 551
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #376 (Without Having Logged in - can see too much info!) created</title>
+      
+        <dc:creator>Jenn99</dc:creator>
+
+      <pubDate>Sat, 16 Oct 2004 12:04:14 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/376</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/376/1097928254000000</guid>
+      <description>&lt;p&gt;
+I was NOT logged into wordpress, and have the setting to not allow others to register (latest CVS - 10/16/2004) and I attempted to hit one of the admin pages (like post.php)
+&lt;/p&gt;
+&lt;p&gt;
+Instead of getting directed somewhere else - I got a page that said my "level" wasn't high enough (I wasn't even logged in). I could see links to the "dashboard" and even VIEW OTHER USERS for that wordpress installation and THEIR EMAIL ADDRESSES. And "edit my profile". See posts on the site, comments (including ones waiting in moderation) etc. etc. Basically there was a TON of stuff I shouldn't have been allowed to see.
+&lt;/p&gt;
+&lt;p&gt;
+I won't post the link to the test area - you can email me privately for it if you want to see what I'm talking about.
+scripty at scriptygoddess dot com
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #375 (slash after 'url of this directory') created</title>
+      
+        <dc:creator>davidcrickett</dc:creator>
+
+      <pubDate>Sat, 16 Oct 2004 11:04:17 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/375</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/375/1097924657000000</guid>
+      <description>&lt;p&gt;
+there must be a slash / after 'url of this directory' in  Options-&amp;gt;Miscellaneous
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #359 (Can edit all posts with a comment on the same userlevel (even 1st)) updated</title>
+      
+        <dc:creator>michel v</dc:creator>
+
+      <pubDate>Sat, 16 Oct 2004 10:25:55 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/359</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/359/1097922355000000</guid>
+      <description>&lt;p&gt;
+Reporter: can you confirm this happening with the latest CVS? There were changes yesterday to prevent this from happening.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #374 (Latest post.php is giving PHP warnings) closed</title>
+      
+        <dc:creator>michel v</dc:creator>
+
+      <pubDate>Sat, 16 Oct 2004 10:19:15 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/374</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/374/1097921955000000</guid>
+      <description></description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Ticket #374 (Latest post.php is giving PHP warnings) closed</title>
+      
+        <dc:creator>michel v</dc:creator>
+
+      <pubDate>Sat, 16 Oct 2004 10:19:07 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/374</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/374/1097921947000000</guid>
+      <description>20: &lt;p&gt;
+Fixed, thanks for the heads up.
+&lt;/p&gt;
+</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Changeset [1806]: removed call time pass by reference in enclosures support </title>
+      
+        <dc:creator>michelvaldrighi</dc:creator>
+
+      <pubDate>Sat, 16 Oct 2004 10:18:36 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/1806</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/1806/1097921916000000</guid>
+      <description>&lt;p&gt;
+removed call time pass by reference in enclosures support
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Ticket #374 (Latest post.php is giving PHP warnings) updated</title>
+      
+        <dc:creator>davidhouse</dc:creator>
+
+      <pubDate>Sat, 16 Oct 2004 09:37:04 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/374</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/374/1097919424000000</guid>
+      <description>&lt;p&gt;
+This isn't happening on my live server, which is running PHP Version 4.3.8. I guess it's a problem with PHP then, and we may have to hack around it?
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #374 (Latest post.php is giving PHP warnings) created</title>
+      
+        <dc:creator>davidhouse</dc:creator>
+
+      <pubDate>Sat, 16 Oct 2004 09:33:40 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/374</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/374/1097919220000000</guid>
+      <description>&lt;p&gt;
+Getting this lot at the top of any page using wp-admin/post.php:
+&lt;/p&gt;
+&lt;p&gt;
+Warning: Call-time pass-by-reference has been deprecated - argument passed by value; If you would like to pass it by reference, modify the declaration of fsockopen(). If you would like to enable call-time pass-by-reference, you can set allow_call_time_pass_reference to true in your INI file. However, future versions may not support this any longer. in c:\program files\pdev\www\wp-admin\post.php on line 387
+&lt;/p&gt;
+&lt;p&gt;
+Warning: Call-time pass-by-reference has been deprecated - argument passed by value; If you would like to pass it by reference, modify the declaration of fsockopen(). If you would like to enable call-time pass-by-reference, you can set allow_call_time_pass_reference to true in your INI file. However, future versions may not support this any longer. in c:\program files\pdev\www\wp-admin\post.php on line 387
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #373 (Going to URI http://yoursitehere.com/wp-admin/ takes to to profile.php ...) created</title>
+      
+        <dc:creator>tin</dc:creator>
+
+      <pubDate>Sat, 16 Oct 2004 07:24:52 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/373</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/373/1097911492000000</guid>
+      <description>&lt;p&gt;
+When going to the URI &lt;a class="ext-link" href="http://yoursitehere.com/wp-admin/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;http://yoursitehere.com/wp-admin/&lt;/a&gt;, it should redirect you to ./wp-login.php if you haven't logged in yet.  However, right now, it takes you to profile.php.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #372 (Permalink settings automatically reset by options-permalink.php) updated</title>
+      
+        <dc:creator>darkcanuck</dc:creator>
+
+      <pubDate>Sat, 16 Oct 2004 05:55:53 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/372</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/372/1097906153000000</guid>
+      <description>&lt;p&gt;
+Reported by me (forgot to login).
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #372 (Permalink settings automatically reset by options-permalink.php) updated</title>
+      
+        <dc:creator>anonymousbugger</dc:creator>
+
+      <pubDate>Sat, 16 Oct 2004 05:50:49 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/372</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/372/1097905849000000</guid>
+      <description>&lt;ol&gt;&lt;li&gt;Go to Admin panel -&amp;gt; Options -&amp;gt; Permalinks
+&lt;/li&gt;&lt;li&gt;Enter a value for structure and/or category base and click update.
+&lt;/li&gt;&lt;li&gt;Verify values are set in MySQL database.
+&lt;/li&gt;&lt;li&gt;Go to another page, then return to the Permalinks form.
+&lt;/li&gt;&lt;li&gt;Notice that values are gone - check database and both settings have been set to empty strings in wp_options.
+&lt;/li&gt;&lt;/ol&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #372 (Permalink settings automatically reset by options-permalink.php) created</title>
+      
+        <dc:creator>anonymousbugger</dc:creator>
+
+      <pubDate>Sat, 16 Oct 2004 05:50:49 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/372</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/372/1097905849000000</guid>
+      <description>&lt;p&gt;
+Whenever the options-permalink.php page is opened without POST data, the settings 'permalink_structure' and 'category_base' are set to empty strings.  If you move on to another form without re-entering and saving the settings, your permalink settings are wiped out.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #368 (Extra drafts are created when Advanced Editing is clicked.) updated</title>
+      
+        <dc:creator>MC_incubus</dc:creator>
+
+      <pubDate>Fri, 15 Oct 2004 21:51:09 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/368</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/368/1097877069000000</guid>
+      <description>&lt;p&gt;
+Okay, I have a possible solution here.
+&lt;/p&gt;
+&lt;p&gt;
+Drafts are shown on 2 pages (regular post.php, and edit.php), so changes go in each of those files.
+&lt;/p&gt;
+&lt;p&gt;
+For both files, $drafts and $empty_drafts are defined as such:
+&lt;/p&gt;
+&lt;p&gt;
+$drafts = $wpdb-&amp;gt;get_results("SELECT ID, post_title FROM $wpdb-&amp;gt;posts WHERE post_status = 'draft' AND post_author = $user_ID AND (post_content != &lt;em&gt; OR post_title != &lt;/em&gt; OR post_excerpt != &lt;em&gt;)");
+&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;
+$empty_drafts = $wpdb-&amp;gt;get_results("SELECT ID FROM $wpdb-&amp;gt;posts WHERE post_status = 'draft' AND post_author = $user_ID AND post_content = &lt;em&gt; AND post_title = &lt;/em&gt; AND post_excerpt = &lt;em&gt;");
+&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;
+This excludes from $drafts any posts by the current user that have no post_content, no post_title, and no post_excerpt.
+&lt;/p&gt;
+&lt;p&gt;
+$empty_drafts selects the drafts where all 3 of those fields are empty.
+&lt;/p&gt;
+&lt;p&gt;
+Then, all posts in $empty_drafts are deleted.
+&lt;/p&gt;
+&lt;p&gt;
+In edit.php, a user can see drafts of other users with equal or lower user level.  I do NOT delete blank drafts of other users for this reason: if user A clicks "advanced entry" (saving a blank draft) and continues writing his post, and then user B goes to his edit screen, I don't want it to delete user A's blank draft, as that might cause problems when user A saves his entry.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #371 (Test for upload enabled in every iteration of loop) created</title>
+      
+        <dc:creator>nickromney</dc:creator>
+
+      <pubDate>Fri, 15 Oct 2004 19:12:17 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/371</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/371/1097867537000000</guid>
+      <description>&lt;p&gt;
+In wp-admin/menu.php, in the foreach ($menu as $item) loop, lines 56-59 test for the upload condition.
+&lt;/p&gt;
+&lt;p&gt;
+It would be easier to test for it when specifying the array in  line 17:
+&lt;/p&gt;
+&lt;p&gt;
+Replace:
+$menu&lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/45" title="New installation.
+"&gt;[45]&lt;/a&gt; = array(&lt;span class="underline"&gt;('Upload'), get_settings('fileupload_minlevel'), 'upload.php');
+&lt;/span&gt;&lt;/p&gt;
+&lt;p&gt;
+with:
+&lt;/p&gt;
+&lt;p&gt;
+if ((get_settings('use_fileupload') &amp;amp;&amp;amp; ($user_level &amp;gt;= get_settings('fileupload_minlevel')))) {
+$menu&lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/45" title="New installation.
+"&gt;[45]&lt;/a&gt; = array(&lt;span class="underline"&gt;('Upload'), get_settings('fileupload_minlevel'), 'upload.php');
+}
+&lt;/span&gt;&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Changeset [1805]: replaced  stuff with user_can_*() stuff </title>
+      
+        <dc:creator>michelvaldrighi</dc:creator>
+
+      <pubDate>Fri, 15 Oct 2004 16:21:32 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/1805</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/1805/1097857292000000</guid>
+      <description>&lt;p&gt;
+replaced  stuff with user_can_*() stuff
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Changeset [1804]: added more user_can_* functions </title>
+      
+        <dc:creator>michelvaldrighi</dc:creator>
+
+      <pubDate>Fri, 15 Oct 2004 16:20:25 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/1804</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/1804/1097857225000000</guid>
+      <description>&lt;p&gt;
+added more user_can_* functions
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Ticket #368 (Extra drafts are created when Advanced Editing is clicked.) updated</title>
+      
+        <dc:creator>MC_incubus</dc:creator>
+
+      <pubDate>Fri, 15 Oct 2004 07:13:21 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/368</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/368/1097824401000000</guid>
+      <description>&lt;p&gt;
+When you click "advanced editing" it saves a draft so it can put everything how you had it in the regular edit screen (text, categories, title, etc).
+&lt;/p&gt;
+&lt;p&gt;
+I guess we could do a check to see if a draft has no title, no text, and default category, and delete in that case.  If nothing has been done to it, you're not going to miss it.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #351 ((more) errors on upgrade) closed</title>
+      
+        <dc:creator>matt</dc:creator>
+
+      <pubDate>Fri, 15 Oct 2004 04:50:59 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/351</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/351/1097815859000000</guid>
+      <description></description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Ticket #351 ((more) errors on upgrade) closed</title>
+      
+        <dc:creator>matt</dc:creator>
+
+      <pubDate>Fri, 15 Oct 2004 04:50:54 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/351</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/351/1097815854000000</guid>
+      <description>20</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Changeset [1803]: Fix for http://mosquito.wordpress.org/bug_view_page.php?bug_id=0000351 ...</title>
+      
+        <dc:creator>saxmatt</dc:creator>
+
+      <pubDate>Fri, 15 Oct 2004 04:50:40 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/1803</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/1803/1097815840000000</guid>
+      <description>&lt;p&gt;
+Fix for &lt;a class="ext-link" href="http://mosquito.wordpress.org/bug_view_page.php?bug_id=0000351"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;http://mosquito.wordpress.org/bug_view_page.php?bug_id=0000351&lt;/a&gt; from MC_incubus
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Ticket #351 ((more) errors on upgrade) updated</title>
+      
+        <dc:creator>MC_incubus</dc:creator>
+
+      <pubDate>Fri, 15 Oct 2004 04:38:38 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/351</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/351/1097815118000000</guid>
+      <description>&lt;p&gt;
+I was able to duplicate:
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;clean install of WP 1.2.1
+&lt;/li&gt;&lt;li&gt;upload WP 1.3 CVS
+&lt;/li&gt;&lt;li&gt;/wp-admin/upgrade.php
+&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;
+I uploaded a patch that fixes this.  In /wp-admin/upgrade.php, I changed:
+require('upgrade-functions.php');
+&lt;/p&gt;
+&lt;p&gt;
+to this:
+require_once('upgrade-functions.php');
+&lt;/p&gt;
+&lt;p&gt;
+I think in general, we should be using require_once() over require()... there have been quite a few bugs that could have been avoided by this.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #330 (.htaccess generated for permalinks can cause Server 500 error) closed</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Fri, 15 Oct 2004 03:16:45 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/330</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/330/1097810205000000</guid>
+      <description>20: &lt;p&gt;
+&lt;a class="ext-link" href="http://wordpress.org/pipermail/cvs_wordpress.org/2004-October/000604.html"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;http://wordpress.org/pipermail/cvs_wordpress.org/2004-October/000604.html&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Changeset [1802]: If the match is unanchored and greedy, prepend rewrite conditions to ...</title>
+      
+        <dc:creator>rboren</dc:creator>
+
+      <pubDate>Fri, 15 Oct 2004 03:16:01 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/1802</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/1802/1097810161000000</guid>
+      <description>&lt;p&gt;
+If the match is unanchored and greedy, prepend rewrite conditions to avoid infinite redirects and eclipsing of real files. Add L to rewrite flags to break out of rewriting once a match is found.
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item>
+   </channel>
+</rss>

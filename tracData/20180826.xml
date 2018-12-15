@@ -1,0 +1,577 @@
+<?xml version="1.0"?>
+<rss xmlns:dc="http://purl.org/dc/elements/1.1/" version="2.0">
+  <channel>
+    <title>WordPress Trac</title>
+    <link>http://core.trac.wordpress.org/timeline</link>
+    <description>Trac Timeline</description>
+    <language>en-US</language>
+    <generator>Trac 1.2.2</generator>
+    <image>
+      <title>WordPress Trac</title>
+      <url>http://core.trac.wordpress.org/chrome/site/your_project_logo.png</url>
+      <link>http://core.trac.wordpress.org/timeline</link>
+    </image>
+    <item>
+      <title>Ticket #15148 (Cron Storage Abstraction) closed</title>
+      
+        <dc:creator>peterwilsoncc</dc:creator>
+
+      <pubDate>Sun, 26 Aug 2018 22:28:46 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/15148#comment:22</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/15148#comment:22/1535322526437831</guid>
+      <description>wontfix: &lt;p&gt;
+Closing this as &lt;a class="reopened ticket" href="http://core.trac.wordpress.org/ticket/32656" title="#32656: feature request: Add hooks to allow hijacking cron implementation (reopened)"&gt;#32656&lt;/a&gt; has added committed in &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/43540" title="Cron: Add hooks and a function to allow hijacking cron implementation. ..."&gt;[43540]&lt;/a&gt; to allow for large sites to modify cron storage.
+&lt;/p&gt;
+</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Ticket #44844 (switch_to_locale does not handle plugins/themes properly in multisite) created</title>
+      
+        <dc:creator>pcfreak30</dc:creator>
+
+      <pubDate>Sun, 26 Aug 2018 22:17:17 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44844</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44844/1535321837723589</guid>
+      <description>&lt;p&gt;
+Running the following test script should enable switching of languages in a multisite.
+&lt;/p&gt;
+&lt;div class="wiki-code"&gt;&lt;div class="code"&gt;&lt;pre&gt;&lt;span class="x"&gt;require_once( dirname( __FILE__ ) . '/wp-load.php' );
+switch_to_blog(2);
+switch_to_locale('sv_SE');
+var_dump(__('my text','my-domain'));
+&lt;/span&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;p&gt;
+However do to complexities I am not familiar with in unload_textdomain and get_translations_for_domain it does not work. Breaking it down unload_textdomain flags it as unloaded which _load_textdomain_just_in_time via get_translations_for_domain checks and aborts. the only way I have been able to do this is via some hacky filtering and mangling language globals.
+&lt;/p&gt;
+&lt;p&gt;
+Example:
+&lt;/p&gt;
+&lt;div class="wiki-code"&gt;&lt;div class="code"&gt;&lt;pre&gt;&lt;span class="x"&gt;switch_to_blog( $object['blog_id'] );
+                        unset( $GLOBALS['locale'] );
+                        $locale = get_locale();
+                        unset( $GLOBALS['locale'] );
+                        restore_current_blog();
+                        add_filter( 'locale', [ $this, 'one_time_false' ] );
+                        add_filter( 'override_unload_textdomain', [ $this, 'unload_textdomain' ], 10, 2 );
+                        switch_to_locale( $locale );
+                        remove_filter( 'locale', [ $this, 'one_time_false' ] );
+                        remove_filter( 'override_unload_textdomain', [ $this, 'unload_textdomain' ] );
+                        switch_to_blog( $object['blog_id'] );
+&lt;/span&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;p&gt;
+$this-&amp;gt;unload_textdomain being:
+&lt;/p&gt;
+&lt;div class="wiki-code"&gt;&lt;div class="code"&gt;&lt;pre&gt;&lt;span class="cp"&gt;&amp;lt;?php&lt;/span&gt;
+&lt;span class="k"&gt;public&lt;/span&gt; &lt;span class="k"&gt;function&lt;/span&gt; &lt;span class="nf"&gt;unload_textdomain&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="nv"&gt;$value&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nv"&gt;$domain&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+                &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="nb"&gt;isset&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="nv"&gt;$GLOBALS&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;'l10n'&lt;/span&gt;&lt;span class="p"&gt;][&lt;/span&gt; &lt;span class="nv"&gt;$domain&lt;/span&gt; &lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+                        &lt;span class="nb"&gt;unset&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="nv"&gt;$GLOBALS&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;'l10n'&lt;/span&gt;&lt;span class="p"&gt;][&lt;/span&gt; &lt;span class="nv"&gt;$domain&lt;/span&gt; &lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="p"&gt;);&lt;/span&gt;
+                &lt;span class="p"&gt;}&lt;/span&gt;
+                &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="nv"&gt;$value&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+        &lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;p&gt;
+and $this-&amp;gt;one_time_false being:
+&lt;/p&gt;
+&lt;div class="wiki-code"&gt;&lt;div class="code"&gt;&lt;pre&gt;&lt;span class="cp"&gt;&amp;lt;?php&lt;/span&gt;
+&lt;span class="k"&gt;public&lt;/span&gt; &lt;span class="k"&gt;function&lt;/span&gt; &lt;span class="nf"&gt;one_time_false&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+                &lt;span class="nx"&gt;remove_filter&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="s1"&gt;'locale'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt; &lt;span class="nv"&gt;$this&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;'one_time_false'&lt;/span&gt; &lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="p"&gt;);&lt;/span&gt;
+                &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="k"&gt;false&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+        &lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;p&gt;
+Not sure how this should be refactored but this so far should really be unnecessary to do.
+&lt;/p&gt;
+&lt;p&gt;
+Thanks.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>44838.2.diff attached to Ticket #44838</title>
+      
+        <dc:creator>jojotjebaby</dc:creator>
+
+      <pubDate>Sun, 26 Aug 2018 15:56:38 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/44838/44838.2.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/44838/44838.2.diff/1535298998359305</guid>
+      <description>&lt;p&gt;
+Changed the patch to add a new function get_self_link that is called and echoed by self_link
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #44838 (Self_Link Should Have Echo Option) updated</title>
+      
+        <dc:creator>jojotjebaby</dc:creator>
+
+      <pubDate>Sun, 26 Aug 2018 15:47:55 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44838#comment:7</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44838#comment:7/1535298475817206</guid>
+      <description>&lt;p&gt;
+@dshanske , ok I will implement it with the new function and add the patch on here.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44838 (Self_Link Should Have Echo Option) updated</title>
+      
+        <dc:creator>dshanske</dc:creator>
+
+      <pubDate>Sun, 26 Aug 2018 13:43:37 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44838#comment:6</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44838#comment:6/1535291017431591</guid>
+      <description>&lt;p&gt;
+@mobeen-abdullah Yours is not a diff.
+&lt;/p&gt;
+&lt;p&gt;
+@jojotjebaby Yours is implemented correctly except for not noting the new variable is since 4.9.9 or such...
+&lt;/p&gt;
+&lt;p&gt;
+But, in thinking about this after my initial comment, self_link is useful beyond RSS, which means adding get_self_link without the esc_url makes sense, as only in the original intent of exporting for RSS feeds should you need to escape, and adding two variables to change whether it escapes or not doesn't make sense, so the get function is the better move.
+&lt;/p&gt;
+&lt;p&gt;
+So, self_link would just call get_self_link and echo it with esc_url.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Tickets #44314,​44843 batch updated</title>
+      
+        <dc:creator>birgire</dc:creator>
+
+      <pubDate>Sun, 26 Aug 2018 11:26:36 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/query?id=44314%2C44843</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/query?id=44314%2C44843/1535282796201543</guid>
+      <description>duplicate: &lt;p&gt;
+Thanks for the report @sudar
+&lt;/p&gt;
+&lt;p&gt;
+This is being discussed in &lt;a class="new ticket" href="http://core.trac.wordpress.org/ticket/44314" title="#44314: defect (bug): `user_confirmed_action_email_content` filter run on two different strings (new)"&gt;#44314&lt;/a&gt;, you're welcome to join in there.
+&lt;/p&gt;
+</description>
+      <category>batchmodify</category>
+    </item><item>
+      <title>Ticket #44267 (Privacy Request List Table: A way to show the time of request when ...) updated</title>
+      
+        <dc:creator>birgire</dc:creator>
+
+      <pubDate>Sun, 26 Aug 2018 11:12:02 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44267#comment:9</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44267#comment:9/1535281922775389</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+&lt;a class="attachment" href="http://core.trac.wordpress.org/attachment/ticket/44267/datetime-v5.jpg" title="Attachment 'datetime-v5.jpg' in Ticket #44267"&gt;datetime-v5.jpg&lt;/a&gt;&lt;a class="trac-rawlink" href="http://core.trac.wordpress.org/raw-attachment/ticket/44267/datetime-v5.jpg" title="Download"&gt;​&lt;/a&gt; is similar to v3, but it:
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;uses &lt;code&gt;@&lt;/code&gt; in a similar way as in the dateformat within the Publish metabox and for revisions.
+&lt;/li&gt;&lt;li&gt;doesn't use &lt;strong&gt;bold&lt;/strong&gt; on the status date.
+&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;
+&lt;a class="attachment" href="http://core.trac.wordpress.org/attachment/ticket/44267/44267.diff" title="Attachment '44267.diff' in Ticket #44267"&gt;44267.diff&lt;/a&gt;&lt;a class="trac-rawlink" href="http://core.trac.wordpress.org/raw-attachment/ticket/44267/44267.diff" title="Download"&gt;​&lt;/a&gt; is an example implementation for that version.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>44267.diff attached to Ticket #44267</title>
+      
+        <dc:creator>birgire</dc:creator>
+
+      <pubDate>Sun, 26 Aug 2018 11:03:36 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/44267/44267.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/44267/44267.diff/1535281416179346</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>datetime-v5.jpg attached to Ticket #44267</title>
+      
+        <dc:creator>birgire</dc:creator>
+
+      <pubDate>Sun, 26 Aug 2018 11:03:20 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/44267/datetime-v5.jpg</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/44267/datetime-v5.jpg/1535281400777300</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>44838.1.diff attached to Ticket #44838</title>
+      
+        <dc:creator>mobeen-abdullah</dc:creator>
+
+      <pubDate>Sun, 26 Aug 2018 10:49:38 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/44838/44838.1.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/44838/44838.1.diff/1535280578958590</guid>
+      <description>&lt;p&gt;
+First patch as a new contributor :)
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #44843 (Wrong filter name is used to filter the content of the email that is ...) created</title>
+      
+        <dc:creator>sudar</dc:creator>
+
+      <pubDate>Sun, 26 Aug 2018 08:18:16 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44843</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44843/1535271496299107</guid>
+      <description>&lt;p&gt;
+The &lt;code&gt;_wp_privacy_send_erasure_fulfillment_notification&lt;/code&gt; function sends out an email when a user's data is successfully erased.
+&lt;/p&gt;
+&lt;p&gt;
+It uses the &lt;code&gt;user_erasure_complete_email_subject&lt;/code&gt; filter to filter the subject of the email that is sent, which is correct.
+&lt;/p&gt;
+&lt;p&gt;
+But to filter out the content of the email, &lt;code&gt;user_confirmed_action_email_content&lt;/code&gt; filter is used which is wrong. &lt;code&gt;user_confirmed_action_email_content&lt;/code&gt; is used to filter out the email that is sent to users when they confirm either the data export or data erased request.
+&lt;/p&gt;
+&lt;p&gt;
+The correct filter name should be &lt;code&gt;user_erasure_complete_email_content&lt;/code&gt;. If we agree upon the filter name, I can submit a patch.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #42624 (Documentation says "available_permalink_structure_tags" filter is ...) updated</title>
+      
+        <dc:creator>tiagohillebrandt</dc:creator>
+
+      <pubDate>Sun, 26 Aug 2018 06:57:28 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/42624#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/42624#comment:1/1535266648200815</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt;, &lt;i&gt;Summary&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44767 (dbDelta allow spaces between column names and between lines) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Sat, 25 Aug 2018 18:13:23 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44767#comment:7</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44767#comment:7/1535220803418359</guid>
+      <description>&lt;i&gt;Status&lt;/i&gt;, &lt;i&gt;Owner&lt;/i&gt;, &lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44833 (Return a more accurate error message when user cannot perform the ...) updated</title>
+      
+        <dc:creator>jplojohn</dc:creator>
+
+      <pubDate>Sat, 25 Aug 2018 16:05:37 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44833#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44833#comment:1/1535213137099084</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+I have added a patch file which provides more useful error descriptions for the user.
+&lt;/p&gt;
+&lt;p&gt;
+This is my first time contributing - I'm fairly sure this is correct in both code and procedure, but I may have misread the handbook!
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44283 (Enclosure can't deal with CDN media files - WPCore redirects the URL) updated</title>
+      
+        <dc:creator>researcher</dc:creator>
+
+      <pubDate>Sat, 25 Aug 2018 16:05:12 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44283#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44283#comment:2/1535213112558926</guid>
+      <description>&lt;p&gt;
+hi Steven,
+&lt;/p&gt;
+&lt;p&gt;
+as CDN i use &lt;strong&gt;Amazon S3&lt;/strong&gt; - - bucket name &lt;strong&gt;cdn.ferrie.audio&lt;/strong&gt;&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+audio inserted into the blogpost: &lt;strong&gt;[audio m4a="&lt;a class="ext-link" href="https://cdn.ferrie.audio/blablabla/wp-content/uploads/year/monthe/more-nubers-here/Summer_Rain.m4a&amp;#34;][/audio"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://cdn.ferrie.audio/blablabla/wp-content/uploads/year/monthe/more-nubers-here/Summer_Rain.m4a"][/audio&lt;/a&gt;]&lt;/strong&gt;&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+enclosure to the blogpost is slightly different: &lt;strong&gt;&lt;a class="ext-link" href="https://ferrie.audio/blablabla/wp-content/uploads/year/month/Summer_Rain.m4a"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://ferrie.audio/blablabla/wp-content/uploads/year/month/Summer_Rain.m4a&lt;/a&gt;&lt;/strong&gt;&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+RSS feeds of my subdomain &lt;strong&gt;podcast.ferrie.audio&lt;/strong&gt; are accepted by iTunes - url is &lt;a class="ext-link" href="https://podcastsconnect.apple.com/my-podcasts/ferries-podcasts/1393680623"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://podcastsconnect.apple.com/my-podcasts/ferries-podcasts/1393680623&lt;/a&gt;&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+if you need more details - please let me know
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>44833-error-message.patch attached to Ticket #44833</title>
+      
+        <dc:creator>jplojohn</dc:creator>
+
+      <pubDate>Sat, 25 Aug 2018 16:00:59 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/44833/44833-error-message.patch</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/44833/44833-error-message.patch/1535212859295020</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #44838 (Self_Link Should Have Echo Option) updated</title>
+      
+        <dc:creator>slackbot</dc:creator>
+
+      <pubDate>Sat, 25 Aug 2018 15:32:59 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44838#comment:5</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44838#comment:5/1535211179261974</guid>
+      <description>&lt;p&gt;
+&lt;em&gt;This ticket was mentioned in &lt;a class="ext-link" href="https://make.wordpress.org/chat/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;Slack&lt;/a&gt; in #core by jojotjebaby. &lt;a class="ext-link" href="https://wordpress.slack.com/archives/core/p1535211177000200"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;View the logs&lt;/a&gt;.&lt;/em&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44838 (Self_Link Should Have Echo Option) updated</title>
+      
+        <dc:creator>jojotjebaby</dc:creator>
+
+      <pubDate>Sat, 25 Aug 2018 15:30:53 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44838#comment:4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44838#comment:4/1535211053880808</guid>
+      <description>&lt;i&gt;Version&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+I just attached my patch. I went with the option to add the $echo = true option to the function.
+&lt;/p&gt;
+&lt;p&gt;
+This is my first contribution so some feedback would be welcome :)
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>44838.diff attached to Ticket #44838</title>
+      
+        <dc:creator>jojotjebaby</dc:creator>
+
+      <pubDate>Sat, 25 Aug 2018 15:25:45 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/44838/44838.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/44838/44838.diff/1535210745980029</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #43524 (Add another default image size) updated</title>
+      
+        <dc:creator>azaozz</dc:creator>
+
+      <pubDate>Sat, 25 Aug 2018 08:32:25 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43524#comment:16</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43524#comment:16/1535185945891127</guid>
+      <description>&lt;p&gt;
+Replying to &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/43524#comment:13" title="Comment 13"&gt;ettoredn&lt;/a&gt;:
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+Sorry for being rude, but please support your claim with actual evidence. Out of every image on a website, it seems unlikely to me that most of them are over 4 MiB &lt;em&gt;and&lt;/em&gt; display wider than 1024px.
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+Right. This ticket comes as a result from looking at few websites I have access to :)
+&lt;/p&gt;
+&lt;p&gt;
+The facts:
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;Most modern cell phones create JPEG files of 2 - 2.5MB.
+&lt;/li&gt;&lt;li&gt;Most modern cameras create JPEG files of at least 3MB (up to about 24MB in &lt;code&gt;raw&lt;/code&gt; formats).
+&lt;/li&gt;&lt;li&gt;Most users upload these photos without editing them beforehand.
+&lt;/li&gt;&lt;li&gt;Currently WordPress doesn't have a suitable file size for larger high density displays like MacBooks, newer Dells, Surface Pro, 4k or 5k monitors, etc. etc.
+&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;
+The only option now to display non-fuzzy larger images (width of 600-700px+) on the above screens is to load the "full" size images, i.e. at least 2MB per image. This ticket is about creating a suitable size for this case.
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+Besides, as pointed out by @joyously, it would increase disk space usage thus it becomes a &lt;em&gt;tradeoff between disk space and user experience/bandwidth efficiency&lt;/em&gt;.
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+As far as I see the new size will be about 600-700KB, and will save a lot of bandwidth for most WordPress sites. As disk space is considerably "cheaper" than bandwidth, this would result in lower hosting costs and better user experience for 1/3 of the internet :)
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44837 (Coding Indentation Issues) updated</title>
+      
+        <dc:creator>slackbot</dc:creator>
+
+      <pubDate>Sat, 25 Aug 2018 06:23:33 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44837#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44837#comment:3/1535178213891894</guid>
+      <description>&lt;p&gt;
+&lt;em&gt;This ticket was mentioned in &lt;a class="ext-link" href="https://make.wordpress.org/chat/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;Slack&lt;/a&gt; in #core-coding-standards by prashantvatsh. &lt;a class="ext-link" href="https://wordpress.slack.com/archives/core-coding-standards/p1535178213000100"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;View the logs&lt;/a&gt;.&lt;/em&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44842 (Search post box in mobile) updated</title>
+      
+        <dc:creator>prashantvatsh</dc:creator>
+
+      <pubDate>Sat, 25 Aug 2018 06:15:41 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44842#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44842#comment:1/1535177741923549</guid>
+      <description>&lt;i&gt;Type&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44842 (Search post box in mobile) created</title>
+      
+        <dc:creator>prashantvatsh</dc:creator>
+
+      <pubDate>Sat, 25 Aug 2018 06:15:19 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44842</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44842/1535177719983262</guid>
+      <description>&lt;p&gt;
+In mobile view when I go to posts screen, I found that search box is not on the top so I dragged all the way down and found that search box is there which is bit odd because why someone will go all the way down looking at posts to search any post.
+Please see: &lt;a class="ext-link" href="https://prnt.sc/kmo3jn"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://prnt.sc/kmo3jn&lt;/a&gt;
+&lt;/p&gt;
+&lt;p&gt;
+We can make it like themes screen &lt;a class="ext-link" href="https://prnt.sc/kmo3k4"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://prnt.sc/kmo3k4&lt;/a&gt; by just leaving the search box with a placeholder to search posts and since just typing and entering the text in the box works so they will be able to search the post
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #44841 (docs: Fix mismatch parameter type on comments_popup_link()) updated</title>
+      
+        <dc:creator>mukesh27</dc:creator>
+
+      <pubDate>Sat, 25 Aug 2018 05:21:42 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44841#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44841#comment:1/1535174502926116</guid>
+      <description>&lt;i&gt;Focuses&lt;/i&gt;, &lt;i&gt;Component&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44836 (Uploaded plugin installation page: There is an extra &lt;p&gt; tag messing ...) updated</title>
+      
+        <dc:creator>mukesh27</dc:creator>
+
+      <pubDate>Sat, 25 Aug 2018 05:07:44 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44836#comment:6</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44836#comment:6/1535173664399995</guid>
+      <description>&lt;p&gt;
+@seedsca &lt;strong&gt;4836.2.diff&lt;/strong&gt; is working fine for me. Let's wait for core developer response on above solution.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44838 (Self_Link Should Have Echo Option) updated</title>
+      
+        <dc:creator>slackbot</dc:creator>
+
+      <pubDate>Sat, 25 Aug 2018 02:19:34 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44838#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44838#comment:3/1535163574289421</guid>
+      <description>&lt;p&gt;
+&lt;em&gt;This ticket was mentioned in &lt;a class="ext-link" href="https://make.wordpress.org/chat/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;Slack&lt;/a&gt; in #core by jojotjebaby. &lt;a class="ext-link" href="https://wordpress.slack.com/archives/core/p1535163572000200"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;View the logs&lt;/a&gt;.&lt;/em&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44836 (Uploaded plugin installation page: There is an extra &lt;p&gt; tag messing ...) updated</title>
+      
+        <dc:creator>seedsca</dc:creator>
+
+      <pubDate>Sat, 25 Aug 2018 01:19:07 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44836#comment:5</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44836#comment:5/1535159947707503</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Activate Plugin button - active state.jpg attached to Ticket #44836</title>
+      
+        <dc:creator>seedsca</dc:creator>
+
+      <pubDate>Sat, 25 Aug 2018 01:15:14 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/44836/Activate%20Plugin%20button%20-%20active%20state.jpg</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/44836/Activate%20Plugin%20button%20-%20active%20state.jpg/1535159714443352</guid>
+      <description>&lt;p&gt;
+Plugin activate button on active state. Link moved up by vertical-align: top.
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Activate Plugin button - regular.jpg attached to Ticket #44836</title>
+      
+        <dc:creator>seedsca</dc:creator>
+
+      <pubDate>Sat, 25 Aug 2018 01:14:20 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/44836/Activate%20Plugin%20button%20-%20regular.jpg</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/44836/Activate%20Plugin%20button%20-%20regular.jpg/1535159660259623</guid>
+      <description>&lt;p&gt;
+Plugin activate button on regular state. Link looks normal.
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #44836 (Uploaded plugin installation page: There is an extra &lt;p&gt; tag messing ...) updated</title>
+      
+        <dc:creator>seedsca</dc:creator>
+
+      <pubDate>Sat, 25 Aug 2018 01:11:32 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44836#comment:4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44836#comment:4/1535159492728366</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+/wp-includes/css/buttons.css line 267 has vertical-align:top set.
+This does not seem necessary and it's messing with alignment.
+&lt;/p&gt;
+&lt;p&gt;
+I checked all 28 instances of .button-primary and found no changes at all.
+&lt;/p&gt;
+&lt;p&gt;
+Seems safe.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>4836.2.diff attached to Ticket #44836</title>
+      
+        <dc:creator>seedsca</dc:creator>
+
+      <pubDate>Sat, 25 Aug 2018 00:43:08 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/44836/4836.2.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/44836/4836.2.diff/1535157788366428</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>44841.2.patch attached to Ticket #44841</title>
+      
+        <dc:creator>Mirucon</dc:creator>
+
+      <pubDate>Sat, 25 Aug 2018 00:39:05 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/44841/44841.2.patch</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/44841/44841.2.patch/1535157545792642</guid>
+      <description>&lt;p&gt;
+The one I've sent before has a small mistake.. This has fixed that
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>44841.patch attached to Ticket #44841</title>
+      
+        <dc:creator>Mirucon</dc:creator>
+
+      <pubDate>Sat, 25 Aug 2018 00:36:30 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/44841/44841.patch</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/44841/44841.patch/1535157390893899</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #44841 (docs: Fix mismatch parameter type on comments_popup_link()) created</title>
+      
+        <dc:creator>Mirucon</dc:creator>
+
+      <pubDate>Sat, 25 Aug 2018 00:36:00 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44841</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44841/1535157360421906</guid>
+      <description>&lt;p&gt;
+Since the default types of the parameters are false, so there's a mismatch of param type on its doc comment. This patch fixes this.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>44840.patch attached to Ticket #44840</title>
+      
+        <dc:creator>Mirucon</dc:creator>
+
+      <pubDate>Sat, 25 Aug 2018 00:31:35 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/44840/44840.patch</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/44840/44840.patch/1535157095695526</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #44840 (Don't assign to a variable inside if statement in get_post_format()) created</title>
+      
+        <dc:creator>Mirucon</dc:creator>
+
+      <pubDate>Sat, 25 Aug 2018 00:31:05 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44840</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44840/1535157065019639</guid>
+      <description>&lt;p&gt;
+Currently in the get_post_format() function, there's variable assign inside if statement. It is not a really good practice since assigning to a variable inside could confuse people as it looks like a mistake of the comparison operator. This patch will assign to a new variable just before the line of if().
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item>
+   </channel>
+</rss>

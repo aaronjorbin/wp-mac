@@ -1,0 +1,2582 @@
+<?xml version="1.0"?>
+<rss xmlns:dc="http://purl.org/dc/elements/1.1/" version="2.0">
+  <channel>
+    <title>WordPress Trac</title>
+    <link>http://core.trac.wordpress.org/timeline</link>
+    <description>Trac Timeline</description>
+    <language>en-US</language>
+    <generator>Trac 1.2.2</generator>
+    <image>
+      <title>WordPress Trac</title>
+      <url>http://core.trac.wordpress.org/chrome/site/your_project_logo.png</url>
+      <link>http://core.trac.wordpress.org/timeline</link>
+    </image>
+    <item>
+      <title>Ticket #24683 (Twenty Thirteen: basic tweaks for a better stylesheet readibility) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Thu, 04 Jul 2013 23:03:13 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/24683#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/24683#comment:1/1372978993409309</guid>
+      <description>&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+Furthermore, about links, as far as I know
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;a:visited {
+	color: #ac0404;
+}
+&lt;/pre&gt;&lt;p&gt;
+is never applied to any elements. It can be safely removed.
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+Related: &lt;a class="ext-link" href="http://stackoverflow.com/a/5222282"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;http://stackoverflow.com/a/5222282&lt;/a&gt;.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Tickets #17817,​24691 batch updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Thu, 04 Jul 2013 22:59:37 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/query?id=17817%2C24691</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/query?id=17817%2C24691/1372978777386759</guid>
+      <description>duplicate: &lt;p&gt;
+&lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/17817" title="#17817: defect (bug): do_action/apply_filters/etc. recursion on same filter kills underlying call (closed: fixed)"&gt;#17817&lt;/a&gt;, &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/19015" title="#19015: defect (bug): do_action fails on nested calls (closed: duplicate)"&gt;#19015&lt;/a&gt;, &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/20998" title="#20998: defect (bug): the_content filter hooks are not called when $priority is greater than 11. (closed: duplicate)"&gt;#20998&lt;/a&gt;, &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/23035" title="#23035: defect (bug): do_action() can't be nested because of global variable (closed: duplicate)"&gt;#23035&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>batchmodify</category>
+    </item><item>
+      <title>Ticket #9968 (dynamically adding/removing filters breaks plugins) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Thu, 04 Jul 2013 22:56:10 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/9968#comment:11</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/9968#comment:11/1372978570489950</guid>
+      <description>&lt;p&gt;
+Related/duplicate: &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/21169" title="#21169: defect (bug): remove_action on a tag within do_action for that tag can cause actions ... (closed: duplicate)"&gt;#21169&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #24691 (apply_filters() does not execute lower priority filters when ...) created</title>
+      
+        <dc:creator>Magenta Cuda</dc:creator>
+
+      <pubDate>Thu, 04 Jul 2013 22:48:25 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/24691</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/24691/1372978105290195</guid>
+      <description>&lt;p&gt;
+Consider:
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;add_filter( 'the_content', function( $content ) {
+    return $content . ';filter 11 applied';
+}, 11 );
+add_filter( 'the_content', function( $content ) {
+    if ( strpos( $content,'###' ) !== FALSE ) { return apply_filters( 'the_content', '+++' ); }
+    return $content . ';filter 10 applied';
+} );
+&lt;/pre&gt;&lt;p&gt;
+returns "... +++;filter 10 applied;filter 11 applied" instead of "... +++;filter 10 applied;filter 11 applied;filter 11 applied" as expected when called with post_content containing "###".
+&lt;/p&gt;
+&lt;p&gt;
+I think the problem is apply_filters() manipulates the internal array pointer using next() of the global $wp_filter[ $tag ] so the second call leaves the internal array pointer at the end. To test this I restored the internal array pointer as follows.
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;    # save internal array pointer
+    $key = key( $wp_filter['the_content'] );
+    reset( $wp_filter[ $tag ] );
+    ...
+    do {
+        foreach( (array) current($wp_filter[$tag]) as $the_ )
+            ...
+    } while ( next($wp_filter[$tag]) !== false );
+    # restore internal array pointer
+    for( end( $wp_filter['the_content'] ); key( $wp_filter['the_content'] ) != $key; prev( $wp_filter['the_content'] ) ) { }
+&lt;/pre&gt;&lt;p&gt;
+That does seem to work. The problem may be somewhat important as the do_shortcode() filter runs at priority 11 which is how I originally encountered the problem.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>24690.patch attached to Ticket #24690</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Thu, 04 Jul 2013 22:41:51 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/24690/24690.patch</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/24690/24690.patch/1372977711013258</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #24690 (Twenty Thirteen: Minor comment fix) created</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Thu, 04 Jul 2013 22:41:30 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/24690</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/24690/1372977690493575</guid>
+      <description>&lt;pre class="wiki"&gt;/* Placeholder text color -- selectors need to be in separate to work. */
+&lt;/pre&gt;&lt;p&gt;
+I'm not a native English speaker, but "in" seems unnecessary here.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #24682 (Add 'Cancel' button to Revisions screen) updated</title>
+      
+        <dc:creator>adamsilverstein</dc:creator>
+
+      <pubDate>Thu, 04 Jul 2013 21:43:53 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/24682#comment:12</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/24682#comment:12/1372974233314940</guid>
+      <description>&lt;p&gt;
+i like the go back link, much more obvious for the end user. keep the post title linked as well;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>24425.draft.33.diff attached to Ticket #24425</title>
+      
+        <dc:creator>adamsilverstein</dc:creator>
+
+      <pubDate>Thu, 04 Jul 2013 20:57:33 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/24425/24425.draft.33.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/24425/24425.draft.33.diff/1372971453591359</guid>
+      <description>&lt;p&gt;
+routing fixes, other minor changes
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #24197 (wp_localize_script() doesn't work for jquery handle) updated</title>
+      
+        <dc:creator>azaozz</dc:creator>
+
+      <pubDate>Thu, 04 Jul 2013 20:57:02 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/24197#comment:15</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/24197#comment:15/1372971422564379</guid>
+      <description>&lt;p&gt;
+24197-2.patch seems better. It adds the localization data to the first dependency instead of adding it to the alias handle in WP_Scripts::localize()
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #24425 (Revisions cleanup) updated</title>
+      
+        <dc:creator>adamsilverstein</dc:creator>
+
+      <pubDate>Thu, 04 Jul 2013 20:55:15 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/24425#comment:17</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/24425#comment:17/1372971315021495</guid>
+      <description>&lt;p&gt;
+&lt;a class="attachment" href="http://core.trac.wordpress.org/attachment/ticket/24425/" title="Attachments of Ticket #24425"&gt;24425.draft.33.diff​&lt;/a&gt;&lt;a class="trac-rawlink" href="http://core.trac.wordpress.org/raw-attachment/ticket/24425/" title="Download"&gt;​&lt;/a&gt;
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;change variable name from sliderHovering to showTooltip
+&lt;/li&gt;&lt;li&gt;consolidate handle routing with nifty code from ocean90: this.model.set( { compareTwoMode: '2' === handles } );
+&lt;/li&gt;&lt;li&gt;corrects routing behavior, reload works correctly as well original link
+&lt;/li&gt;&lt;/ul&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>24197-2.patch attached to Ticket #24197</title>
+      
+        <dc:creator>azaozz</dc:creator>
+
+      <pubDate>Thu, 04 Jul 2013 20:54:07 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/24197/24197-2.patch</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/24197/24197-2.patch/1372971247179716</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #14060 (Misleading "You do not have sufficient permissions to access this page.") updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Thu, 04 Jul 2013 19:55:07 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/14060#comment:13</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/14060#comment:13/1372967707137279</guid>
+      <description>&lt;p&gt;
+Related: &lt;a class="reviewing ticket" href="http://core.trac.wordpress.org/ticket/24689" title="#24689: enhancement: Improve error  wp-admin page (reviewing)"&gt;#24689&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #24689 (Improve error  wp-admin page) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Thu, 04 Jul 2013 19:54:47 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/24689#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/24689#comment:1/1372967687330980</guid>
+      <description>&lt;p&gt;
+Related: &lt;a class="reviewing ticket" href="http://core.trac.wordpress.org/ticket/14060" title="#14060: defect (bug): Misleading &amp;#34;You do not have sufficient permissions to access this page.&amp;#34; (reviewing)"&gt;#14060&lt;/a&gt;, &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/14530" title="#14530: enhancement: &amp;#34;Cheatin', uh?&amp;#34; is not helpful feedback for users or developers (closed: fixed)"&gt;#14530&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #24689 (Improve error  wp-admin page) created</title>
+      
+        <dc:creator>alexvorn2</dc:creator>
+
+      <pubDate>Thu, 04 Jul 2013 19:45:38 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/24689</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/24689/1372967138987351</guid>
+      <description>&lt;p&gt;
+"You do not have sufficient permissions to access this page." this is the only content on the error page, It would be nice to have a link to a Dashboard page if the user is logged.
+&lt;/p&gt;
+&lt;p&gt;
+Maybe we can integrate this error message into a wp-admin dashboard.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #17065 (Independent ASC/DESC in multiple ORDER BY statement.) updated</title>
+      
+        <dc:creator>ocean90</dc:creator>
+
+      <pubDate>Thu, 04 Jul 2013 18:59:53 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/17065#comment:43</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/17065#comment:43/1372964393209312</guid>
+      <description>&lt;i&gt;Version&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Version field indicates when the enhancement was initially suggested.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #23044 (adjacent_image_link() needs optimization) updated</title>
+      
+        <dc:creator>andy</dc:creator>
+
+      <pubDate>Thu, 04 Jul 2013 18:51:13 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/23044#comment:12</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/23044#comment:12/1372963873187418</guid>
+      <description>&lt;p&gt;
+Replying to &lt;a class="new ticket" href="http://core.trac.wordpress.org/ticket/23044" title="#23044: enhancement: adjacent_image_link() needs optimization (new)"&gt;markjaquith&lt;/a&gt;:
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+We should actually just make the query grab the ONE image we want.
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+Newly attached patch does exactly that.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #17065 (Independent ASC/DESC in multiple ORDER BY statement.) updated</title>
+      
+        <dc:creator>andy</dc:creator>
+
+      <pubDate>Thu, 04 Jul 2013 18:42:54 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/17065#comment:42</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/17065#comment:42/1372963374723126</guid>
+      <description>&lt;i&gt;Version&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+This discussion stalled over how many tests to add and whether it needs to support the full SQL syntax. An improvement as simple and obvious as this should never have descended into such fruitless areas of debate.
+&lt;/p&gt;
+&lt;p&gt;
+ORDER BY is such a simple part of MySQL that it doesn't even get its own page for documentation. Its use is fully described in a few bullet points under SELECT Syntax. There is no reason to introduce array types.
+&lt;/p&gt;
+&lt;p&gt;
+Newly attached patch provides a human-readable, single-string, backwards-compatible solution.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>24688.diff attached to Ticket #23044</title>
+      
+        <dc:creator>andy</dc:creator>
+
+      <pubDate>Thu, 04 Jul 2013 18:33:54 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/23044/24688.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/23044/24688.diff/1372962834770868</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #23044 (adjacent_image_link() needs optimization) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Thu, 04 Jul 2013 18:24:32 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/23044#comment:11</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/23044#comment:11/1372962272108025</guid>
+      <description>&lt;p&gt;
+Related: &lt;a class="new ticket" href="http://core.trac.wordpress.org/ticket/24688" title="#24688: defect (bug): Memory exhaustion caused by very many unattached media (new)"&gt;#24688&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #24688 (Memory exhaustion caused by very many unattached media) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Thu, 04 Jul 2013 18:24:28 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/24688#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/24688#comment:1/1372962268880638</guid>
+      <description>&lt;i&gt;Component&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Related: &lt;a class="new ticket" href="http://core.trac.wordpress.org/ticket/23044" title="#23044: enhancement: adjacent_image_link() needs optimization (new)"&gt;#23044&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>24687.diff attached to Ticket #17065</title>
+      
+        <dc:creator>andy</dc:creator>
+
+      <pubDate>Thu, 04 Jul 2013 18:24:23 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/17065/24687.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/17065/24687.diff/1372962263113870</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>24688.diff attached to Ticket #24688</title>
+      
+        <dc:creator>andy</dc:creator>
+
+      <pubDate>Thu, 04 Jul 2013 18:20:51 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/24688/24688.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/24688/24688.diff/1372962051729059</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #24688 (Memory exhaustion caused by very many unattached media) created</title>
+      
+        <dc:creator>andy</dc:creator>
+
+      <pubDate>Thu, 04 Jul 2013 18:20:09 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/24688</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/24688/1372962009874730</guid>
+      <description>&lt;p&gt;
+A blog with over 30,000 unattached images was exhausting available memory on unattached attachment pages. The exhaustion occurred in &lt;code&gt;previous_image_link() -&amp;gt; adjacent_image_link() -&amp;gt; get_children()&lt;/code&gt; due to the large number of rows selected with &lt;code&gt;post_parent=0&lt;/code&gt;.
+&lt;/p&gt;
+&lt;p&gt;
+This is not the only place where &lt;code&gt;get_posts()&lt;/code&gt; might be called with &lt;code&gt;post_parent=0&lt;/code&gt;. A similar query appears in &lt;code&gt;twentythirteen_the_attached_image()&lt;/code&gt; but the effect is wisely mitigated by &lt;code&gt;fields=ids&lt;/code&gt;. Earlier, &lt;code&gt;twentyten/loop-attachment.php&lt;/code&gt; called &lt;code&gt;get_children()&lt;/code&gt; with &lt;code&gt;post_parent=0&lt;/code&gt; on unattached image pages which is horribly inefficient when there are many unattached images.
+&lt;/p&gt;
+&lt;p&gt;
+Attached patch depends on &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/24687" title="#24687: enhancement: WP_Query applies `order` only to last key in `orderby` (closed: duplicate)"&gt;#24687&lt;/a&gt;. The change to &lt;code&gt;adjacent_image_link()&lt;/code&gt; creates a MySQL query which selects only the desired row. This fixes the memory exhaustion error on the blog with 30,000 unattached images. The once-only filters would be unnecessary if WP_Query accepted arbitrary extra WHERE strings.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #24682 (Add 'Cancel' button to Revisions screen) updated</title>
+      
+        <dc:creator>ocean90</dc:creator>
+
+      <pubDate>Thu, 04 Jul 2013 18:11:59 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/24682#comment:11</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/24682#comment:11/1372961519577205</guid>
+      <description>&lt;p&gt;
+I'm not a fan of using the "Add New" UI element as an utility for a  "Back" functionality. But otherwise I haven't a better idea for this. Maybe just add a title to the post link?
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Tickets #17065,​24687 batch updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Thu, 04 Jul 2013 18:09:52 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/query?id=17065%2C24687</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/query?id=17065%2C24687/1372961392868692</guid>
+      <description>duplicate: &lt;p&gt;
+Duplicate of &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/17065" title="#17065: task (blessed): Independent ASC/DESC in multiple ORDER BY statement. (closed: fixed)"&gt;#17065&lt;/a&gt;.
+&lt;/p&gt;
+</description>
+      <category>batchmodify</category>
+    </item><item>
+      <title>24687.diff attached to Ticket #24687</title>
+      
+        <dc:creator>andy</dc:creator>
+
+      <pubDate>Thu, 04 Jul 2013 16:58:53 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/24687/24687.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/24687/24687.diff/1372957133307912</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #24687 (WP_Query applies `order` only to last key in `orderby`) created</title>
+      
+        <dc:creator>andy</dc:creator>
+
+      <pubDate>Thu, 04 Jul 2013 16:57:45 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/24687</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/24687/1372957065332000</guid>
+      <description>&lt;p&gt;
+If you need something like &lt;code&gt;ORDER BY menu_order DESC, ID DESC&lt;/code&gt; you are forced to use filters. Instead let's allow &lt;code&gt;orderby&lt;/code&gt; to specify either &lt;code&gt;ASC&lt;/code&gt; or &lt;code&gt;DESC&lt;/code&gt; for each key. Furthermore let's allow &lt;code&gt;orderby&lt;/code&gt; to be written naturally with spaces and/or commas (while not strictly checking their correctness as SQL).
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #24686 (Introduce generic filter on transient return value) updated</title>
+      
+        <dc:creator>johnbillion</dc:creator>
+
+      <pubDate>Thu, 04 Jul 2013 16:56:36 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/24686#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/24686#comment:2/1372956996748937</guid>
+      <description>&lt;p&gt;
+Note that the patch on ticket &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/24685" title="#24685: enhancement: Pass boolean false value through `transient_$transient` filter (closed: fixed)"&gt;#24685&lt;/a&gt; is needed in conjunction with this to be of any real use.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #24686 (Introduce generic filter on transient return value) updated</title>
+      
+        <dc:creator>johnbillion</dc:creator>
+
+      <pubDate>Thu, 04 Jul 2013 16:54:07 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/24686#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/24686#comment:1/1372956847207028</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>24686.patch attached to Ticket #24686</title>
+      
+        <dc:creator>johnbillion</dc:creator>
+
+      <pubDate>Thu, 04 Jul 2013 16:53:56 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/24686/24686.patch</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/24686/24686.patch/1372956836183940</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #24686 (Introduce generic filter on transient return value) created</title>
+      
+        <dc:creator>johnbillion</dc:creator>
+
+      <pubDate>Thu, 04 Jul 2013 16:53:45 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/24686</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/24686/1372956825746083</guid>
+      <description>&lt;p&gt;
+The &lt;code&gt;get_transient()&lt;/code&gt; and &lt;code&gt;get_site_transient()&lt;/code&gt; functions have a filter on their return value, but the filter name contains the transient key: &lt;code&gt;transient_{$transient}&lt;/code&gt;.
+&lt;/p&gt;
+&lt;p&gt;
+This means it's not possible to hook into the return value for &lt;em&gt;every&lt;/em&gt; transient in order to do something like logging transient hits and misses.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #22369 (get_transient() do not call delete_transient() when deleting one) closed</title>
+      
+        <dc:creator>johnbillion</dc:creator>
+
+      <pubDate>Thu, 04 Jul 2013 16:47:25 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/22369#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/22369#comment:3/1372956445395686</guid>
+      <description>invalid: &lt;p&gt;
+I've opened &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/24685" title="#24685: enhancement: Pass boolean false value through `transient_$transient` filter (closed: fixed)"&gt;#24685&lt;/a&gt; for the &lt;code&gt;transient_$transient&lt;/code&gt; filter issue. Going to close this one as invalid because, as nacin stated, the transient isn't being deleted at this point, it has expired.
+&lt;/p&gt;
+</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Ticket #24685 (Pass boolean false value through `transient_$transient` filter) updated</title>
+      
+        <dc:creator>johnbillion</dc:creator>
+
+      <pubDate>Thu, 04 Jul 2013 16:46:15 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/24685#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/24685#comment:1/1372956375321825</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>24685.patch attached to Ticket #24685</title>
+      
+        <dc:creator>johnbillion</dc:creator>
+
+      <pubDate>Thu, 04 Jul 2013 16:45:47 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/24685/24685.patch</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/24685/24685.patch/1372956347360309</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #24685 (Pass boolean false value through `transient_$transient` filter) created</title>
+      
+        <dc:creator>johnbillion</dc:creator>
+
+      <pubDate>Thu, 04 Jul 2013 16:45:13 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/24685</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/24685/1372956313391309</guid>
+      <description>&lt;p&gt;
+From &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/22369#comment:1" title="Comment 1 for #22369: defect (bug): get_transient() do not call delete_transient() when deleting one (closed: invalid)"&gt;nacin's comment on #22369&lt;/a&gt;:
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+I do think the return false should go through the existing transient_$transient filter, though. When using an external backend, the false from wp_cache_get() does go through the filter, so this should as well.
+&lt;/p&gt;
+&lt;/blockquote&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #24425 (Revisions cleanup) updated</title>
+      
+        <dc:creator>adamsilverstein</dc:creator>
+
+      <pubDate>Thu, 04 Jul 2013 15:33:44 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/24425#comment:16</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/24425#comment:16/1372952024649951</guid>
+      <description>&lt;p&gt;
+nice fixes, noticed that issue as well. should have other items addressed soon. thanks!
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #24682 (Add 'Cancel' button to Revisions screen) updated</title>
+      
+        <dc:creator>DrewAPicture</dc:creator>
+
+      <pubDate>Thu, 04 Jul 2013 15:19:40 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/24682#comment:10</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/24682#comment:10/1372951180648988</guid>
+      <description>&lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #24011 (Consider hiding post title for "Status" and "Aside" formats and ...) updated</title>
+      
+        <dc:creator>kovshenin</dc:creator>
+
+      <pubDate>Thu, 04 Jul 2013 13:58:36 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/24011#comment:59</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/24011#comment:59/1372946316710295</guid>
+      <description>&lt;p&gt;
+I spent a fair amount of time with this today and could not really find where it all goes wrong, at least in core. I added the following piece of code to the filter callback.
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;$group = 'posts';
+$key = $wp_object_cache-&amp;gt;key( $post_id, $group );
+if ( ! isset( $wp_object_cache-&amp;gt;cache[ $key ] ) ) {
+	error_log( sprintf( 'key not set: %s on %s', $key, $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] ) );
+}
+&lt;/pre&gt;&lt;p&gt;
+This checks whether the passed in post id is already in the local cache, and if it's not, it means that the following calls to &lt;code&gt;get_post_format&lt;/code&gt; and &lt;code&gt;get_post&lt;/code&gt; will fetch the remote cache. I haven't got a single entry while browsing trunk with a few plugins. Not a single entry.
+&lt;/p&gt;
+&lt;p&gt;
+I tried the same experiment on WordPress.com and I did get a few entries. I'm looking further into it now, but it seems like &lt;code&gt;get_the_title&lt;/code&gt; in conjunction with &lt;code&gt;get_post&lt;/code&gt; is slightly misbehaving.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #24684 (posts_clauses Query filter should have array as argument) updated</title>
+      
+        <dc:creator>F J Kaiser</dc:creator>
+
+      <pubDate>Thu, 04 Jul 2013 13:32:24 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/24684#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/24684#comment:1/1372944744184309</guid>
+      <description>&lt;i&gt;Cc&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #24684 (posts_clauses Query filter should have array as argument) created</title>
+      
+        <dc:creator>F J Kaiser</dc:creator>
+
+      <pubDate>Thu, 04 Jul 2013 13:13:06 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/24684</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/24684/1372943586066380</guid>
+      <description>&lt;p&gt;
+Proposal to make it easier to modify the main, core-built query string.
+&lt;/p&gt;
+&lt;p&gt;
+In its current state, the &lt;code&gt;posts_clauses&lt;/code&gt; filter and its siblings (&lt;code&gt;posts_where&lt;/code&gt;, etc.) all have a string to modify. This can be really tough as one has to
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;use a Regex
+&lt;/li&gt;&lt;li&gt;consider every possible (edge) case
+&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;
+just to replace, add or remove parts of the SQL query. The reason for this is that &lt;code&gt;get_posts()&lt;/code&gt; concatenates to the strings.
+&lt;/p&gt;
+&lt;p&gt;
+What I'd like to propose is exchanging the &lt;code&gt;$where .= 'foobar';&lt;/code&gt; string concatenations with an array core would add to: &lt;code&gt;$where[] = 'foobar';&lt;/code&gt;. This would make it &lt;em&gt;much&lt;/em&gt; easier to search through the different parts and replace/add/remove parts of it before the final query string is built.
+&lt;/p&gt;
+&lt;p&gt;
+I'd like to propose this as two step process:
+&lt;/p&gt;
+&lt;ol&gt;&lt;li&gt;I'd add a patch that replaces the string concatenations with the array building process. The current arguments would stay in place, but the arrays would be &lt;code&gt;implode()&lt;/code&gt;d for the filter calls. Then we could add another, temporary filter that's named &lt;code&gt;posts_clauses_arrays&lt;/code&gt;, that would hold all those arrays as subarrays of &lt;code&gt;$pieces&lt;/code&gt;.
+&lt;/li&gt;&lt;li&gt;If every developer is familiar with this, we could change the arguments for the sibling filters and possibly remove the &lt;code&gt;posts_clauses&lt;/code&gt;-filter in favor of the &lt;code&gt;posts_clauses_array&lt;/code&gt;-filter.
+&lt;/li&gt;&lt;/ol&gt;</description>
+      <category>newticket</category>
+    </item><item>
+      <title>24683.diff attached to Ticket #24683</title>
+      
+        <dc:creator>gorgoglionemeister</dc:creator>
+
+      <pubDate>Thu, 04 Jul 2013 12:57:11 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/24683/24683.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/24683/24683.diff/1372942631727041</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #24683 (Twenty Thirteen: basic tweaks for a better stylesheet readibility) created</title>
+      
+        <dc:creator>gorgoglionemeister</dc:creator>
+
+      <pubDate>Thu, 04 Jul 2013 12:54:38 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/24683</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/24683/1372942478968584</guid>
+      <description>&lt;p&gt;
+Continuing in my exploration of Twenty Thirteen:
+&lt;/p&gt;
+&lt;p&gt;
+I removed a property that should be placed in ie.css;
+&lt;/p&gt;
+&lt;p&gt;
+I grouped related inherited properties (color, font-family and line-height) all in one place. I chose the "html" element but "body" works as well (feedback about that is well accepted).
+&lt;/p&gt;
+&lt;p&gt;
+Furthermore, about links, as far as I know
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;a:visited {
+	color: #ac0404;
+}
+&lt;/pre&gt;&lt;p&gt;
+is never applied to any elements. It can be safely removed.
+&lt;/p&gt;
+&lt;p&gt;
+In the navigation section, instead, at line 851, text-decoration: none is already set to &lt;code&gt;a&lt;/code&gt;.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #19631 (Consider a doing_it_wrong call for query_posts()) updated</title>
+      
+        <dc:creator>kovshenin</dc:creator>
+
+      <pubDate>Thu, 04 Jul 2013 11:44:22 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/19631#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/19631#comment:3/1372938262162721</guid>
+      <description>&lt;i&gt;Cc&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #22704 (Automatic Core Updates) updated</title>
+      
+        <dc:creator>bungeshea</dc:creator>
+
+      <pubDate>Thu, 04 Jul 2013 09:44:30 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/22704#comment:18</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/22704#comment:18/1372931070774334</guid>
+      <description>&lt;i&gt;Cc&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #23603 (Custom post password form label) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Thu, 04 Jul 2013 09:10:44 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/23603#comment:5</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/23603#comment:5/1372929044240058</guid>
+      <description>&lt;p&gt;
+Replying to &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/23603#comment:3" title="Comment 3"&gt;MikeHansenMe&lt;/a&gt;:
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+I like "This content is password protected". Any translations would have to be updated with this though.
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+Each major release generally has about a hundred or more new strings anyway.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Tickets #19990,​24681 batch updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Thu, 04 Jul 2013 09:09:18 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/query?id=19990%2C24681</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/query?id=19990%2C24681/1372928958647920</guid>
+      <description>duplicate: &lt;p&gt;
+&lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/19990" title="#19990: enhancement: Separate ID and display name for add_image_size (closed: worksforme)"&gt;#19990&lt;/a&gt;, &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/20663" title="#20663: enhancement: add_image_size needs a $label (closed: duplicate)"&gt;#20663&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>batchmodify</category>
+    </item><item>
+      <title>Tickets #19990,​20663 batch updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Thu, 04 Jul 2013 09:08:39 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/query?id=19990%2C20663</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/query?id=19990%2C20663/1372928919680373</guid>
+      <description>duplicate: &lt;p&gt;
+Duplicate of &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/19990" title="#19990: enhancement: Separate ID and display name for add_image_size (closed: worksforme)"&gt;#19990&lt;/a&gt;.
+&lt;/p&gt;
+</description>
+      <category>batchmodify</category>
+    </item><item>
+      <title>Ticket #19990 (Separate ID and display name for add_image_size) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Thu, 04 Jul 2013 09:08:29 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/19990#comment:6</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/19990#comment:6/1372928909603211</guid>
+      <description>&lt;p&gt;
+Related: &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/18520" title="#18520: enhancement: Allow addition of image sizes in Thickbox via filter (closed: fixed)"&gt;#18520&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #19631 (Consider a doing_it_wrong call for query_posts()) updated</title>
+      
+        <dc:creator>johnbillion</dc:creator>
+
+      <pubDate>Thu, 04 Jul 2013 08:39:12 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/19631#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/19631#comment:2/1372927152981221</guid>
+      <description>&lt;p&gt;
+kovshenin just released a plugin for this: &lt;a class="ext-link" href="http://wordpress.org/plugins/stop-query-posts/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;http://wordpress.org/plugins/stop-query-posts/&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #24682 (Add 'Cancel' button to Revisions screen) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Thu, 04 Jul 2013 08:33:46 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/24682#comment:9</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/24682#comment:9/1372926826677394</guid>
+      <description>&lt;p&gt;
+FWIW, the Comments screen for a particular post (&lt;code&gt;edit-comments.php?p=123&lt;/code&gt;) also only has the link in the post title as a way to go back (added in &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/16619" title="Link post title on comments for a single post screen. Fixes #15609"&gt;[16619]&lt;/a&gt;), so these two screens are somewhat consistent. Related: &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/21010" title="#21010: enhancement: View Post Link on edit-comments.php (closed: fixed)"&gt;#21010&lt;/a&gt;.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #24425 (Revisions cleanup) updated</title>
+      
+        <dc:creator>markjaquith</dc:creator>
+
+      <pubDate>Thu, 04 Jul 2013 08:30:37 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/24425#comment:15</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/24425#comment:15/1372926637133262</guid>
+      <description>&lt;p&gt;
+In &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/24556" title="Debounce the Revisions UI URL updates as you scrub, for a massive ..."&gt;24556&lt;/a&gt;:
+&lt;/p&gt;
+&lt;div class="message"&gt;&lt;p&gt;
+Debounce the Revisions UI URL updates as you scrub, for a massive speedup and a reduction in URL history detritus.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+see &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/24425" title="#24425: task (blessed): Revisions cleanup (closed: fixed)"&gt;#24425&lt;/a&gt;&lt;br /&gt;
+&lt;/p&gt;
+&lt;/div&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Changeset [24556]: Debounce the Revisions UI URL updates as you scrub, for a massive ...</title>
+      
+        <dc:creator>markjaquith</dc:creator>
+
+      <pubDate>Thu, 04 Jul 2013 08:30:36 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/24556</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/24556/1372926636685008</guid>
+      <description>&lt;p&gt;
+Debounce the Revisions UI URL updates as you scrub, for a massive speedup and a reduction in URL history detritus.
+&lt;/p&gt;
+&lt;p&gt;
+see &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/24425" title="#24425: task (blessed): Revisions cleanup (closed: fixed)"&gt;#24425&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Ticket #24682 (Add 'Cancel' button to Revisions screen) updated</title>
+      
+        <dc:creator>markjaquith</dc:creator>
+
+      <pubDate>Thu, 04 Jul 2013 08:21:07 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/24682#comment:8</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/24682#comment:8/1372926067696360</guid>
+      <description>&lt;p&gt;
+I like the location — it's most in-context. Pretty sure I like the "Go Back" text. Having something more specific is going to be a translation nightmare. And I think the post title should remain linked.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #24425 (Revisions cleanup) updated</title>
+      
+        <dc:creator>markjaquith</dc:creator>
+
+      <pubDate>Thu, 04 Jul 2013 08:17:13 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/24425#comment:14</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/24425#comment:14/1372925833912171</guid>
+      <description>&lt;p&gt;
+&lt;a class="attachment" href="http://core.trac.wordpress.org/attachment/ticket/24425/24425.history-debounce.diff" title="Attachment '24425.history-debounce.diff' in Ticket #24425"&gt;24425.history-debounce.diff&lt;/a&gt;&lt;a class="trac-rawlink" href="http://core.trac.wordpress.org/raw-attachment/ticket/24425/24425.history-debounce.diff" title="Download"&gt;​&lt;/a&gt;
+&lt;/p&gt;
+&lt;p&gt;
+The URL updating on mouse drag was massively slowing things down. This patch makes a debounced function (250ms currently), and then only calls that from a custom event that fires after the diff has rendered (diff rendering has its own throttling built in, so this will filter out diffId changes that happen so quickly that by the time they start to render, the diffId has already changed).
+&lt;/p&gt;
+&lt;p&gt;
+Also a little bit of cleanup, removing unnecessary variables, and moving the Router to get passed in a model, instead of the set-it-after thing that was happening.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>24425.history-debounce.diff attached to Ticket #24425</title>
+      
+        <dc:creator>markjaquith</dc:creator>
+
+      <pubDate>Thu, 04 Jul 2013 08:13:10 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/24425/24425.history-debounce.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/24425/24425.history-debounce.diff/1372925590300484</guid>
+      <description>&lt;p&gt;
+Debounces the URL updates
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #23567 (Duplicate entries in IIS tbex.xml) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Thu, 04 Jul 2013 07:45:14 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/23567#comment:5</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/23567#comment:5/1372923914054910</guid>
+      <description>&lt;p&gt;
+Replying to &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/23567#comment:4" title="Comment 4"&gt;nacin&lt;/a&gt;:
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+It looks like &lt;a class="attachment" href="http://core.trac.wordpress.org/attachment/ticket/23567/tbex-2.diff" title="Attachment 'tbex-2.diff' in Ticket #23567"&gt;tbex-2.diff&lt;/a&gt;&lt;a class="trac-rawlink" href="http://core.trac.wordpress.org/raw-attachment/ticket/23567/tbex-2.diff" title="Download"&gt;​&lt;/a&gt; has some encoding issues. Seeing some ? there. The opening one might be a BOM?
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+It is, but the current file has a BOM too. Should it be removed? Fixed the encoding in &lt;a class="attachment" href="http://core.trac.wordpress.org/attachment/ticket/23567/23567.3.diff" title="Attachment '23567.3.diff' in Ticket #23567"&gt;23567.3.diff&lt;/a&gt;&lt;a class="trac-rawlink" href="http://core.trac.wordpress.org/raw-attachment/ticket/23567/23567.3.diff" title="Download"&gt;​&lt;/a&gt;.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>23567.3.diff attached to Ticket #23567</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Thu, 04 Jul 2013 07:41:58 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/23567/23567.3.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/23567/23567.3.diff/1372923718345207</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #24682 (Add 'Cancel' button to Revisions screen) updated</title>
+      
+        <dc:creator>DrewAPicture</dc:creator>
+
+      <pubDate>Thu, 04 Jul 2013 07:31:27 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/24682#comment:7</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/24682#comment:7/1372923087866687</guid>
+      <description>&lt;p&gt;
+If you also want to see a version with only 'Go Back' linked, see &lt;a class="attachment" href="http://core.trac.wordpress.org/attachment/ticket/24682/24682-one-linked.patch" title="Attachment '24682-one-linked.patch' in Ticket #24682"&gt;24682-one-linked.patch&lt;/a&gt;&lt;a class="trac-rawlink" href="http://core.trac.wordpress.org/raw-attachment/ticket/24682/24682-one-linked.patch" title="Download"&gt;​&lt;/a&gt;: &lt;a class="ext-link" href="http://f.cl.ly/items/0y3R062P1Q2F443V080j/Screen%20Shot%202013-07-04%20at%201.20.09%20AM.png"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;http://f.cl.ly/items/0y3R062P1Q2F443V080j/Screen%20Shot%202013-07-04%20at%201.20.09%20AM.png&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>24682-one-linked.patch attached to Ticket #24682</title>
+      
+        <dc:creator>DrewAPicture</dc:creator>
+
+      <pubDate>Thu, 04 Jul 2013 07:30:38 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/24682/24682-one-linked.patch</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/24682/24682-one-linked.patch/1372923038898545</guid>
+      <description>&lt;p&gt;
+alternative: only link 'Go Back'
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>24682.2.patch attached to Ticket #24682</title>
+      
+        <dc:creator>DrewAPicture</dc:creator>
+
+      <pubDate>Thu, 04 Jul 2013 07:26:29 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/24682/24682.2.patch</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/24682/24682.2.patch/1372922789715358</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #12235 (Display caption with the_post_thumbnail) updated</title>
+      
+        <dc:creator>Zahak</dc:creator>
+
+      <pubDate>Thu, 04 Jul 2013 07:25:48 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/12235#comment:13</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/12235#comment:13/1372922748700441</guid>
+      <description>&lt;p&gt;
+So is this feature request dead? Or is it something that will come?
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #24682 (Add 'Cancel' button to Revisions screen) updated</title>
+      
+        <dc:creator>DrewAPicture</dc:creator>
+
+      <pubDate>Thu, 04 Jul 2013 07:16:23 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/24682#comment:6</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/24682#comment:6/1372922183300498</guid>
+      <description>&lt;p&gt;
+&lt;a class="attachment" href="http://core.trac.wordpress.org/attachment/ticket/24682/24682.2.patch" title="Attachment '24682.2.patch' in Ticket #24682"&gt;24682.2.patch&lt;/a&gt;&lt;a class="trac-rawlink" href="http://core.trac.wordpress.org/raw-attachment/ticket/24682/24682.2.patch" title="Download"&gt;​&lt;/a&gt; uses the &lt;code&gt;add-new-h2&lt;/code&gt; style for 'Go Back'. First run retains the linked post title:
+&lt;/p&gt;
+&lt;p&gt;
+&lt;a style="padding:0; border:none" href="http://f.cl.ly/items/1m2z452L2q161Q0d0K2p/Screen%20Shot%202013-07-04%20at%201.14.56%20AM.png"&gt;&lt;img src="http://f.cl.ly/items/1m2z452L2q161Q0d0K2p/Screen%20Shot%202013-07-04%20at%201.14.56%20AM.png" alt="http://f.cl.ly/items/1m2z452L2q161Q0d0K2p/Screen%20Shot%202013-07-04%20at%201.14.56%20AM.png" crossorigin="anonymous" title="http://f.cl.ly/items/1m2z452L2q161Q0d0K2p/Screen%20Shot%202013-07-04%20at%201.14.56%20AM.png" /&gt;&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #24610 (Do something with the_post_format_*() functions) closed</title>
+      
+        <dc:creator>markjaquith</dc:creator>
+
+      <pubDate>Thu, 04 Jul 2013 06:57:00 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/24610#comment:10</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/24610#comment:10/1372921020990742</guid>
+      <description>fixed: &lt;p&gt;
+In &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/24555" title="Remove some more post format functions.
+props wonderboymusic. fixes ..."&gt;24555&lt;/a&gt;:
+&lt;/p&gt;
+&lt;div class="message"&gt;&lt;p&gt;
+Remove some more post format functions.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+props wonderboymusic. fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/24610" title="#24610: task (blessed): Do something with the_post_format_*() functions (closed: fixed)"&gt;#24610&lt;/a&gt;.&lt;br /&gt;
+&lt;/p&gt;
+&lt;/div&gt;</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Changeset [24555]: Remove some more post format functions.  props wonderboymusic. fixes ...</title>
+      
+        <dc:creator>markjaquith</dc:creator>
+
+      <pubDate>Thu, 04 Jul 2013 06:57:00 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/24555</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/24555/1372921020096000</guid>
+      <description>&lt;p&gt;
+Remove some more post format functions.
+&lt;/p&gt;
+&lt;p&gt;
+props wonderboymusic. fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/24610" title="#24610: task (blessed): Do something with the_post_format_*() functions (closed: fixed)"&gt;#24610&lt;/a&gt;.
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Ticket #24334 ("edit_form_after_title" and "edit_form_after_editor" hooks wrapper ...) updated</title>
+      
+        <dc:creator>wycks</dc:creator>
+
+      <pubDate>Thu, 04 Jul 2013 06:12:53 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/24334#comment:6</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/24334#comment:6/1372918373261023</guid>
+      <description>&lt;p&gt;
+The only reason I can think of is if a user does not update WordPress, if a plugin/themes is using the filter pre &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/23615" title="Prevent an unseemly gap on the edit screen when nothing else displays ..."&gt;[23615]&lt;/a&gt;, or in the case of lemmonaid 's reason for this ticket.
+&lt;/p&gt;
+&lt;p&gt;
+It seems a bit redundant to have a hardcoded div right above a container which already works in the same context and has been there a long while.
+&lt;/p&gt;
+&lt;p&gt;
+It's probably a worksforme though since I created the patch for 3.5 not knowing it had already been fixed.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #24682 (Add 'Cancel' button to Revisions screen) updated</title>
+      
+        <dc:creator>markjaquith</dc:creator>
+
+      <pubDate>Thu, 04 Jul 2013 05:28:58 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/24682#comment:5</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/24682#comment:5/1372915738427574</guid>
+      <description>&lt;p&gt;
+It's less "cancel" and more "back".
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #24334 ("edit_form_after_title" and "edit_form_after_editor" hooks wrapper ...) updated</title>
+      
+        <dc:creator>nacin</dc:creator>
+
+      <pubDate>Thu, 04 Jul 2013 05:16:03 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/24334#comment:5</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/24334#comment:5/1372914963904985</guid>
+      <description>&lt;p&gt;
+Could you provide a use case where removing the wrapper is absolutely required? As of right now this is probably a wontfix/worksforme.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #24682 (Add 'Cancel' button to Revisions screen) updated</title>
+      
+        <dc:creator>nacin</dc:creator>
+
+      <pubDate>Thu, 04 Jul 2013 05:14:57 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/24682#comment:4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/24682#comment:4/1372914897738355</guid>
+      <description>&lt;p&gt;
+Revisions isn't just for restoring. It is also for reviewing and noting changes, and potentially resurrecting pieces of a post. Even if "Restore" is the only *action* that can be formally taken, "Cancel" isn't necessarily the right way to go back.
+&lt;/p&gt;
+&lt;p&gt;
+Something that allows for the user to go back is good. I just don't think it needs to be "Cancel". Perhaps there is another existing paradigm in core we can use.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #24682 (Add 'Cancel' button to Revisions screen) updated</title>
+      
+        <dc:creator>adamsilverstein</dc:creator>
+
+      <pubDate>Thu, 04 Jul 2013 03:23:53 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/24682#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/24682#comment:3/1372908233405852</guid>
+      <description>&lt;p&gt;
++1 to the cancel button, I agree its confusing to only have the post title as the link back to the post edit screen. In addition, the latest revisions version features browser history tracking, so the browser back button no longer  works as a shortcut back to the post edit screen.
+&lt;/p&gt;
+&lt;p&gt;
+We did have a cancel button in there at some point (see &lt;a class="ext-link" href="http://cl.ly/N3Kz/diffview.png"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;http://cl.ly/N3Kz/diffview.png&lt;/a&gt;), but in IRC it was discussed and decided to remove it.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #24682 (Add 'Cancel' button to Revisions screen) updated</title>
+      
+        <dc:creator>DrewAPicture</dc:creator>
+
+      <pubDate>Thu, 04 Jul 2013 02:13:23 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/24682#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/24682#comment:2/1372904003279195</guid>
+      <description>&lt;i&gt;Description&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #24334 ("edit_form_after_title" and "edit_form_after_editor" hooks wrapper ...) updated</title>
+      
+        <dc:creator>wycks</dc:creator>
+
+      <pubDate>Thu, 04 Jul 2013 02:12:47 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/24334#comment:4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/24334#comment:4/1372903967737282</guid>
+      <description>&lt;p&gt;
+This removed the wrapper div and instead puts the hook into the container under the editor. It seems to do the same thing sans wrapper.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #24682 (Add 'Cancel' button to Revisions screen) updated</title>
+      
+        <dc:creator>DrewAPicture</dc:creator>
+
+      <pubDate>Thu, 04 Jul 2013 02:12:40 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/24682#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/24682#comment:1/1372903960786196</guid>
+      <description>&lt;p&gt;
+Before the patch:
+&lt;a style="padding:0; border:none" href="http://f.cl.ly/items/3q2z2l1k02410R0I1W1j/Screen%20Shot%202013-07-03%20at%208.11.49%20PM.png"&gt;&lt;img src="http://f.cl.ly/items/3q2z2l1k02410R0I1W1j/Screen%20Shot%202013-07-03%20at%208.11.49%20PM.png" alt="http://f.cl.ly/items/3q2z2l1k02410R0I1W1j/Screen%20Shot%202013-07-03%20at%208.11.49%20PM.png" crossorigin="anonymous" title="http://f.cl.ly/items/3q2z2l1k02410R0I1W1j/Screen%20Shot%202013-07-03%20at%208.11.49%20PM.png" /&gt;&lt;/a&gt;
+&lt;/p&gt;
+&lt;p&gt;
+After the patch:
+&lt;a style="padding:0; border:none" href="http://f.cl.ly/items/0n2N2v1p2Q3G0o3X1r3S/Screen%20Shot%202013-07-03%20at%208.09.43%20PM.png"&gt;&lt;img src="http://f.cl.ly/items/0n2N2v1p2Q3G0o3X1r3S/Screen%20Shot%202013-07-03%20at%208.09.43%20PM.png" alt="http://f.cl.ly/items/0n2N2v1p2Q3G0o3X1r3S/Screen%20Shot%202013-07-03%20at%208.09.43%20PM.png" crossorigin="anonymous" title="http://f.cl.ly/items/0n2N2v1p2Q3G0o3X1r3S/Screen%20Shot%202013-07-03%20at%208.09.43%20PM.png" /&gt;&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>edit_form_after_editor.24334.diff attached to Ticket #24334</title>
+      
+        <dc:creator>wycks</dc:creator>
+
+      <pubDate>Thu, 04 Jul 2013 02:11:25 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/24334/edit_form_after_editor.24334.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/24334/edit_form_after_editor.24334.diff/1372903885398691</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>24682.patch attached to Ticket #24682</title>
+      
+        <dc:creator>DrewAPicture</dc:creator>
+
+      <pubDate>Thu, 04 Jul 2013 02:10:39 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/24682/24682.patch</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/24682/24682.patch/1372903839453125</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #24682 (Add 'Cancel' button to Revisions screen) created</title>
+      
+        <dc:creator>DrewAPicture</dc:creator>
+
+      <pubDate>Thu, 04 Jul 2013 02:10:17 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/24682</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/24682/1372903817679460</guid>
+      <description>&lt;p&gt;
+On the revisions screen(s) currently, the only way to get back to the post-editing screen is to click the link at the top in the middle of: 'Compare Revisions of "&amp;lt;linked&amp;gt;Post Title&amp;lt;/linked&amp;gt;"', which seems neither intuitive nor obvious to me.
+&lt;/p&gt;
+&lt;p&gt;
+There was also &lt;a class="ext-link" href="http://wordpress.org/support/topic/return-to-page-edit-from-revision-comparison?replies=3"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;a post&lt;/a&gt; awhile back in Alpha/Beta about this.
+&lt;/p&gt;
+&lt;p&gt;
+It would be nice if there were some user tests backing this up, but at this point in the cycle informed UX feedback should suffice.
+&lt;/p&gt;
+&lt;p&gt;
+The attached patch adds a secondary 'Cancel' button alongside the primary 'Restore This Revision' button. Also covers RTL.
+&lt;/p&gt;
+&lt;p&gt;
+Related: &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/23497" title="#23497: enhancement: Revisions Rewrite using JS/Backbone (closed: fixed)"&gt;#23497&lt;/a&gt;, &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/24425" title="#24425: task (blessed): Revisions cleanup (closed: fixed)"&gt;#24425&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #24675 (Reduce the number of clicks needed to update the permalink to match a ...) updated</title>
+      
+        <dc:creator>pbearne</dc:creator>
+
+      <pubDate>Thu, 04 Jul 2013 01:55:10 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/24675#comment:12</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/24675#comment:12/1372902910124283</guid>
+      <description>&lt;p&gt;
+Replying to &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/24675#comment:11" title="Comment 11"&gt;nacin&lt;/a&gt;:
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+Replying to &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/24675#comment:10" title="Comment 10"&gt;knutsp&lt;/a&gt;:
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+I think it should be really annoying to change the permalink of a published post. Immediately after publishing, the permalink may be all over the internet, through automated pings and re-publishing mechanisms. May this lead to 404?
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+It would for hierarchical post types, yes.
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+its sounds like there is space to make it easier and also add warnings / make it harder
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #24405 (Revisions needs a functional fallback for no-js) updated</title>
+      
+        <dc:creator>DrewAPicture</dc:creator>
+
+      <pubDate>Thu, 04 Jul 2013 01:41:14 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/24405#comment:9</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/24405#comment:9/1372902074590487</guid>
+      <description>&lt;p&gt;
+&lt;a class="attachment" href="http://core.trac.wordpress.org/attachment/ticket/24405/24405.2.patch" title="Attachment '24405.2.patch' in Ticket #24405"&gt;24405.2.patch&lt;/a&gt;&lt;a class="trac-rawlink" href="http://core.trac.wordpress.org/raw-attachment/ticket/24405/24405.2.patch" title="Download"&gt;​&lt;/a&gt; tweaks the generic string and hides the unordered list for no-js. I opted to remove the &lt;code&gt;error&lt;/code&gt; class because it's not really an error, more of a notification.
+&lt;/p&gt;
+&lt;p&gt;
+&lt;a style="padding:0; border:none" href="http://f.cl.ly/items/123M0o050U300g2U1F3r/Screen%20Shot%202013-07-03%20at%207.32.38%20PM.png"&gt;&lt;img src="http://f.cl.ly/items/123M0o050U300g2U1F3r/Screen%20Shot%202013-07-03%20at%207.32.38%20PM.png" alt="http://f.cl.ly/items/123M0o050U300g2U1F3r/Screen%20Shot%202013-07-03%20at%207.32.38%20PM.png" crossorigin="anonymous" title="http://f.cl.ly/items/123M0o050U300g2U1F3r/Screen%20Shot%202013-07-03%20at%207.32.38%20PM.png" /&gt;&lt;/a&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Just to give you an idea, this is what it looked like with the &lt;code&gt;error&lt;/code&gt; class still applied:
+&lt;a style="padding:0; border:none" href="http://f.cl.ly/items/3g0P063a1n0524212f3i/Screen%20Shot%202013-07-03%20at%207.38.10%20PM.png"&gt;&lt;img src="http://f.cl.ly/items/3g0P063a1n0524212f3i/Screen%20Shot%202013-07-03%20at%207.38.10%20PM.png" alt="http://f.cl.ly/items/3g0P063a1n0524212f3i/Screen%20Shot%202013-07-03%20at%207.38.10%20PM.png" crossorigin="anonymous" title="http://f.cl.ly/items/3g0P063a1n0524212f3i/Screen%20Shot%202013-07-03%20at%207.38.10%20PM.png" /&gt;&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>24405.2.patch attached to Ticket #24405</title>
+      
+        <dc:creator>DrewAPicture</dc:creator>
+
+      <pubDate>Thu, 04 Jul 2013 01:33:33 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/24405/24405.2.patch</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/24405/24405.2.patch/1372901613531016</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #24308 (Twenty Thirteen: Add Editor Styles for Post Formats) updated</title>
+      
+        <dc:creator>azaozz</dc:creator>
+
+      <pubDate>Thu, 04 Jul 2013 01:16:30 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/24308#comment:32</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/24308#comment:32/1372900590924192</guid>
+      <description>&lt;p&gt;
+&lt;a style="padding:0; border:none" href="http://core.trac.wordpress.org/attachment/ticket/24308/format-audio-before.png"&gt;&lt;img src="http://core.trac.wordpress.org/raw-attachment/ticket/24308/format-audio-before.png" crossorigin="anonymous" /&gt;&lt;/a&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Seeing this sometimes in both Chrome and FF on Win7. Seems the font is missing/not recognized until the user loads the front-end. Also there is always a vertical scrollbar and &lt;code&gt;box-sizing&lt;/code&gt; doesn't affect it. Maybe make the height in .post-format-audio:before 97%?
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #24675 (Reduce the number of clicks needed to update the permalink to match a ...) updated</title>
+      
+        <dc:creator>nacin</dc:creator>
+
+      <pubDate>Thu, 04 Jul 2013 00:41:10 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/24675#comment:11</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/24675#comment:11/1372898470477484</guid>
+      <description>&lt;p&gt;
+Replying to &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/24675#comment:10" title="Comment 10"&gt;knutsp&lt;/a&gt;:
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+I think it should be really annoying to change the permalink of a published post. Immediately after publishing, the permalink may be all over the internet, through automated pings and re-publishing mechanisms. May this lead to 404?
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+It would for hierarchical post types, yes.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>format-audio-before.png attached to Ticket #24308</title>
+      
+        <dc:creator>azaozz</dc:creator>
+
+      <pubDate>Thu, 04 Jul 2013 00:10:57 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/24308/format-audio-before.png</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/24308/format-audio-before.png/1372896657931271</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #24452 (Extract Post Formats UI from Core) closed</title>
+      
+        <dc:creator>ocean90</dc:creator>
+
+      <pubDate>Wed, 03 Jul 2013 22:39:28 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/24452#comment:27</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/24452#comment:27/1372891168599533</guid>
+      <description>fixed</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Ticket #24484 (Lose the "remove" support for media extraction functions) closed</title>
+      
+        <dc:creator>ocean90</dc:creator>
+
+      <pubDate>Wed, 03 Jul 2013 22:36:14 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/24484#comment:9</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/24484#comment:9/1372890974470401</guid>
+      <description>fixed: &lt;p&gt;
+In &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/24554" title="Lose content removal and splitting from get_content_url(). And remove ..."&gt;24554&lt;/a&gt;:
+&lt;/p&gt;
+&lt;div class="message"&gt;&lt;p&gt;
+Lose content removal and splitting from get_content_url(). And remove unneeded lines from &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/24400" title="Lose content removal and splitting from the media extraction ..."&gt;[24400]&lt;/a&gt;.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/24484" title="#24484: task (blessed): Lose the &amp;#34;remove&amp;#34; support for media extraction functions (closed: fixed)"&gt;#24484&lt;/a&gt;.&lt;br /&gt;
+&lt;/p&gt;
+&lt;/div&gt;</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Changeset [24554]: Lose content removal and splitting from get_content_url(). And remove ...</title>
+      
+        <dc:creator>ocean90</dc:creator>
+
+      <pubDate>Wed, 03 Jul 2013 22:36:13 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/24554</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/24554/1372890973881085</guid>
+      <description>&lt;p&gt;
+Lose content removal and splitting from get_content_url(). And remove unneeded lines from &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/24400" title="Lose content removal and splitting from the media extraction ..."&gt;[24400]&lt;/a&gt;.
+&lt;/p&gt;
+&lt;p&gt;
+fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/24484" title="#24484: task (blessed): Lose the &amp;#34;remove&amp;#34; support for media extraction functions (closed: fixed)"&gt;#24484&lt;/a&gt;.
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Ticket #24452 (Extract Post Formats UI from Core) updated</title>
+      
+        <dc:creator>ocean90</dc:creator>
+
+      <pubDate>Wed, 03 Jul 2013 21:56:32 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/24452#comment:26</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/24452#comment:26/1372888592972553</guid>
+      <description>&lt;p&gt;
+In &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/1302/tests" title="Don't set `_format_url` post meta in ..."&gt;1302/tests&lt;/a&gt;:
+&lt;/p&gt;
+&lt;div class="message"&gt;&lt;p&gt;
+Don't set &lt;code&gt;_format_url&lt;/code&gt; post meta in Tests_Post_Formats::test_get_content_url(), see &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/24452" title="#24452: task (blessed): Extract Post Formats UI from Core (closed: fixed)"&gt;#24452&lt;/a&gt;.&lt;br /&gt;
+&lt;/p&gt;
+&lt;/div&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Changeset in tests [1302]: Don't set `_format_url` post meta in ...</title>
+      
+        <dc:creator>ocean90</dc:creator>
+
+      <pubDate>Wed, 03 Jul 2013 21:56:32 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/1302/tests</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/1302/tests/1372888592167957</guid>
+      <description>&lt;p&gt;
+Don't set &lt;code&gt;_format_url&lt;/code&gt; post meta in Tests_Post_Formats::test_get_content_url(), see &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/24452" title="#24452: task (blessed): Extract Post Formats UI from Core (closed: fixed)"&gt;#24452&lt;/a&gt;.
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Ticket #24675 (Reduce the number of clicks needed to update the permalink to match a ...) updated</title>
+      
+        <dc:creator>knutsp</dc:creator>
+
+      <pubDate>Wed, 03 Jul 2013 21:49:23 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/24675#comment:10</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/24675#comment:10/1372888163703637</guid>
+      <description>&lt;p&gt;
+I think it should be really annoying to change the permalink of a published post. Immediately after publishing, the permalink may be all over the internet, through automated pings and re-publishing mechanisms. May this lead to 404?
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>24484.ut.2.patch attached to Ticket #24484</title>
+      
+        <dc:creator>ocean90</dc:creator>
+
+      <pubDate>Wed, 03 Jul 2013 21:31:25 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/24484/24484.ut.2.patch</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/24484/24484.ut.2.patch/1372887085335526</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #24364 (Fix  autocomplete="off" in Chrome) closed</title>
+      
+        <dc:creator>markjaquith</dc:creator>
+
+      <pubDate>Wed, 03 Jul 2013 21:29:54 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/24364#comment:26</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/24364#comment:26/1372886994472676</guid>
+      <description>fixed: &lt;p&gt;
+In &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/24553" title="Set `autocomplete=&amp;#34;off&amp;#34;` on the password reset form itself, in ..."&gt;24553&lt;/a&gt;:
+&lt;/p&gt;
+&lt;div class="message"&gt;&lt;p&gt;
+Set &lt;code&gt;autocomplete="off"&lt;/code&gt; on the password reset form itself, in addition to the individual inputs, to work around a Chrome bug.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/24364" title="#24364: defect (bug): Fix  autocomplete=&amp;#34;off&amp;#34; in Chrome (closed: fixed)"&gt;#24364&lt;/a&gt;. props azaozz.&lt;br /&gt;
+&lt;/p&gt;
+&lt;/div&gt;</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Changeset [24553]: Set `autocomplete="off"` on the password reset form itself, in ...</title>
+      
+        <dc:creator>markjaquith</dc:creator>
+
+      <pubDate>Wed, 03 Jul 2013 21:29:53 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/24553</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/24553/1372886993661801</guid>
+      <description>&lt;p&gt;
+Set &lt;code&gt;autocomplete="off"&lt;/code&gt; on the password reset form itself, in addition to the individual inputs, to work around a Chrome bug.
+&lt;/p&gt;
+&lt;p&gt;
+fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/24364" title="#24364: defect (bug): Fix  autocomplete=&amp;#34;off&amp;#34; in Chrome (closed: fixed)"&gt;#24364&lt;/a&gt;. props azaozz.
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>24484.patch attached to Ticket #24484</title>
+      
+        <dc:creator>ocean90</dc:creator>
+
+      <pubDate>Wed, 03 Jul 2013 21:25:59 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/24484/24484.patch</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/24484/24484.patch/1372886759772645</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #24364 (Fix  autocomplete="off" in Chrome) updated</title>
+      
+        <dc:creator>markjaquith</dc:creator>
+
+      <pubDate>Wed, 03 Jul 2013 21:24:03 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/24364#comment:25</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/24364#comment:25/1372886643257647</guid>
+      <description>&lt;p&gt;
+In &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/24552" title="Combat Chrome's insanely aggressive user/pass autofilling ಠ_ಠ
+Chrome ..."&gt;24552&lt;/a&gt;:
+&lt;/p&gt;
+&lt;div class="message"&gt;&lt;p&gt;
+Combat Chrome's insanely aggressive user/pass autofilling ಠ_ಠ&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Chrome now ignores &lt;code&gt;autocomplete="off"&lt;/code&gt; in &amp;lt;input&amp;gt;, so this hack uses&lt;br /&gt;
+a hidden, non-named, non-empty input, right before the password field.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+see &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/24364" title="#24364: defect (bug): Fix  autocomplete=&amp;#34;off&amp;#34; in Chrome (closed: fixed)"&gt;#24364&lt;/a&gt;. props azaozz, nacin, bobbingwide, aaroncampbell.&lt;br /&gt;
+&lt;/p&gt;
+&lt;/div&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Changeset [24552]: Combat Chrome's insanely aggressive user/pass autofilling ಠ_ಠ  Chrome ...</title>
+      
+        <dc:creator>markjaquith</dc:creator>
+
+      <pubDate>Wed, 03 Jul 2013 21:24:02 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/24552</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/24552/1372886642446905</guid>
+      <description>&lt;p&gt;
+Combat Chrome's insanely aggressive user/pass autofilling ಠ_ಠ
+&lt;/p&gt;
+&lt;p&gt;
+Chrome now ignores &lt;code&gt;autocomplete="off"&lt;/code&gt; in &amp;lt;input&amp;gt;, so this hack uses
+a hidden, non-named, non-empty input, right before the password field.
+&lt;/p&gt;
+&lt;p&gt;
+see &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/24364" title="#24364: defect (bug): Fix  autocomplete=&amp;#34;off&amp;#34; in Chrome (closed: fixed)"&gt;#24364&lt;/a&gt;. props azaozz, nacin, bobbingwide, aaroncampbell.
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Ticket #24364 (Fix  autocomplete="off" in Chrome) updated</title>
+      
+        <dc:creator>markjaquith</dc:creator>
+
+      <pubDate>Wed, 03 Jul 2013 21:23:56 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/24364#comment:24</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/24364#comment:24/1372886636149942</guid>
+      <description>&lt;p&gt;
+In &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/24551" title="Rejigger some whitespace in anticipation of a fix for #24364.
+see #24364"&gt;24551&lt;/a&gt;:
+&lt;/p&gt;
+&lt;div class="message"&gt;&lt;p&gt;
+Rejigger some whitespace in anticipation of a fix for &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/24364" title="#24364: defect (bug): Fix  autocomplete=&amp;#34;off&amp;#34; in Chrome (closed: fixed)"&gt;#24364&lt;/a&gt;.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+see &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/24364" title="#24364: defect (bug): Fix  autocomplete=&amp;#34;off&amp;#34; in Chrome (closed: fixed)"&gt;#24364&lt;/a&gt;&lt;br /&gt;
+&lt;/p&gt;
+&lt;/div&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Changeset [24551]: Rejigger some whitespace in anticipation of a fix for #24364.  see #24364</title>
+      
+        <dc:creator>markjaquith</dc:creator>
+
+      <pubDate>Wed, 03 Jul 2013 21:23:55 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/24551</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/24551/1372886635659933</guid>
+      <description>&lt;p&gt;
+Rejigger some whitespace in anticipation of a fix for &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/24364" title="#24364: defect (bug): Fix  autocomplete=&amp;#34;off&amp;#34; in Chrome (closed: fixed)"&gt;#24364&lt;/a&gt;.
+&lt;/p&gt;
+&lt;p&gt;
+see &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/24364" title="#24364: defect (bug): Fix  autocomplete=&amp;#34;off&amp;#34; in Chrome (closed: fixed)"&gt;#24364&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>24364.4.diff attached to Ticket #24364</title>
+      
+        <dc:creator>markjaquith</dc:creator>
+
+      <pubDate>Wed, 03 Jul 2013 21:08:24 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/24364/24364.4.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/24364/24364.4.diff/1372885704173006</guid>
+      <description>&lt;p&gt;
+Brings back value=" " (blank space) as non-empty values are also checked by Chrome.
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #22030 (After "clear background-color" in design options, still css is added ...) updated</title>
+      
+        <dc:creator>obenland</dc:creator>
+
+      <pubDate>Wed, 03 Jul 2013 21:03:56 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/22030#comment:21</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/22030#comment:21/1372885436768673</guid>
+      <description>&lt;p&gt;
+I tried the following approach in &lt;code&gt;_custom_background_cb()&lt;/code&gt; to cover both the customizer and the background admin:
+&lt;/p&gt;
+&lt;div class="wiki-code"&gt;&lt;div class="code"&gt;&lt;pre&gt;&lt;span class="cp"&gt;&amp;lt;?php&lt;/span&gt;
+&lt;span class="nv"&gt;$color&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nx"&gt;get_theme_mod&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="s1"&gt;'background_color'&lt;/span&gt; &lt;span class="p"&gt;);&lt;/span&gt;
+&lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="nx"&gt;get_theme_support&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="s1"&gt;'custom-background'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;'default-color'&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="nv"&gt;$color&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt;
+        &lt;span class="nv"&gt;$color&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="k"&gt;false&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="o"&gt;!&lt;/span&gt; &lt;span class="nv"&gt;$background&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class="o"&gt;!&lt;/span&gt; &lt;span class="nv"&gt;$color&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt;
+        &lt;span class="k"&gt;return&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;p&gt;
+For some reason the customizer chokes on that and does not display the default color though. It also breaks themes that trust that the value in the theme mod gets used.
+&lt;/p&gt;
+&lt;p&gt;
+&lt;a class="attachment" href="http://core.trac.wordpress.org/attachment/ticket/22030/22030.1.2.diff" title="Attachment '22030.1.2.diff' in Ticket #22030"&gt;22030.1.2.diff&lt;/a&gt;&lt;a class="trac-rawlink" href="http://core.trac.wordpress.org/raw-attachment/ticket/22030/22030.1.2.diff" title="Download"&gt;​&lt;/a&gt; fixes it for the background admin, but I'm really not sure (how) we can fix it for the customizer.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>24364.3.diff attached to Ticket #24364</title>
+      
+        <dc:creator>markjaquith</dc:creator>
+
+      <pubDate>Wed, 03 Jul 2013 20:58:12 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/24364/24364.3.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/24364/24364.3.diff/1372885092251044</guid>
+      <description>&lt;p&gt;
+With HTML comments so people don't wonder WTF is going on.
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>24364.2.diff attached to Ticket #24364</title>
+      
+        <dc:creator>markjaquith</dc:creator>
+
+      <pubDate>Wed, 03 Jul 2013 20:49:41 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/24364/24364.2.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/24364/24364.2.diff/1372884581224116</guid>
+      <description>&lt;p&gt;
+Cleaned up and simplified hidden input patch
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #18178 (Add "none" option to $attr['link'] for [gallery] shortcode) updated</title>
+      
+        <dc:creator>nacin</dc:creator>
+
+      <pubDate>Wed, 03 Jul 2013 20:44:05 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/18178#comment:14</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/18178#comment:14/1372884245173620</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt;, &lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #18178 (Add "none" option to $attr['link'] for [gallery] shortcode) closed</title>
+      
+        <dc:creator>nacin</dc:creator>
+
+      <pubDate>Wed, 03 Jul 2013 20:43:20 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/18178#comment:13</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/18178#comment:13/1372884200240687</guid>
+      <description>fixed: &lt;p&gt;
+In &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/24550" title="Allow gallery to be inserted with no links on the images. props ..."&gt;24550&lt;/a&gt;:
+&lt;/p&gt;
+&lt;div class="message"&gt;&lt;p&gt;
+Allow gallery to be inserted with no links on the images. props chipbennett, helgatheviking, aaroncampbell, wonderboymusic. fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/18178" title="#18178: enhancement: Add &amp;#34;none&amp;#34; option to $attr['link'] for [gallery] shortcode (closed: fixed)"&gt;#18178&lt;/a&gt;.&lt;br /&gt;
+&lt;/p&gt;
+&lt;/div&gt;</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Changeset [24550]: Allow gallery to be inserted with no links on the images. props ...</title>
+      
+        <dc:creator>nacin</dc:creator>
+
+      <pubDate>Wed, 03 Jul 2013 20:43:19 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/24550</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/24550/1372884199751594</guid>
+      <description>&lt;p&gt;
+Allow gallery to be inserted with no links on the images. props chipbennett, helgatheviking, aaroncampbell, wonderboymusic. fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/18178" title="#18178: enhancement: Add &amp;#34;none&amp;#34; option to $attr['link'] for [gallery] shortcode (closed: fixed)"&gt;#18178&lt;/a&gt;.
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Ticket #18178 (Add "none" option to $attr['link'] for [gallery] shortcode) updated</title>
+      
+        <dc:creator>nacin</dc:creator>
+
+      <pubDate>Wed, 03 Jul 2013 20:39:37 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/18178#comment:12</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/18178#comment:12/1372883977910799</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt;, &lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #23567 (Duplicate entries in IIS tbex.xml) updated</title>
+      
+        <dc:creator>nacin</dc:creator>
+
+      <pubDate>Wed, 03 Jul 2013 20:39:16 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/23567#comment:4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/23567#comment:4/1372883956338780</guid>
+      <description>&lt;p&gt;
+It looks like &lt;a class="attachment" href="http://core.trac.wordpress.org/attachment/ticket/23567/tbex-2.diff" title="Attachment 'tbex-2.diff' in Ticket #23567"&gt;tbex-2.diff&lt;/a&gt;&lt;a class="trac-rawlink" href="http://core.trac.wordpress.org/raw-attachment/ticket/23567/tbex-2.diff" title="Download"&gt;​&lt;/a&gt; has some encoding issues. Seeing some ? there. The opening one might be a BOM?
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #23251 (WordPress tries to unnecessarily set the memory limit) updated</title>
+      
+        <dc:creator>nacin</dc:creator>
+
+      <pubDate>Wed, 03 Jul 2013 20:38:07 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/23251#comment:12</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/23251#comment:12/1372883887712832</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt;, &lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Going to move this to 3.7. Thanks for the contributions.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #21970 (404 error when a post has the same slug as with a deleted (trash) page.) updated</title>
+      
+        <dc:creator>markjaquith</dc:creator>
+
+      <pubDate>Wed, 03 Jul 2013 20:38:01 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/21970#comment:14</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/21970#comment:14/1372883881608382</guid>
+      <description>&lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Punting this as we're focusing on 3.6 blockers now.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #23706 (Image metadata encoding problem) updated</title>
+      
+        <dc:creator>markjaquith</dc:creator>
+
+      <pubDate>Wed, 03 Jul 2013 20:37:28 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/23706#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/23706#comment:3/1372883848948670</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt;, &lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Punting this as we're focusing on 3.6 blockers now. Let's get this done early in 3.7.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #24681 (Translating custom image size names) updated</title>
+      
+        <dc:creator>daveshine</dc:creator>
+
+      <pubDate>Wed, 03 Jul 2013 20:37:08 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/24681#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/24681#comment:3/1372883828253910</guid>
+      <description>&lt;i&gt;Cc&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Definitely an awesome idea/ enhancement which would have benefits for the end user (think media uploader: real names for added image sizes!) and theme/ plugin devs, as the process of adding the i18n stuff would become much easier and faster, and so hopefully gets implemented in the end!
+&lt;/p&gt;
+&lt;p&gt;
+These are "small details" that matter in user experience!
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #22692 (Quotes Are Messing Up) updated</title>
+      
+        <dc:creator>markjaquith</dc:creator>
+
+      <pubDate>Wed, 03 Jul 2013 20:36:14 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/22692#comment:26</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/22692#comment:26/1372883774680280</guid>
+      <description>&lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Punting this as we're focusing on 3.6 blockers now.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #24452 (Extract Post Formats UI from Core) updated</title>
+      
+        <dc:creator>nacin</dc:creator>
+
+      <pubDate>Wed, 03 Jul 2013 20:35:17 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/24452#comment:25</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/24452#comment:25/1372883717095671</guid>
+      <description>&lt;i&gt;Owner&lt;/i&gt;, &lt;i&gt;Status&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+New tickets for anything else.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #24189 ({$taxonomy}_relationships cache can easily become stale when a term is ...) updated</title>
+      
+        <dc:creator>nacin</dc:creator>
+
+      <pubDate>Wed, 03 Jul 2013 20:32:10 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/24189#comment:4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/24189#comment:4/1372883530067302</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt;, &lt;i&gt;Priority&lt;/i&gt;, &lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Per &lt;a class="ext-link" href="https://irclogs.wordpress.org/chanlog.php?channel=wordpress-dev&amp;amp;day=2013-07-03&amp;amp;sort=asc#m636287"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;IRC&lt;/a&gt;.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #15919 (wp_count_terms() hide_empty not working) updated</title>
+      
+        <dc:creator>nacin</dc:creator>
+
+      <pubDate>Wed, 03 Jul 2013 20:31:39 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/15919#comment:9</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/15919#comment:9/1372883499085469</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt;, &lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #24681 (Translating custom image size names) updated</title>
+      
+        <dc:creator>sami.keijonen</dc:creator>
+
+      <pubDate>Wed, 03 Jul 2013 20:30:47 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/24681#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/24681#comment:2/1372883447813542</guid>
+      <description>&lt;p&gt;
+Thanks Brian. I wasn't thinking. I was too afraid that my first ticket would blow up WP to a black hole.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #24484 (Lose the "remove" support for media extraction functions) updated</title>
+      
+        <dc:creator>markjaquith</dc:creator>
+
+      <pubDate>Wed, 03 Jul 2013 20:29:41 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/24484#comment:8</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/24484#comment:8/1372883381618504</guid>
+      <description>&lt;i&gt;Severity&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Yes.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #24425 (Revisions cleanup) updated</title>
+      
+        <dc:creator>ocean90</dc:creator>
+
+      <pubDate>Wed, 03 Jul 2013 20:27:20 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/24425#comment:13</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/24425#comment:13/1372883240466488</guid>
+      <description>&lt;p&gt;
+In &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/24549" title="Revisions UI update:
+* Restore Compare two mode
+* Restore tooltips
+* ..."&gt;24549&lt;/a&gt;:
+&lt;/p&gt;
+&lt;div class="message"&gt;&lt;p&gt;
+Revisions UI update:&lt;br /&gt;
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;Restore Compare two mode
+&lt;/li&gt;&lt;li&gt;Restore tooltips
+&lt;/li&gt;&lt;li&gt;RTL support
+&lt;/li&gt;&lt;li&gt;First pass for URL routing and history
+&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;
+props adamsilverstein, see &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/24425" title="#24425: task (blessed): Revisions cleanup (closed: fixed)"&gt;#24425&lt;/a&gt;.&lt;br /&gt;
+&lt;/p&gt;
+&lt;/div&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Changeset [24549]: Revisions UI update:  * Restore Compare two mode * Restore tooltips * ...</title>
+      
+        <dc:creator>ocean90</dc:creator>
+
+      <pubDate>Wed, 03 Jul 2013 20:27:19 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/24549</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/24549/1372883239911330</guid>
+      <description>&lt;p&gt;
+Revisions UI update:
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;Restore Compare two mode
+&lt;/li&gt;&lt;li&gt;Restore tooltips
+&lt;/li&gt;&lt;li&gt;RTL support
+&lt;/li&gt;&lt;li&gt;First pass for URL routing and history
+&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;
+props adamsilverstein, see &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/24425" title="#24425: task (blessed): Revisions cleanup (closed: fixed)"&gt;#24425&lt;/a&gt;.
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Ticket #24681 (Translating custom image size names) updated</title>
+      
+        <dc:creator>krogsgard</dc:creator>
+
+      <pubDate>Wed, 03 Jul 2013 20:26:29 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/24681#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/24681#comment:1/1372883189472224</guid>
+      <description>&lt;i&gt;Cc&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+I think you'd want to add $translated_name as the last parameter for backward compatibility. And you'd need to set a default as well.
+&lt;/p&gt;
+&lt;p&gt;
+In core, I think it'd be more like
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;function add_image_size( $name, $width = 0, $height = 0, $crop = false, $translated_name = __(  $name ) ) {
+// stuff
+}
+&lt;/pre&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #24610 (Do something with the_post_format_*() functions) updated</title>
+      
+        <dc:creator>markjaquith</dc:creator>
+
+      <pubDate>Wed, 03 Jul 2013 20:25:33 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/24610#comment:9</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/24610#comment:9/1372883133414763</guid>
+      <description>&lt;i&gt;Severity&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #24425 (Revisions cleanup) updated</title>
+      
+        <dc:creator>markjaquith</dc:creator>
+
+      <pubDate>Wed, 03 Jul 2013 20:24:54 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/24425#comment:12</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/24425#comment:12/1372883094115342</guid>
+      <description>&lt;i&gt;Severity&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Calling this one a blocker until it's RC-able.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #24011 (Consider hiding post title for "Status" and "Aside" formats and ...) updated</title>
+      
+        <dc:creator>markjaquith</dc:creator>
+
+      <pubDate>Wed, 03 Jul 2013 20:24:15 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/24011#comment:58</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/24011#comment:58/1372883055722970</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt;, &lt;i&gt;Severity&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Bumping up the severity. Needs a patch for the above.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #24458 (Remove attachment_url_to_postid()) updated</title>
+      
+        <dc:creator>nacin</dc:creator>
+
+      <pubDate>Wed, 03 Jul 2013 20:23:48 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/24458#comment:8</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/24458#comment:8/1372883028901071</guid>
+      <description>&lt;p&gt;
+In &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/24548" title="Remove attachment_url_to_postid(). props kovshenin, wonderboymusic. ..."&gt;24548&lt;/a&gt;:
+&lt;/p&gt;
+&lt;div class="message"&gt;&lt;p&gt;
+Remove attachment_url_to_postid(). props kovshenin, wonderboymusic. see &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/24458" title="#24458: defect (bug): Remove attachment_url_to_postid() (closed: fixed)"&gt;#24458&lt;/a&gt;. &lt;br /&gt;
+&lt;/p&gt;
+&lt;/div&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Changeset [24548]: Remove attachment_url_to_postid(). props kovshenin, wonderboymusic. ...</title>
+      
+        <dc:creator>nacin</dc:creator>
+
+      <pubDate>Wed, 03 Jul 2013 20:23:48 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/24548</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/24548/1372883028019458</guid>
+      <description>&lt;p&gt;
+Remove attachment_url_to_postid(). props kovshenin, wonderboymusic. see &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/24458" title="#24458: defect (bug): Remove attachment_url_to_postid() (closed: fixed)"&gt;#24458&lt;/a&gt;.
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Ticket #24011 (Consider hiding post title for "Status" and "Aside" formats and ...) updated</title>
+      
+        <dc:creator>markjaquith</dc:creator>
+
+      <pubDate>Wed, 03 Jul 2013 20:23:30 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/24011#comment:57</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/24011#comment:57/1372883010208869</guid>
+      <description>&lt;p&gt;
+Let's add caching, but using WP core caching with a non-persistent cache group.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #24505 (Call media embed functions directly rather than calling do_shortcode()) closed</title>
+      
+        <dc:creator>nacin</dc:creator>
+
+      <pubDate>Wed, 03 Jul 2013 20:19:01 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/24505#comment:4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/24505#comment:4/1372882741322572</guid>
+      <description>fixed: &lt;p&gt;
+In &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/24547" title="Call shortcode functions directly. props kovshenin, fixes #24505.
+"&gt;24547&lt;/a&gt;:
+&lt;/p&gt;
+&lt;div class="message"&gt;&lt;p&gt;
+Call shortcode functions directly. props kovshenin, fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/24505" title="#24505: defect (bug): Call media embed functions directly rather than calling do_shortcode() (closed: fixed)"&gt;#24505&lt;/a&gt;.&lt;br /&gt;
+&lt;/p&gt;
+&lt;/div&gt;</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Changeset [24547]: Call shortcode functions directly. props kovshenin, fixes #24505.  </title>
+      
+        <dc:creator>nacin</dc:creator>
+
+      <pubDate>Wed, 03 Jul 2013 20:19:00 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/24547</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/24547/1372882740404332</guid>
+      <description>&lt;p&gt;
+Call shortcode functions directly. props kovshenin, fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/24505" title="#24505: defect (bug): Call media embed functions directly rather than calling do_shortcode() (closed: fixed)"&gt;#24505&lt;/a&gt;.
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Ticket #24681 (Translating custom image size names) created</title>
+      
+        <dc:creator>sami.keijonen</dc:creator>
+
+      <pubDate>Wed, 03 Jul 2013 20:12:45 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/24681</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/24681/1372882365694091</guid>
+      <description>&lt;p&gt;
+Should there be parameter in &lt;a class="ext-link" href="http://codex.wordpress.org/Function_Reference/add_image_size"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;add_image_size&lt;/a&gt; for a translated name? Now we need to use &lt;code&gt;image_size_names_choose&lt;/code&gt; hook.
+&lt;/p&gt;
+&lt;p&gt;
+Something like &lt;code&gt;add_image_size( $name, $translated_name, $width, $height, $crop );&lt;/code&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Example &lt;code&gt;add_image_size( 'my-thumbnail-portfolio', __( 'My Portfolio thumbnail', 'text-domain' ), 450, 309, true );&lt;/code&gt;
+&lt;/p&gt;
+&lt;p&gt;
+I wrote &lt;a class="ext-link" href="https://foxnet-themes.fi/2013/07/03/translating-custom-image-sizes/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;article about it&lt;/a&gt; the get the idea why and how to translate custom image sizes now.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #24426 (jQuery 1.10.*) closed</title>
+      
+        <dc:creator>nacin</dc:creator>
+
+      <pubDate>Wed, 03 Jul 2013 20:11:45 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/24426#comment:8</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/24426#comment:8/1372882305201875</guid>
+      <description>fixed: &lt;p&gt;
+In &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/24546" title="jQuery 1.10.2. props ocean90. fixes #24426.
+"&gt;24546&lt;/a&gt;:
+&lt;/p&gt;
+&lt;div class="message"&gt;&lt;p&gt;
+jQuery 1.10.2. props ocean90. fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/24426" title="#24426: enhancement: jQuery 1.10.* (closed: fixed)"&gt;#24426&lt;/a&gt;.&lt;br /&gt;
+&lt;/p&gt;
+&lt;/div&gt;</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Changeset [24546]: jQuery 1.10.2. props ocean90. fixes #24426.  </title>
+      
+        <dc:creator>nacin</dc:creator>
+
+      <pubDate>Wed, 03 Jul 2013 20:11:44 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/24546</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/24546/1372882304303751</guid>
+      <description>&lt;p&gt;
+jQuery 1.10.2. props ocean90. fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/24426" title="#24426: enhancement: jQuery 1.10.* (closed: fixed)"&gt;#24426&lt;/a&gt;.
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>24426.3.patch attached to Ticket #24426</title>
+      
+        <dc:creator>ocean90</dc:creator>
+
+      <pubDate>Wed, 03 Jul 2013 19:54:46 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/24426/24426.3.patch</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/24426/24426.3.patch/1372881286476851</guid>
+      <description>&lt;p&gt;
+1.10.2
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>user.php.diff attached to Ticket #24680</title>
+      
+        <dc:creator>sphoid</dc:creator>
+
+      <pubDate>Wed, 03 Jul 2013 18:59:02 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/24680/user.php.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/24680/user.php.diff/1372877942411581</guid>
+      <description>&lt;p&gt;
+Patch to add user_login to fields argument (wp-includes/user.php)
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #24680 (wp_dropdown_users references user_login attribute that is never set) created</title>
+      
+        <dc:creator>sphoid</dc:creator>
+
+      <pubDate>Wed, 03 Jul 2013 18:57:47 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/24680</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/24680/1372877867704099</guid>
+      <description>&lt;p&gt;
+When wp_dropdown_users is called and the internal foreach loop encounters as user with an empty value for the attribute indicated in $show it attempts to fallback on $user-&amp;gt;user_login to show as the option text. When the fallback happens a php notice is triggered "Undefined property: stdClass::$user_login". By default get_users() is called with 'fields' = array('ID', $show) and by default $show is set to display_name so user_login is never an attribute of the queried users unless $show is set to user_login by some chance.  I am attaching a patch that adds user_login to the fields argument
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #24646 (fetch_feed() returns WP_Error with "A valid URL was not provided") updated</title>
+      
+        <dc:creator>tjb1013</dc:creator>
+
+      <pubDate>Wed, 03 Jul 2013 17:42:48 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/24646#comment:33</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/24646#comment:33/1372873368829677</guid>
+      <description>&lt;p&gt;
+Replying to &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/24646#comment:32" title="Comment 32"&gt;nacin&lt;/a&gt;:
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+The proper check would instead be:
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;add_filter( 'http_request_args', function( $args ) {
+   $args['reject_unsafe_urls'] = false;
+   return $args;
+} );
+&lt;/pre&gt;&lt;p&gt;
+The http_request_reject_unsafe_urls filter only covers defaults.
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+That worked, thanks.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #24646 (fetch_feed() returns WP_Error with "A valid URL was not provided") updated</title>
+      
+        <dc:creator>nacin</dc:creator>
+
+      <pubDate>Wed, 03 Jul 2013 15:57:22 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/24646#comment:32</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/24646#comment:32/1372867042542536</guid>
+      <description>&lt;p&gt;
+The proper check would instead be:
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;add_filter( 'http_request_args', function( $args ) {
+   $args['reject_unsafe_urls'] = false;
+   return $args;
+} );
+&lt;/pre&gt;&lt;p&gt;
+The http_request_reject_unsafe_urls filter only covers defaults.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #24661 (remove_accents is not removing combining accents) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Wed, 03 Jul 2013 15:31:51 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/24661#comment:4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/24661#comment:4/1372865511372412</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt;, &lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #24646 (fetch_feed() returns WP_Error with "A valid URL was not provided") updated</title>
+      
+        <dc:creator>tjb1013</dc:creator>
+
+      <pubDate>Wed, 03 Jul 2013 15:13:10 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/24646#comment:31</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/24646#comment:31/1372864390327690</guid>
+      <description>&lt;p&gt;
+Replying to &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/24646#comment:16" title="Comment 16"&gt;Otto42&lt;/a&gt;:
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;/blockquote&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+@husdaman: A temporary workaround:
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;add_filter('http_request_reject_unsafe_urls','__return_false');
+&lt;/pre&gt;&lt;p&gt;
+This disables the URL safety check entirely, so only use it in cases where the site is not-publicly accessible (like your internal site).
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+Tried this on my intranet site, but no go.
+&lt;/p&gt;
+&lt;p&gt;
+I pull an RSS feed from a different virtual host that is on the same server. Both sites only accessible internally.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #24426 (jQuery 1.10.*) updated</title>
+      
+        <dc:creator>nacin</dc:creator>
+
+      <pubDate>Wed, 03 Jul 2013 14:15:25 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/24426#comment:7</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/24426#comment:7/1372860925331538</guid>
+      <description>&lt;p&gt;
+1.10.2 dropped.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #24661 (remove_accents is not removing combining accents) updated</title>
+      
+        <dc:creator>numidwasnotavailable</dc:creator>
+
+      <pubDate>Wed, 03 Jul 2013 13:47:13 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/24661#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/24661#comment:3/1372859233302823</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>24661.0.tests.rev1301.patch attached to Ticket #24661</title>
+      
+        <dc:creator>numidwasnotavailable</dc:creator>
+
+      <pubDate>Wed, 03 Jul 2013 13:44:10 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/24661/24661.0.tests.rev1301.patch</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/24661/24661.0.tests.rev1301.patch/1372859050655360</guid>
+      <description>&lt;p&gt;
+Unit test
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>24425.draft.30.diff attached to Ticket #24425</title>
+      
+        <dc:creator>ocean90</dc:creator>
+
+      <pubDate>Wed, 03 Jul 2013 12:37:02 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/24425/24425.draft.30.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/24425/24425.draft.30.diff/1372855022226497</guid>
+      <description>&lt;p&gt;
+Removes debug cruft
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #24675 (Reduce the number of clicks needed to update the permalink to match a ...) updated</title>
+      
+        <dc:creator>pbearne</dc:creator>
+
+      <pubDate>Wed, 03 Jul 2013 11:04:10 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/24675#comment:9</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/24675#comment:9/1372849450024000</guid>
+      <description>&lt;p&gt;
+Replying to &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/24675#comment:5" title="Comment 5"&gt;mark-k&lt;/a&gt;:
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
++1 to the idea
+&lt;/p&gt;
+&lt;p&gt;
+two comments
+&lt;/p&gt;
+&lt;ol&gt;&lt;li&gt;I think "Re-Sync" is a bad name as it doesn't imply what is synched to what. Maybe "Use current title" is better but probably too long....
+&lt;/li&gt;&lt;/ol&gt;&lt;/blockquote&gt;
+&lt;p&gt;
+not tide to the name in any way
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;ol start="2"&gt;&lt;li&gt;There is a slug metabox for the JS challenged people ;) which you can show/hide with the screen options. It will be nice to have this functionality there as well, maybe by using a checkbox.
+&lt;/li&gt;&lt;/ol&gt;&lt;/blockquote&gt;
+&lt;p&gt;
+yes this is as much about get the thinking going as the finished code
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #24675 (Reduce the number of clicks needed to update the permalink to match a ...) updated</title>
+      
+        <dc:creator>pbearne</dc:creator>
+
+      <pubDate>Wed, 03 Jul 2013 10:57:33 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/24675#comment:8</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/24675#comment:8/1372849053445867</guid>
+      <description>&lt;p&gt;
+Replying to &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/24675#comment:7" title="Comment 7"&gt;pbearne&lt;/a&gt;:
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+Replying to &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/24675#comment:6" title="Comment 6"&gt;SergeyBiryukov&lt;/a&gt;:
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+Replying to &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/24675#comment:1" title="Comment 1"&gt;pbearne&lt;/a&gt;:
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+I have been thinking about if this button can just stay here or if we need to remove it after post/page published.
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+For drafts, the slug is automatically synchronized on save. If the button is removed for published posts, then I'm not sure what's the use of it at all.
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+Thank you SergeyBiryukov I didn't know that.
+That you are the first to point this out make the point that is not clear that is happening. Then I would propose that we add a graphic to so this is clear.
+We can you the same graphic used to lock height and width together when scaling (line with locked 8 and broken 8 for unlinke)
+&lt;/p&gt;
+&lt;/blockquote&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #24675 (Reduce the number of clicks needed to update the permalink to match a ...) updated</title>
+      
+        <dc:creator>pbearne</dc:creator>
+
+      <pubDate>Wed, 03 Jul 2013 10:52:28 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/24675#comment:7</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/24675#comment:7/1372848748724952</guid>
+      <description>&lt;p&gt;
+Replying to &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/24675#comment:6" title="Comment 6"&gt;SergeyBiryukov&lt;/a&gt;:
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+Replying to &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/24675#comment:1" title="Comment 1"&gt;pbearne&lt;/a&gt;:
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+I have been thinking about if this button can just stay here or if we need to remove it after post/page published.
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+For drafts, the slug is automatically synchronized on save. If the button is removed for published posts, then I'm not sure what's the use of it at all.
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+That not clear that is happening so much so I going to test it. Then I would propose that we add a graphic to so this is clear.
+We can you the same graphic used to lock height and width together when scaling (line with locked 8 and broken 8 for unlinked)
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #24679 (Custom header - enable adding several header images in bulk) updated</title>
+      
+        <dc:creator>mark-k</dc:creator>
+
+      <pubDate>Wed, 03 Jul 2013 10:32:44 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/24679#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/24679#comment:1/1372847564161889</guid>
+      <description>&lt;p&gt;
+Actually it even applies to selection from the media library.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #24679 (Custom header - enable adding several header images in bulk) created</title>
+      
+        <dc:creator>mark-k</dc:creator>
+
+      <pubDate>Wed, 03 Jul 2013 10:30:51 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/24679</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/24679/1372847451994470</guid>
+      <description>&lt;p&gt;
+Right now in order to have several header images to be randomly displayed you need to add each image individually as a header image. This process can be improved by enabling uploading several images at the same time and just cropping them one by one. Maybe some clever UI design can achieve cropping all of the images at a single page.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #24678 (Custom header - duplicate ways to upload images lack consistency with ...) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Wed, 03 Jul 2013 09:50:56 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/24678#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/24678#comment:1/1372845056205075</guid>
+      <description>&lt;i&gt;Component&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Related: &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/19840" title="#19840: task (blessed): Select custom header or background images from media library (closed: fixed)"&gt;#19840&lt;/a&gt;, &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/21785" title="#21785: task (blessed): Add header image uploads with cropping to the customizer (closed: fixed)"&gt;#21785&lt;/a&gt;, &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/21820" title="#21820: task (blessed): Add media workflow for custom headers (closed: fixed)"&gt;#21820&lt;/a&gt;.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #24665 (xml-rpc wp.newPost - A term with the name provided already exists.) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Wed, 03 Jul 2013 09:40:39 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/24665#comment:8</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/24665#comment:8/1372844439294791</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt;, &lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #24678 (Custom header - duplicate ways to upload images lack consistency with ...) created</title>
+      
+        <dc:creator>mark-k</dc:creator>
+
+      <pubDate>Wed, 03 Jul 2013 09:38:47 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/24678</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/24678/1372844327967964</guid>
+      <description>&lt;p&gt;
+In the custom header page you can upload an header image via a file input or select from the media library.
+&lt;/p&gt;
+&lt;p&gt;
+The file input is anachronistic when all over the rest of wordpress files can be uploaded by drag and drop.
+&lt;/p&gt;
+&lt;p&gt;
+For the media selection, although the description text implies otherwise, you can upload images in the modal dialog and not only select images already in the library.
+&lt;/p&gt;
+&lt;p&gt;
+It is not clear to the user if there are real differences between the two methods (I haven't looked at the code), and if there isn't the file input should IMO be removed.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Tickets #24354,​24665 batch updated</title>
+      
+        <dc:creator>bigwolk</dc:creator>
+
+      <pubDate>Wed, 03 Jul 2013 09:31:02 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/query?id=24354%2C24665</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/query?id=24354%2C24665/1372843862854105</guid>
+      <description>duplicate: &lt;p&gt;
+Duplicate of &lt;a class="assigned ticket" href="http://core.trac.wordpress.org/ticket/24354" title="#24354: defect (bug): get_cat_id() fails with category names containing ampersand (assigned)"&gt;#24354&lt;/a&gt;.
+&lt;/p&gt;
+</description>
+      <category>batchmodify</category>
+    </item><item>
+      <title>Ticket #24675 (Reduce the number of clicks needed to update the permalink to match a ...) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Wed, 03 Jul 2013 08:24:02 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/24675#comment:6</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/24675#comment:6/1372839842200633</guid>
+      <description>&lt;p&gt;
+Replying to &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/24675#comment:1" title="Comment 1"&gt;pbearne&lt;/a&gt;:
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+I have been thinking about if this button can just stay here or if we need to remove it after post/page published.
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+For drafts, the slug is automatically synchronized on save. If the button is removed for published posts, then I'm not sure what's the use of it at all.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #24677 (link_category is broken) created</title>
+      
+        <dc:creator>cfoellmann</dc:creator>
+
+      <pubDate>Wed, 03 Jul 2013 07:59:37 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/24677</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/24677/1372838377276027</guid>
+      <description>&lt;h2 id="Reproducingtheproblem"&gt;Reproducing the problem&lt;/h2&gt;
+&lt;p&gt;
+Activate the legacy Link Manager via
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;add_filter( 'pre_option_link_manager_enabled', '__return_true' );
+&lt;/pre&gt;&lt;p&gt;
+and create a Category for the "Links" post type.
+&lt;/p&gt;
+&lt;h2 id="Problem"&gt;Problem&lt;/h2&gt;
+&lt;p&gt;
+The link to show the category in the list of categories results in this:
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;&amp;lt;blog-url&amp;gt;/?taxonomy=link_category&amp;amp;term=some-name
+&lt;/pre&gt;&lt;p&gt;
+My permalink structure is
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;/%postname%/
+&lt;/pre&gt;&lt;p&gt;
+Also: Shouldn't the activation add a field to Permalinks &amp;gt; Optional?
+&lt;/p&gt;
+&lt;p&gt;
+I never used the links/blogroll in old versions until now. So I don't really know what the correct behavior is.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #24675 (Reduce the number of clicks needed to update the permalink to match a ...) updated</title>
+      
+        <dc:creator>mark-k</dc:creator>
+
+      <pubDate>Wed, 03 Jul 2013 06:10:08 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/24675#comment:5</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/24675#comment:5/1372831808028506</guid>
+      <description>&lt;p&gt;
++1 to the idea
+&lt;/p&gt;
+&lt;p&gt;
+two comments
+&lt;/p&gt;
+&lt;ol&gt;&lt;li&gt;I think "Re-Sync" is a bad name as it doesn't imply what is synched to what. Maybe "Use current title" is better but probably too long....
+&lt;/li&gt;&lt;/ol&gt;&lt;ol start="2"&gt;&lt;li&gt;There is a slug metabox for the JS challenged people ;) which you can show/hide with the screen options. It will be nice to have this functionality there as well, maybe by using a checkbox.
+&lt;/li&gt;&lt;/ol&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #24425 (Revisions cleanup) updated</title>
+      
+        <dc:creator>adamsilverstein</dc:creator>
+
+      <pubDate>Wed, 03 Jul 2013 05:28:14 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/24425#comment:11</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/24425#comment:11/1372829294218092</guid>
+      <description>&lt;p&gt;
+in &lt;a class="attachment" href="http://core.trac.wordpress.org/attachment/ticket/24425/" title="Attachments of Ticket #24425"&gt;24425.draft.29.diff&lt;/a&gt;&lt;a class="trac-rawlink" href="http://core.trac.wordpress.org/raw-attachment/ticket/24425/" title="Download"&gt;​&lt;/a&gt;
+Corrected:
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;Corrects tooltip is misplaced when in compare-2-mode
+&lt;/li&gt;&lt;li&gt;Removed bottom border from .revisions-controls div
+&lt;/li&gt;&lt;li&gt;Removed markup for tick marks
+&lt;/li&gt;&lt;li&gt;Remove markup for the spinner
+&lt;/li&gt;&lt;li&gt;Moved if ( this.model.revisions.length &amp;lt; 3 ) to checkbox view
+&lt;/li&gt;&lt;li&gt;remove $( '.compare-two-revisions' ).trigger( 'click' ); instead rely on route actions only (started)
+&lt;/li&gt;&lt;li&gt;Tooltip message moved into model for easier translation
+&lt;/li&gt;&lt;li&gt;Switched to new View for tooltip
+&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;
+Still Remaining:
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;RTL mode 2 handles
+&lt;/li&gt;&lt;li&gt;Improve getSliderPosition(), use more. (Idea: return an array with left and right, if single only left is filled with a value)
+&lt;/li&gt;&lt;li&gt;Restore the .pre class for the diff table
+&lt;/li&gt;&lt;li&gt;ignore revision id from URL, instead use #route/to/revision_id
+&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;
+Bugs
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;&lt;del&gt;Compare-2-mode: Right handler on the first revisions, left on the last: Expected: See all lines in green color, since it's a diff from the first to the current one&lt;/del&gt; seems to work fine; 1st revision isn't blank (except when comparing from in single handle mode)
+&lt;/li&gt;&lt;li&gt;Router: If reloading a page it loses the handle positions (currently being messes with by passed revision id)
+&lt;/li&gt;&lt;li&gt;duplicate firing on next/previous
+&lt;/li&gt;&lt;/ul&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>24425.draft.29.diff attached to Ticket #24425</title>
+      
+        <dc:creator>adamsilverstein</dc:creator>
+
+      <pubDate>Wed, 03 Jul 2013 05:24:46 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/24425/24425.draft.29.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/24425/24425.draft.29.diff/1372829086126408</guid>
+      <description>&lt;p&gt;
+numerous fixes
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #24675 (Reduce the number of clicks needed to update the permalink to match a ...) updated</title>
+      
+        <dc:creator>sunnyratilal</dc:creator>
+
+      <pubDate>Wed, 03 Jul 2013 03:24:11 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/24675#comment:4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/24675#comment:4/1372821851890022</guid>
+      <description>&lt;i&gt;Cc&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
++1
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #24586 (Headings don't fit in TinyMCE Format dropdown) closed</title>
+      
+        <dc:creator>azaozz</dc:creator>
+
+      <pubDate>Wed, 03 Jul 2013 02:03:20 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/24586#comment:12</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/24586#comment:12/1372817000368982</guid>
+      <description>fixed: &lt;p&gt;
+In &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/24545" title="TinyMCE: normalize font size for H1 - H6 submenu, fixes #24586."&gt;24545&lt;/a&gt;:
+&lt;/p&gt;
+&lt;div class="message"&gt;&lt;p&gt;
+TinyMCE: normalize font size for H1 - H6 submenu, fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/24586" title="#24586: defect (bug): Headings don't fit in TinyMCE Format dropdown (closed: fixed)"&gt;#24586&lt;/a&gt;.&lt;br /&gt;
+&lt;/p&gt;
+&lt;/div&gt;</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Changeset [24545]: TinyMCE: normalize font size for H1 - H6 submenu, fixes #24586.</title>
+      
+        <dc:creator>azaozz</dc:creator>
+
+      <pubDate>Wed, 03 Jul 2013 02:03:19 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/24545</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/24545/1372816999867687</guid>
+      <description>&lt;p&gt;
+TinyMCE: normalize font size for H1 - H6 submenu, fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/24586" title="#24586: defect (bug): Headings don't fit in TinyMCE Format dropdown (closed: fixed)"&gt;#24586&lt;/a&gt;.
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Changeset [24544]: Heartbeat: fix comment spelling</title>
+      
+        <dc:creator>azaozz</dc:creator>
+
+      <pubDate>Wed, 03 Jul 2013 01:59:46 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/24544</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/24544/1372816786751647</guid>
+      <description>&lt;p&gt;
+Heartbeat: fix comment spelling
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Ticket #23697 (Check and refresh post locks with heartbeat) updated</title>
+      
+        <dc:creator>azaozz</dc:creator>
+
+      <pubDate>Wed, 03 Jul 2013 01:50:40 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/23697#comment:39</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/23697#comment:39/1372816240558096</guid>
+      <description>&lt;p&gt;
+In &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/24543" title="Post locks: load the post locked dialog html in post-new.php too, see ..."&gt;24543&lt;/a&gt;:
+&lt;/p&gt;
+&lt;div class="message"&gt;&lt;p&gt;
+Post locks: load the post locked dialog html in post-new.php too, see &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/23697" title="#23697: task (blessed): Check and refresh post locks with heartbeat (closed: fixed)"&gt;#23697&lt;/a&gt;.&lt;br /&gt;
+&lt;/p&gt;
+&lt;/div&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Changeset [24543]: Post locks: load the post locked dialog html in post-new.php too, see ...</title>
+      
+        <dc:creator>azaozz</dc:creator>
+
+      <pubDate>Wed, 03 Jul 2013 01:50:39 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/24543</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/24543/1372816239691475</guid>
+      <description>&lt;p&gt;
+Post locks: load the post locked dialog html in post-new.php too, see &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/23697" title="#23697: task (blessed): Check and refresh post locks with heartbeat (closed: fixed)"&gt;#23697&lt;/a&gt;.
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Ticket #24555 (Twenty Thirteen: First image in featured gallery can be blurry if in ...) updated</title>
+      
+        <dc:creator>obenland</dc:creator>
+
+      <pubDate>Wed, 03 Jul 2013 01:16:54 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/24555#comment:13</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/24555#comment:13/1372814214694805</guid>
+      <description>&lt;p&gt;
+Replying to &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/24555#comment:12" title="Comment 12"&gt;lancewillett&lt;/a&gt;:
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+.2 removes more special styles for blog/search/index and ensures similar view for single view.
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+I'm not sure I understand why index and single should look the same. They don't currently.
+&lt;/p&gt;
+&lt;p&gt;
+&lt;br /&gt;
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+I don't think we need the 1, 2, and 3 column &lt;code&gt;max-width&lt;/code&gt; rules.
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+We have to constrain them in width so galleries work with image sizes bigger than thumbnails.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>24308.5.patch attached to Ticket #24308</title>
+      
+        <dc:creator>celloexpressions</dc:creator>
+
+      <pubDate>Wed, 03 Jul 2013 00:56:46 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/24308/24308.5.patch</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/24308/24308.5.patch/1372813006605932</guid>
+      <description>&lt;p&gt;
+Fix audio and status format max-widths to account for their padding
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #24308 (Twenty Thirteen: Add Editor Styles for Post Formats) reopened</title>
+      
+        <dc:creator>celloexpressions</dc:creator>
+
+      <pubDate>Wed, 03 Jul 2013 00:55:36 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/24308#comment:31</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/24308#comment:31/1372812936239481</guid>
+      <description>&lt;p&gt;
+One more little tweak: we need to account for the padding in the width for the audio and status formats since we aren't using &lt;code&gt;box-sizing: border-box&lt;/code&gt;. Otherwise, the widths (and line breaks) are inconsistent with the frontend.
+&lt;/p&gt;
+</description>
+      <category>reopenedticket</category>
+    </item><item>
+      <title>24676.patch attached to Ticket #24676</title>
+      
+        <dc:creator>celloexpressions</dc:creator>
+
+      <pubDate>Wed, 03 Jul 2013 00:38:07 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/24676/24676.patch</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/24676/24676.patch/1372811887236344</guid>
+      <description>&lt;p&gt;
+Add direct child selector
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #24676 (Twenty Thirteen: Status format selector adjustment) created</title>
+      
+        <dc:creator>celloexpressions</dc:creator>
+
+      <pubDate>Wed, 03 Jul 2013 00:37:04 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/24676</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/24676/1372811824496673</guid>
+      <description>&lt;p&gt;
+When testing the editor styles, I noticed that the &lt;code&gt;.format-status p:first-child:before&lt;/code&gt; selector also styles blockquotes (because wordpress adds &lt;code&gt;&amp;lt;p&amp;gt;&lt;/code&gt; tags inside blockquotes). It doesn't seem like this is the intended design, since first-child is used (and people shouldn't use blockquotes here anyway), but perhaps &lt;code&gt;.post-format-status &amp;gt; p:first-child:before&lt;/code&gt; was the intention? That would result in only the single occurrence, instead of the potential for multiple if there is a blockquote for some reason. It would also prevent the styling from displaying if the entire status is in a blockquote, though.
+&lt;/p&gt;
+&lt;p&gt;
+Current:
+&lt;a style="padding:0; border:none" href="http://celloexpressions.com/files/status-format-blockqoute-0.png"&gt;&lt;img src="http://celloexpressions.com/files/status-format-blockqoute-0.png" alt="http://celloexpressions.com/files/status-format-blockqoute-0.png" crossorigin="anonymous" title="http://celloexpressions.com/files/status-format-blockqoute-0.png" /&gt;&lt;/a&gt;
+Proposed:
+&lt;a style="padding:0; border:none" href="http://celloexpressions.com/files/status-format-blockqoute-1.png"&gt;&lt;img src="http://celloexpressions.com/files/status-format-blockqoute-1.png" alt="http://celloexpressions.com/files/status-format-blockqoute-1.png" crossorigin="anonymous" title="http://celloexpressions.com/files/status-format-blockqoute-1.png" /&gt;&lt;/a&gt;
+(by the way, the differing widths are an editor style bug).
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item>
+   </channel>
+</rss>

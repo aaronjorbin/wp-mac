@@ -1,0 +1,1101 @@
+<?xml version="1.0"?>
+<rss xmlns:dc="http://purl.org/dc/elements/1.1/" version="2.0">
+  <channel>
+    <title>WordPress Trac</title>
+    <link>http://core.trac.wordpress.org/timeline</link>
+    <description>Trac Timeline</description>
+    <language>en-US</language>
+    <generator>Trac 1.2.2</generator>
+    <image>
+      <title>WordPress Trac</title>
+      <url>http://core.trac.wordpress.org/chrome/site/your_project_logo.png</url>
+      <link>http://core.trac.wordpress.org/timeline</link>
+    </image>
+    <item>
+      <title>Ticket #44492 (Add new build:dev task which symlinks all files that can be symlinked) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Sun, 08 Jul 2018 23:53:31 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44492#comment:13</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44492#comment:13/1531094011310739</guid>
+      <description>&lt;p&gt;
+Found an issue with the approach: when using symlinks, &lt;code&gt;wp-load.php&lt;/code&gt; is included from the &lt;code&gt;src/&lt;/code&gt; directory, which means &lt;code&gt;ABSPATH&lt;/code&gt; also points to &lt;code&gt;src/&lt;/code&gt;, leading to a warning in the admin:
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+&lt;code&gt;WARNING: S:\home\wordpress.test\develop\src\wp-includes\formatting.php:5434 - readfile(S:\home\wordpress.test\develop\src/wp-includes/js/wp-emoji-loader.js): failed to open stream: No such file or directory&lt;/code&gt;
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+The warning comes from &lt;code&gt;_print_emoji_detection_script()&lt;/code&gt;:
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;&amp;lt;?php readfile( ABSPATH . WPINC . '/js/wp-emoji-loader.js' ); ?&amp;gt;
+&lt;/pre&gt;&lt;p&gt;
+At a glance, these functions are also affected:
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;&lt;code&gt;rich_edit_exists()&lt;/code&gt;:
+&lt;pre class="wiki"&gt;$wp_rich_edit_exists = file_exists( ABSPATH . WPINC . '/js/tinymce/tinymce.js' );
+&lt;/pre&gt;&lt;/li&gt;&lt;li&gt;&lt;code&gt;get_post_embed_html()&lt;/code&gt;:
+&lt;pre class="wiki"&gt;$output .= file_get_contents( ABSPATH . WPINC . '/js/wp-embed.js' );
+&lt;/pre&gt;&lt;/li&gt;&lt;li&gt;&lt;code&gt;print_embed_scripts()&lt;/code&gt;:
+&lt;pre class="wiki"&gt;readfile( ABSPATH . WPINC . '/js/wp-embed-template.js' );
+&lt;/pre&gt;&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;
+&lt;code&gt;ABSPATH&lt;/code&gt; is set as:
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;if ( ! defined( 'ABSPATH' ) ) {
+	define( 'ABSPATH', dirname( __FILE__ ) . '/' );
+}
+&lt;/pre&gt;&lt;p&gt;
+Apparently &lt;code&gt;__FILE__&lt;/code&gt; always resolves symlinks. &lt;code&gt;$_SERVER['SCRIPT_FILENAME']&lt;/code&gt; could help, but it points to the main script (e.g. &lt;code&gt;wp-admin/index.php&lt;/code&gt;), not the currently included file, so &lt;code&gt;dirname( $_SERVER['SCRIPT_FILENAME'] )&lt;/code&gt; does not give the correct path.
+&lt;/p&gt;
+&lt;p&gt;
+Creating a &lt;code&gt;wp-config.php&lt;/code&gt; file in the &lt;code&gt;build/&lt;/code&gt; directory does not help either, it's simply ignored.
+&lt;/p&gt;
+&lt;p&gt;
+Patching &lt;code&gt;wp-load.php&lt;/code&gt; is the only workaround I can think of at the moment:
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;if ( ! defined( 'ABSPATH' ) ) {
+	define( 'ABSPATH', preg_replace( '#src$#', 'build', dirname( __FILE__ ) ) . '/' );
+}
+&lt;/pre&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44458 (Catch WSODs and provide a means for recovery for end users) updated</title>
+      
+        <dc:creator>ibenic</dc:creator>
+
+      <pubDate>Sun, 08 Jul 2018 23:30:02 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44458#comment:14</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44458#comment:14/1531092602162571</guid>
+      <description>&lt;p&gt;
+Such a great feature! Thank you for working on this.
+&lt;/p&gt;
+&lt;p&gt;
+What would happen if such an error comes from a function/method hooked on an action/filter in the admin area?
+&lt;/p&gt;
+&lt;p&gt;
+My guess would be the first run would cause WOSD and a page refresh would then get the user back in the admin area (unless another plugin causes WOSD again in the admin area). I have patched my local install and will do some runs tomorrow since it's already 1:30am so I might miss something :)
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>patch-44543.patch attached to Ticket #44543</title>
+      
+        <dc:creator>jrf</dc:creator>
+
+      <pubDate>Sun, 08 Jul 2018 21:48:31 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/44543/patch-44543.patch</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/44543/patch-44543.patch/1531086511873472</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #44543 (PHP 7.3 compatibility: using `continue` in `switch` statements) created</title>
+      
+        <dc:creator>jrf</dc:creator>
+
+      <pubDate>Sun, 08 Jul 2018 21:46:40 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44543</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44543/1531086400450796</guid>
+      <description>&lt;p&gt;
+As of PHP 7.3, using &lt;code&gt;continue&lt;/code&gt; to target a &lt;code&gt;switch&lt;/code&gt; control structure will throw an &lt;code&gt;E_WARNING&lt;/code&gt;.
+&lt;/p&gt;
+&lt;p&gt;
+Applying &lt;code&gt;continue&lt;/code&gt; to a &lt;code&gt;switch&lt;/code&gt; is equivalent to using &lt;code&gt;break&lt;/code&gt; and quite possibly, a &lt;code&gt;continue&lt;/code&gt; targeting a higher level control structure is actually intended.
+&lt;/p&gt;
+&lt;p&gt;
+To target the higher level control structure, a numeric argument has to be passed to &lt;code&gt;continue&lt;/code&gt;.
+&lt;/p&gt;
+&lt;p&gt;
+Refs:
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;&lt;a class="ext-link" href="http://php.net/manual/en/control-structures.continue.php"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;http://php.net/manual/en/control-structures.continue.php&lt;/a&gt;
+&lt;/li&gt;&lt;li&gt;&lt;a class="ext-link" href="https://github.com/php/php-src/pull/3364"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://github.com/php/php-src/pull/3364&lt;/a&gt;
+&lt;/li&gt;&lt;li&gt;&lt;a class="ext-link" href="https://wiki.php.net/rfc/continue_on_switch_deprecation"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://wiki.php.net/rfc/continue_on_switch_deprecation&lt;/a&gt;
+&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;
+This change has been recently committed to PHP itself and will break the build against &lt;code&gt;nightly&lt;/code&gt; for the current &lt;code&gt;master&lt;/code&gt; already.
+See: &lt;a class="ext-link" href="https://travis-ci.org/WordPress/wordpress-develop/jobs/401538006#L828-L831"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://travis-ci.org/WordPress/wordpress-develop/jobs/401538006#L828-L831&lt;/a&gt;.
+&lt;/p&gt;
+&lt;p&gt;
+The attached patch fixes the two instances of this in WordPress.
+&lt;/p&gt;
+&lt;p&gt;
+Notes:
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;Both these switches are nested in other control structures, but end the switch at the scope closer of the outer control structure, so using &lt;code&gt;break&lt;/code&gt; in these cases is equivalent to using &lt;code&gt;continue 2&lt;/code&gt;.
+&lt;/li&gt;&lt;/ul&gt;&lt;hr /&gt;
+&lt;p&gt;
+FYI: The &lt;a class="ext-link" href="https://github.com/wimg/PHPCompatibility"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;PHPCompatibility&lt;/a&gt; standard will include a sniff to detect this in the near future. This ticket is the result of some tests I've been running on the WIP PHPCompatibility sniff :wink:
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #44541 (Text length should be localizable) updated</title>
+      
+        <dc:creator>birgire</dc:creator>
+
+      <pubDate>Sun, 08 Jul 2018 21:27:14 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44541#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44541#comment:3/1531085234931457</guid>
+      <description>&lt;p&gt;
+Hi @miyauchi
+&lt;/p&gt;
+&lt;p&gt;
+I applied the patch on trunk and ran:
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;grunt watch --phpunit --group=l10n
+&lt;/pre&gt;&lt;p&gt;
+but got
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;FAILURES!
+Tests: 101, Assertions: 247, Failures: 12.
+&lt;/pre&gt;&lt;p&gt;
+I see that travis runs this successfully, so it looks like I'm missing something.
+&lt;/p&gt;
+&lt;p&gt;
+ps: The  &lt;code&gt;@ticket 44541&lt;/code&gt; annotation is missing on the test methods.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #36612 (Add Ratings into the Add New Theme page) updated</title>
+      
+        <dc:creator>celloexpressions</dc:creator>
+
+      <pubDate>Sun, 08 Jul 2018 20:56:30 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/36612#comment:19</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/36612#comment:19/1531083390309498</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt;, &lt;i&gt;Focuses&lt;/i&gt;, &lt;i&gt;Component&lt;/i&gt;, &lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Next step is a patch to add a link to view the ratings on WordPress.org to the ratings in the theme details modals in the customizer, as suggested in &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/36612#comment:16" title="Comment 16"&gt;16&lt;/a&gt;.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44532 (Extreme memory leak related to wp_is_stream in ...) updated</title>
+      
+        <dc:creator>psykro</dc:creator>
+
+      <pubDate>Sun, 08 Jul 2018 19:33:01 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44532#comment:10</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44532#comment:10/1531078381446670</guid>
+      <description>&lt;p&gt;
+From a comment by @bezpekacom on one of the support tickets, this seems to be a PHP 7 bug on Windows servers
+&lt;/p&gt;
+&lt;p&gt;
+&lt;a class="ext-link" href="https://bugs.php.net/bug.php?id=72451"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://bugs.php.net/bug.php?id=72451&lt;/a&gt;
+&lt;/p&gt;
+&lt;p&gt;
+UPDATE: Seems it was fixed in early 2017 but has been reported again on PHP 7.2.0
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44467 (Ensure meta wrapper functions do not contain additional logic) updated</title>
+      
+        <dc:creator>spacedmonkey</dc:creator>
+
+      <pubDate>Sun, 08 Jul 2018 17:53:44 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44467#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44467#comment:3/1531072424353969</guid>
+      <description>&lt;p&gt;
+I was already working on a patch for this myself, so my patch is a fresh take on this.
+In &lt;a href="https://core.trac.wordpress.org/attachment/ticket/44467/44467.2.diff"&gt;44467.2.diff&lt;/a&gt; there are the following changes.
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;Added the following actions &lt;code&gt;add_metadata&lt;/code&gt;, &lt;code&gt;update_metadata&lt;/code&gt;, &lt;code&gt;delete_metadata&lt;/code&gt;.
+&lt;/li&gt;&lt;li&gt;Add &lt;code&gt;clean_object_last_changed&lt;/code&gt; this is a very simple function, that has a case statement in it. It is a lookup function, for each meta type to get the object type. This function has a filter in it, for better support for custom meta types.
+&lt;/li&gt;&lt;li&gt;Added &lt;code&gt;update_{$meta_type}_meta_cache&lt;/code&gt; filter.
+&lt;/li&gt;&lt;li&gt;Added checks for term meta to make sure it is installed / not shared term.
+&lt;/li&gt;&lt;li&gt;Added checks for sited meta to make sure it is installed / multisite.
+&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;
+My patches uses filters for all this logic, making it very easy to change / extend. This is a big patch 20k, it needs tests and testing. Would love @johnjamesjacoby and @flixos90 on this one. :D
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>44467.2.diff attached to Ticket #44467</title>
+      
+        <dc:creator>spacedmonkey</dc:creator>
+
+      <pubDate>Sun, 08 Jul 2018 17:45:59 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/44467/44467.2.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/44467/44467.2.diff/1531071959522739</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #42806 (Allow installing themes in the Customizer on multisite) updated</title>
+      
+        <dc:creator>celloexpressions</dc:creator>
+
+      <pubDate>Sun, 08 Jul 2018 17:44:55 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/42806#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/42806#comment:2/1531071895343029</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+We need to work on a general strategy for multisite network management within the customizer, evaluating the appropriate use of live preview for various network administration tasks. I would support basic theme-install support for super-admins in the meantime. Option 1 above seems like a reasonable approach for now.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #40200 (Introduce WP_Customize_Embed_Control) updated</title>
+      
+        <dc:creator>celloexpressions</dc:creator>
+
+      <pubDate>Sun, 08 Jul 2018 17:36:03 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/40200#comment:4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/40200#comment:4/1531071363070941</guid>
+      <description>&lt;p&gt;
+I like the idea of merging embed functionality with the media controls; however, this would probably best be done by introducing a new control (such as &lt;code&gt;WP_Customize_Embed_Control&lt;/code&gt;, or something else) that is oriented toward embedded content first. For backwards compatibility, &lt;code&gt;WP_Customize_Media_Control&lt;/code&gt; should always store attachment IDs to the associated setting, and this strategy is fundamentally rooted in management of local media.
+&lt;/p&gt;
+&lt;p&gt;
+The new control can bring the media widget functionality to customize controls, introducing embed controls and wrapping in functionality for media controls with shared-handling output functions for the frontend.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #42644 (Customize: Add rich text control for managing tagline and new footer ...) updated</title>
+      
+        <dc:creator>celloexpressions</dc:creator>
+
+      <pubDate>Sun, 08 Jul 2018 17:24:09 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/42644#comment:11</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/42644#comment:11/1531070649244809</guid>
+      <description>&lt;p&gt;
+A rich text control is a good idea. Footer credits seem like the best initial use case, with a related theme support feature. Themes should be able to set defaults, a portion of which would typically be theme-specific. As a result, this probably needs to be a &lt;code&gt;theme_mod&lt;/code&gt;, not an &lt;code&gt;option&lt;/code&gt; (at least for the custom text option). Using a rich text control for footer credits would necessitate a dynamic "year" placeholder to be functional for a majority of sites.
+&lt;/p&gt;
+&lt;p&gt;
+The tagline should remain a plain text control, since it is used in title tags and elsewhere in themes and plugins.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44541 (Text length should be localizable) updated</title>
+      
+        <dc:creator>miyauchi</dc:creator>
+
+      <pubDate>Sun, 08 Jul 2018 17:16:16 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44541#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44541#comment:2/1531070176415926</guid>
+      <description>&lt;p&gt;
+I ran CI for this patch. &lt;a class="ext-link" href="https://github.com/miya0001/wpdev/pull/6"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://github.com/miya0001/wpdev/pull/6&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44458 (Catch WSODs and provide a means for recovery for end users) updated</title>
+      
+        <dc:creator>schlessera</dc:creator>
+
+      <pubDate>Sun, 08 Jul 2018 17:03:09 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44458#comment:13</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44458#comment:13/1531069389543611</guid>
+      <description>&lt;p&gt;
+I refactored the persistence code. Recorded errors are now stored in the database. To avoid filling up the database, I added automatic pruning that get rids of any records that are not active plugins.
+&lt;/p&gt;
+&lt;p&gt;
+The recorded error message is now shown in the plugin list. Not sure whether that's a good or a bad thing, but it definitely needs better styling at the very least. I had planned to make the error display collapsible to not scare away users immediately, but decided to skip introducing JS code for now.
+&lt;/p&gt;
+&lt;p&gt;
+The plugin list is now filterable by &lt;code&gt;'paused'&lt;/code&gt; status, and the admin notice will bring users automatically to a filtered view of the plugin list. This helps find the problem right away on sites that have multiple pages of plugins.
+&lt;/p&gt;
+&lt;p&gt;
+&lt;a style="padding:0; border:none" href="https://i.imgur.com/wlZ6TB2.png"&gt;&lt;img src="https://i.imgur.com/wlZ6TB2.png" alt="https://i.imgur.com/wlZ6TB2.png" crossorigin="anonymous" title="https://i.imgur.com/wlZ6TB2.png" /&gt;&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>44458-3.diff attached to Ticket #44458</title>
+      
+        <dc:creator>schlessera</dc:creator>
+
+      <pubDate>Sun, 08 Jul 2018 16:58:20 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/44458/44458-3.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/44458/44458-3.diff/1531069100615093</guid>
+      <description>&lt;p&gt;
+Refactored persistence code, added error output, "paused" filter in plugin list and redirect to filtered view
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #44458 (Catch WSODs and provide a means for recovery for end users) updated</title>
+      
+        <dc:creator>schlessera</dc:creator>
+
+      <pubDate>Sun, 08 Jul 2018 16:57:30 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44458#comment:12</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44458#comment:12/1531069050054614</guid>
+      <description>&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+I can see this project becoming really big and complex for a single patch and commit. In order to maintain a good overview as well as easy workflow, I think it would be a good idea to move work on this over to a GitHub fork of WordPress. Then we can handle the respective integrations with themes, multisite and possibly MU plugins via separate branches/PRs.
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+I'm not sure that is the case. I think right now, we cover already 60-70% of the needed code. Half of the multisite plugin stuff is already covered, and themes can mostly reuse the same code.
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+I would advise against this, for three reasons:
+&lt;/p&gt;
+&lt;ol&gt;&lt;li&gt;MU plugins often contain very foundational functionality of a website.
+&lt;/li&gt;&lt;li&gt;Someone who uses MU plugins usually has a little more technical knowledge than who the safe mode is most beneficial for.
+&lt;/li&gt;&lt;li&gt;There is no way to manage MU plugins through the admin. Of course we could introduce a way to resume a MU plugin, but for the two previous reasons, I don't think it's worth the hassle.
+&lt;/li&gt;&lt;/ol&gt;&lt;/blockquote&gt;
+&lt;p&gt;
+I'm not entirely sure these are valid reasons.
+&lt;/p&gt;
+&lt;ol&gt;&lt;li&gt;Yes, but a parse error means they just take down the site either way. The importance of the plugin is irrelevant in that case.
+&lt;/li&gt;&lt;li&gt;Sometimes MU plugins ar not installed by the site owner themselves, but by hosting or another plugin.
+&lt;/li&gt;&lt;li&gt;This is the only argument that plays a role here I think. What's the point of making people enter th eplugin screen if they have no valid options. I wonder though (not tested yet) whether they could modify the MU plugin through the built in code editor...
+&lt;/li&gt;&lt;/ol&gt;&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+For now, in my opinion we should try to focus on detecting in the most accurate way possible which plugin(s) or theme(s) are causing the error. An AJAX loop is what I thought about too.
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+Yes, agree.
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+A general suggestion for improvement I have is that we should consider keeping the user in the backend when they are already there while something breaks. For example, if you're in the Plugins screen, resuming a plugin, and then it's still broken, it would be great if the user could automatically stay on that page, getting the feedback message there that it was paused again (instead of seeing the message like in the frontend and having to click a link). We could try to redirect the user to the page they're currently on after pausing the broken plugin(s) and theme(s), if that is already a logged-in admin page. Of course this only works under certain circumstances, if we know who the current user is and if we're still before output. This could very well happen a little later, when we improve the UX further.
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+Yes, I had already thought about adding something like that. It could be similar to the Shiny Updates plugin, where it triggers a sandboxed request to see whether the plugin now works correctly again.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44542 (Images: Option to control when to create different image dimensions) created</title>
+      
+        <dc:creator>B_Dark</dc:creator>
+
+      <pubDate>Sun, 08 Jul 2018 16:17:33 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44542</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44542/1531066653647961</guid>
+      <description>&lt;p&gt;
+Hello, I believe that wp miss the ability to control when to create different image dimensions.
+&lt;/p&gt;
+&lt;p&gt;
+Because i have see that wasting space from the disk of the server without reason.
+&lt;/p&gt;
+&lt;p&gt;
+Example: When we create a gallery with the native wp gallery create dozens of different image dimensions and in fact use only the thumbnail because shows the full size with the lightbox.
+&lt;/p&gt;
+&lt;p&gt;
+Its great if you add the ability to disable to create different image dimensions in any case that we want.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #44458 (Catch WSODs and provide a means for recovery for end users) updated</title>
+      
+        <dc:creator>flixos90</dc:creator>
+
+      <pubDate>Sun, 08 Jul 2018 16:00:14 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44458#comment:11</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44458#comment:11/1531065614143245</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt;, &lt;i&gt;Focuses&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Replying to &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/44458#comment:9" title="Comment 9"&gt;schlessera&lt;/a&gt;:
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+The second iteration contains basic UI integration, but currently only for plugins.
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+I really like the direction this approach is going, thanks for doing all that work on it!
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;ul&gt;&lt;li&gt;Once the language has been decided, we should implement the same UI mechanisms for themes as well.
+&lt;/li&gt;&lt;li&gt;Multisite has been largely ignored for now. This will probably require specific handling of network-activated plugins.
+&lt;/li&gt;&lt;/ul&gt;&lt;/blockquote&gt;
+&lt;p&gt;
+I can see this project becoming really big and complex for a single patch and commit. In order to maintain a good overview as well as easy workflow, I think it would be a good idea to move work on this over to a GitHub fork of WordPress. Then we can handle the respective integrations with themes, multisite and possibly MU plugins via separate branches/PRs.
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;ul&gt;&lt;li&gt;We need to decide whether must-use plugins should be pausable or not. I have no clear answer for this yet.
+&lt;/li&gt;&lt;/ul&gt;&lt;/blockquote&gt;
+&lt;p&gt;
+I would advise against this, for three reasons:
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;MU plugins often contain very foundational functionality of a website.
+&lt;/li&gt;&lt;li&gt;Someone who uses MU plugins usually has a little more technical knowledge than who the safe mode is most beneficial for.
+&lt;/li&gt;&lt;li&gt;There is no way to manage MU plugins through the admin. Of course we could introduce a way to resume a MU plugin, but for the two previous reasons, I don't think it's worth the hassle.
+&lt;/li&gt;&lt;/ul&gt;&lt;blockquote class="citation"&gt;
+&lt;ul&gt;&lt;li&gt;In an event like a PHP update, multiple plugins might break at the same time. This would lead to a very confusing back &amp;amp; forth until all problematic plugins have been properly detected. We should think about how we can handle this (an AJAX loop with the paused plugins actually paused, to detect new issues?).
+&lt;/li&gt;&lt;/ul&gt;&lt;/blockquote&gt;
+&lt;p&gt;
+For now, in my opinion we should try to focus on detecting in the most accurate way possible which plugin(s) or theme(s) are causing the error. An AJAX loop is what I thought about too.
+&lt;/p&gt;
+&lt;p&gt;
+A general suggestion for improvement I have is that we should consider keeping the user in the backend when they are already there while something breaks. For example, if you're in the Plugins screen, resuming a plugin, and then it's still broken, it would be great if the user could automatically stay on that page, getting the feedback message there that it was paused again (instead of seeing the message like in the frontend and having to click a link). We could try to redirect the user to the page they're currently on after pausing the broken plugin(s) and theme(s), if that is already a logged-in admin page. Of course this only works under certain circumstances, if we know who the current user is and if we're still before output. This could very well happen a little later, when we improve the UX further.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44541 (Text length should be localizable) updated</title>
+      
+        <dc:creator>miyauchi</dc:creator>
+
+      <pubDate>Sun, 08 Jul 2018 15:48:23 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44541#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44541#comment:1/1531064903276391</guid>
+      <description>&lt;p&gt;
+All of tickets that I want to open to remove WP Multibyte Patch plugin from Japanese package are listed on following issues.
+&lt;/p&gt;
+&lt;p&gt;
+&lt;a class="ext-link" href="https://github.com/miya0001/wpdev/issues?q=is%3Aissue+is%3Aopen+label%3Awp-multibyte-patch"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://github.com/miya0001/wpdev/issues?q=is%3Aissue+is%3Aopen+label%3Awp-multibyte-patch&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>44541.patch attached to Ticket #44541</title>
+      
+        <dc:creator>miyauchi</dc:creator>
+
+      <pubDate>Sun, 08 Jul 2018 15:45:20 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/44541/44541.patch</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/44541/44541.patch/1531064720595894</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #44541 (Text length should be localizable) created</title>
+      
+        <dc:creator>miyauchi</dc:creator>
+
+      <pubDate>Sun, 08 Jul 2018 15:44:51 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44541</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44541/1531064691998335</guid>
+      <description>&lt;p&gt;
+There are variables to define the text length and they are used in the function &lt;code&gt;wp_trim_words()&lt;/code&gt;.
+And also, there are flag to switch word count type in &lt;code&gt;.po&lt;/code&gt; file.
+&lt;/p&gt;
+&lt;p&gt;
+They should be localizable because the CJK (Chinese, Japanese, Korean) has double-width characters like Japanese Kanji and they are counted by chars.
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;The text length of the excerpt.
+&lt;/li&gt;&lt;li&gt;The text length of the excerpt in RSS feed.
+&lt;/li&gt;&lt;li&gt;The text length of comment in dashboard.
+&lt;/li&gt;&lt;li&gt;The text length of draft in dashboard.
+&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;
+My plan is that adds a number of text length into the &lt;code&gt;.po&lt;/code&gt; to be able to localize.
+&lt;/p&gt;
+&lt;p&gt;
+These fixes are included in the WP Multibyte Patch plugin in the Japanese package.
+We will open some other tickets to remove this plugin from Japanese package.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #36995 (Support for Service Workers) updated</title>
+      
+        <dc:creator>westonruter</dc:creator>
+
+      <pubDate>Sun, 08 Jul 2018 15:35:38 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/36995#comment:18</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/36995#comment:18/1531064138507174</guid>
+      <description>&lt;p&gt;
+I realized that the ability to register arbitrary path scopes for a given service worker script may needlessly complicating the implementation. On further reflection, it seems a script should only ever be registered for the frontend (scope &lt;code&gt;/&lt;/code&gt;) and the admin (scope &lt;code&gt;/wp-admin/&lt;/code&gt;). The frontend scope would by default include the admin, unless the home URL and the site URL differ.
+&lt;/p&gt;
+&lt;p&gt;
+Having arbitrary scopes makes it harder to unregister service workers that go away, such as via plugin deactivation (as pointed out by @nico_martin). See &lt;a class="ext-link" href="https://github.com/xwp/pwa-wp/issues/26"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://github.com/xwp/pwa-wp/issues/26&lt;/a&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Do we even really need a separate scope for admin vs frontend or should there just be one scope for the root of a site?
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44467 (Ensure meta wrapper functions do not contain additional logic) updated</title>
+      
+        <dc:creator>flixos90</dc:creator>
+
+      <pubDate>Sun, 08 Jul 2018 15:20:31 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44467#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44467#comment:2/1531063231470511</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt;, &lt;i&gt;Status&lt;/i&gt;, &lt;i&gt;Owner&lt;/i&gt;, &lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+After talking to @johnjamesjacoby about this, we agreed to proceed with this. Let's use this ticket here since it goes a little further than &lt;a class="new ticket" href="http://core.trac.wordpress.org/ticket/43813" title="#43813: enhancement: Meta API should set `last_changed` cache key internally (new)"&gt;#43813&lt;/a&gt;. It will likely fix that as well.
+&lt;/p&gt;
+&lt;p&gt;
+&lt;a class="attachment" href="http://core.trac.wordpress.org/attachment/ticket/44467/44467.diff" title="Attachment '44467.diff' in Ticket #44467"&gt;44467.diff&lt;/a&gt;&lt;a class="trac-rawlink" href="http://core.trac.wordpress.org/raw-attachment/ticket/44467/44467.diff" title="Download"&gt;​&lt;/a&gt; is the implementation I envision for it. Some notes:
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;For posts, terms, comments, and sites updating the cache has been removed from the wrapper functions and instead now happens through separate actions hooked into the respective &lt;code&gt;added_{$meta_type}_meta&lt;/code&gt;, &lt;code&gt;updated_{$meta_type}_meta&lt;/code&gt;, and &lt;code&gt;deleted_{$meta_type}_meta&lt;/code&gt; hooks. Those only fire on success, so they replicate the current behavior.
+&lt;/li&gt;&lt;li&gt;For terms and sites, the checks for whether that type of metadata is supported has been removed from the wrapper functions and instead now happens through separate filters hooked into the respective &lt;code&gt;get_{$meta_type}_metadata&lt;/code&gt;, &lt;code&gt;add_{$meta_type}_metadata&lt;/code&gt;, &lt;code&gt;update_{$meta_type}_metadata&lt;/code&gt;, and &lt;code&gt;delete_{$meta_type}_metadata&lt;/code&gt; hooks.
+&lt;/li&gt;&lt;li&gt;In order to catch all possible access to the metadata tables, particularly for the point above, four new pre-filters were introduced: &lt;code&gt;get_{$meta_type}_metadata_by_mid&lt;/code&gt;, &lt;code&gt;update_{$meta_type}_metadata_by_mid&lt;/code&gt;, &lt;code&gt;delete_{$meta_type}_metadata_by_mid&lt;/code&gt;, and &lt;code&gt;update_{$meta_type}_metadata_cache&lt;/code&gt;. Those should be merged in a separate commit before the actual changes this ticket is for.
+&lt;/li&gt;&lt;li&gt;With the additional filters, and the pre-filters and post-set-cache-actions being hooked in everywhere, it is furthermore ensured that a few more cases than before are properly covered.
+&lt;/li&gt;&lt;li&gt;Rerouting the post ID if it is for a revision should remain in the post meta wrappers. There is no hook to integrate this directly into the meta functions, and more importantly it shouldn't be tied to it as it would otherwise prevent plugins to easily implement metadata for post revisions.
+&lt;/li&gt;&lt;li&gt;Checking for whether a term is shared should remain in the term meta wrappers. It is really specific, and not as foundational that you would be required to prevent access to the term meta database table because of it.
+&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;
+I will work on unit tests after an initial review once we agree on whether this is the approach to proceed with.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>44467.diff attached to Ticket #44467</title>
+      
+        <dc:creator>flixos90</dc:creator>
+
+      <pubDate>Sun, 08 Jul 2018 15:03:15 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/44467/44467.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/44467/44467.diff/1531062195937528</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>44458-2.diff attached to Ticket #44458</title>
+      
+        <dc:creator>schlessera</dc:creator>
+
+      <pubDate>Sun, 08 Jul 2018 14:07:58 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/44458/44458-2.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/44458/44458-2.diff/1531058878566442</guid>
+      <description>&lt;p&gt;
+Second iteration, adding all the basic UI integration (for plugins only for now) [Updated]
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #44458 (Catch WSODs and provide a means for recovery for end users) updated</title>
+      
+        <dc:creator>slackbot</dc:creator>
+
+      <pubDate>Sun, 08 Jul 2018 13:57:36 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44458#comment:10</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44458#comment:10/1531058256528427</guid>
+      <description>&lt;p&gt;
+&lt;em&gt;This ticket was mentioned in &lt;a class="ext-link" href="https://make.wordpress.org/chat/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;Slack&lt;/a&gt; in #core-php by schlessera. &lt;a class="ext-link" href="https://wordpress.slack.com/archives/core-php/p1531058255000078"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;View the logs&lt;/a&gt;.&lt;/em&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44458 (Catch WSODs and provide a means for recovery for end users) updated</title>
+      
+        <dc:creator>schlessera</dc:creator>
+
+      <pubDate>Sun, 08 Jul 2018 13:57:19 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44458#comment:9</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44458#comment:9/1531058239959549</guid>
+      <description>&lt;p&gt;
+The second iteration contains basic UI integration, but currently only for plugins.
+&lt;/p&gt;
+&lt;p&gt;
+On the frontend, when an error is triggered, WordPress will display a corresponding message, and provide a link to log into the admin dashboard to fix the issue.
+&lt;/p&gt;
+&lt;p&gt;
+The message is filterable via &lt;code&gt;'wp_technical_issues_display'&lt;/code&gt;, and the entire page can be replaced via a drop-in called &lt;code&gt;php-error.php&lt;/code&gt;.
+&lt;/p&gt;
+&lt;p&gt;
+&lt;a style="padding:0; border:none" href="https://i.imgur.com/S06ErFV.png"&gt;&lt;img src="https://i.imgur.com/S06ErFV.png" alt="https://i.imgur.com/S06ErFV.png" crossorigin="anonymous" title="https://i.imgur.com/S06ErFV.png" /&gt;&lt;/a&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Then, once the site owner has logged into the admin backend, they see an admin notice letting them know about the problem and providing a link to go to the plugins screen to manipulate the plugins.
+&lt;/p&gt;
+&lt;p&gt;
+&lt;a style="padding:0; border:none" href="https://i.imgur.com/alGWnNQ.png"&gt;&lt;img src="https://i.imgur.com/alGWnNQ.png" alt="https://i.imgur.com/alGWnNQ.png" crossorigin="anonymous" title="https://i.imgur.com/alGWnNQ.png" /&gt;&lt;/a&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Finally, once they are on the Plugins screen, they can see the plugins that have been "paused" within the admin backend because of an error. The site owner will be able to do all sorts of manipulations, like updating the plugin, deactivating it, deleting, etc... Once the site owner thinks they solved th problem, they can choose to "Resume execution" for the problematic plugin. If the plugin still contains an error, it will be caught and recorded again.
+&lt;/p&gt;
+&lt;p&gt;
+&lt;a style="padding:0; border:none" href="https://i.imgur.com/y3k8ZDc.png"&gt;&lt;img src="https://i.imgur.com/y3k8ZDc.png" alt="https://i.imgur.com/y3k8ZDc.png" crossorigin="anonymous" title="https://i.imgur.com/y3k8ZDc.png" /&gt;&lt;/a&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Questions &amp;amp; remaining issues:
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;We should decide on specific language (on the technical side just as well as facing the site owners). Right now, the code talks about "pausing" a plugin and "resuming its execution" (with caps like &lt;code&gt;'resume_plugin'&lt;/code&gt; and similar).
+&lt;/li&gt;&lt;li&gt;Once the language has been decided, we should implement the same UI mechanisms for themes as well.
+&lt;/li&gt;&lt;li&gt;Multisite has been largely ignored for now. This will probably require specific handling of network-activated plugins.
+&lt;/li&gt;&lt;li&gt;We need to decide whether must-use plugins should be pausable or not. I have no clear answer for this yet.
+&lt;/li&gt;&lt;li&gt;In an event like a PHP update, multiple plugins might break at the same time. This would lead to a very confusing back &amp;amp; forth until all problematic plugins have been properly detected. We should think about how we can handle this (an AJAX loop with the paused plugins actually paused, to detect new issues?).
+&lt;/li&gt;&lt;/ul&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44396 (Inconsistent use of blogname and sitename in Privacy emails) reopened</title>
+      
+        <dc:creator>flixos90</dc:creator>
+
+      <pubDate>Sun, 08 Jul 2018 13:56:51 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44396#comment:16</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44396#comment:16/1531058211108940</guid>
+      <description>&lt;p&gt;
+&lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/43388" title="Privacy: Use consistent values for the site name and URL used in ..."&gt;[43388]&lt;/a&gt;, &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/43390" title="Tests: Fix failing test after [43388].
+Fixes #44396.
+"&gt;[43390]&lt;/a&gt;, and &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/43435" title="Privacy: Fix a further inconsistency of site name and URL usage in ..."&gt;[43435]&lt;/a&gt; all need to be backported to 4.9.8.
+&lt;/p&gt;
+</description>
+      <category>reopenedticket</category>
+    </item><item>
+      <title>Ticket #44396 (Inconsistent use of blogname and sitename in Privacy emails) closed</title>
+      
+        <dc:creator>flixos90</dc:creator>
+
+      <pubDate>Sun, 08 Jul 2018 13:54:04 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44396#comment:15</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44396#comment:15/1531058044162182</guid>
+      <description>fixed: &lt;p&gt;
+In &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/43435" title="Privacy: Fix a further inconsistency of site name and URL usage in ..."&gt;43435&lt;/a&gt;:
+&lt;/p&gt;
+&lt;div class="message"&gt;&lt;p&gt;
+Privacy: Fix a further inconsistency of site name and URL usage in notification emails.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+This is a follow-up to &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/43388" title="Privacy: Use consistent values for the site name and URL used in ..."&gt;[43388]&lt;/a&gt;.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Props desrosj.&lt;br /&gt;
+Fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/44396" title="#44396: defect (bug): Inconsistent use of blogname and sitename in Privacy emails (closed: fixed)"&gt;#44396&lt;/a&gt;.&lt;br /&gt;
+&lt;/p&gt;
+&lt;/div&gt;</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Changeset [43435]: Privacy: Fix a further inconsistency of site name and URL usage in ...</title>
+      
+        <dc:creator>flixos90</dc:creator>
+
+      <pubDate>Sun, 08 Jul 2018 13:54:02 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/43435</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/43435/1531058042931075</guid>
+      <description>&lt;p&gt;
+Privacy: Fix a further inconsistency of site name and URL usage in notification emails.
+&lt;/p&gt;
+&lt;p&gt;
+This is a follow-up to &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/43388" title="Privacy: Use consistent values for the site name and URL used in ..."&gt;[43388]&lt;/a&gt;.
+&lt;/p&gt;
+&lt;p&gt;
+Props desrosj.
+Fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/44396" title="#44396: defect (bug): Inconsistent use of blogname and sitename in Privacy emails (closed: fixed)"&gt;#44396&lt;/a&gt;.
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Ticket #41316 (Introduce "Try Gutenberg" callout) updated</title>
+      
+        <dc:creator>kjellr</dc:creator>
+
+      <pubDate>Sun, 08 Jul 2018 13:12:51 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/41316#comment:119</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/41316#comment:119/1531055571509123</guid>
+      <description>&lt;p&gt;
+Hey friends! I've picked this up in the past week or so, and wanted to share a proposed revision.
+&lt;/p&gt;
+&lt;p&gt;
+&lt;a style="padding:0; border:none" href="https://cldup.com/4jbbVFcl7A.png"&gt;&lt;img src="https://cldup.com/4jbbVFcl7A.png" alt="https://cldup.com/4jbbVFcl7A.png" crossorigin="anonymous" title="https://cldup.com/4jbbVFcl7A.png" /&gt;&lt;/a&gt;
+&lt;/p&gt;
+&lt;p&gt;
+In general, this contains most of the content from the previous 3-column direction, but it does so with a lot less text. That alone makes this much less intimidating.
+&lt;/p&gt;
+&lt;p&gt;
+A concern I had with the previous direction was that it was full of warnings + disclaimers ("we know there are still kinks", "weak points", etc.) but didn't provide much in the way of motivation. If the goal of this callout is to get people to try Gutenberg, we'll want to make sure we put our best foot forward — while still being honest about the potential for issues.
+&lt;/p&gt;
+&lt;p&gt;
+To that end, The copy received a rework (Thanks, Ben Humberman!) so that it presents Gutenberg as something fresh and exciting, while still being clear that Gutenberg is still under active development. For instance, the headline uses the word "test" instead of "try". That's a bit of a reposition for this callout, but I think it helps clearly set expectations without relying on language that could be interpreted as apologetic.
+&lt;/p&gt;
+&lt;p&gt;
+In this version, I'm pairing the "Install" button with a secondary "Learn More" button. I like the dual buttons in this case, as they slow the user down just a little bit. It forces them to pause and make a decision rather than just clicking the install button automatically. My thought is that "Learn More" would link to wordpress.org/gutenberg/.
+&lt;/p&gt;
+&lt;p&gt;
+On the right, I've listed out a few of the finer details we introduced in the 3-column version. These are all important to note, but hierarctically they deserve to be secondary to the motivation: we don't want to scare people away.
+&lt;/p&gt;
+&lt;p&gt;
+For the image on the left, I've inserted a simplified (blueprint) version of the inserter, but this could easily be swapped out for a GIF as we'd discussed earlier in this thread. I like the inserter becacuse it's a cornerstone of the new interface, and it quickly implies the idea of blocks.
+&lt;/p&gt;
+&lt;p&gt;
+Looking forward to feedback. 🙂
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44532 (Extreme memory leak related to wp_is_stream in ...) updated</title>
+      
+        <author>sebastien@…</author>
+
+      <pubDate>Sun, 08 Jul 2018 09:38:02 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44532#comment:9</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44532#comment:9/1531042682403533</guid>
+      <description>&lt;p&gt;
+Hello
+&lt;/p&gt;
+&lt;p&gt;
+On this version of WordPress (the dev one):
+&lt;a class="ext-link" href="https://github.com/WordPress/WordPress"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://github.com/WordPress/WordPress&lt;/a&gt;
+&lt;/p&gt;
+&lt;p&gt;
+the
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;wp_is_stream()
+&lt;/pre&gt;&lt;p&gt;
+function is quite different...
+&lt;/p&gt;
+&lt;div class="wiki-code"&gt;&lt;div class="code"&gt;&lt;pre&gt;&lt;span class="cp"&gt;&amp;lt;?php&lt;/span&gt;
+&lt;span class="sd"&gt;/**
+ * Test if a given path is a stream URL
+ *
+ * @since 3.5.0
+ *
+ * @param string $path The resource path or URL.
+ * @return bool True if the path is a stream URL.
+ */&lt;/span&gt;
+&lt;span class="k"&gt;function&lt;/span&gt; &lt;span class="nf"&gt;wp_is_stream&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="nv"&gt;$path&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+        &lt;span class="nv"&gt;$wrappers&lt;/span&gt;    &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nb"&gt;stream_get_wrappers&lt;/span&gt;&lt;span class="p"&gt;();&lt;/span&gt;
+        &lt;span class="nv"&gt;$wrappers&lt;/span&gt;    &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nb"&gt;array_map&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="s1"&gt;'preg_quote'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nv"&gt;$wrappers&lt;/span&gt; &lt;span class="p"&gt;);&lt;/span&gt;
+        &lt;span class="nv"&gt;$wrappers_re&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s1"&gt;'('&lt;/span&gt; &lt;span class="o"&gt;.&lt;/span&gt; &lt;span class="nb"&gt;join&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="s1"&gt;'|'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nv"&gt;$wrappers&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;.&lt;/span&gt; &lt;span class="s1"&gt;')'&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+        &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="nb"&gt;preg_match&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="s2"&gt;"!^&lt;/span&gt;&lt;span class="si"&gt;$wrappers_re&lt;/span&gt;&lt;span class="s2"&gt;://!"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nv"&gt;$path&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;===&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;p&gt;
+is it normal?
+is this change fix the problem ?
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #36228 (Uncheck "uncategorized" when you select a category) updated</title>
+      
+        <dc:creator>anthonyeden</dc:creator>
+
+      <pubDate>Sun, 08 Jul 2018 07:51:31 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/36228#comment:12</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/36228#comment:12/1531036291252880</guid>
+      <description>&lt;p&gt;
+I agree - this can be confusing for non-power-users.
+&lt;/p&gt;
+&lt;p&gt;
+Is there a way we could move to a system where there is no default category (and thus no automatically checked category)? Or would this break too many assumptions made in non-core code?
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44532 (Extreme memory leak related to wp_is_stream in ...) updated</title>
+      
+        <dc:creator>Arioman</dc:creator>
+
+      <pubDate>Sun, 08 Jul 2018 06:08:08 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44532#comment:8</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44532#comment:8/1531030088008338</guid>
+      <description>&lt;p&gt;
+i have the same problem with functions.php on line 5231
+&lt;/p&gt;
+&lt;p&gt;
+Fatal error: Allowed memory size of 1073741824 bytes exhausted
+&lt;/p&gt;
+&lt;p&gt;
+i try disabling all plugins , themes and no success
+&lt;/p&gt;
+&lt;p&gt;
+even install fresh wp 4.9.7 without any addons and still get this error on local wamp64
+&lt;/p&gt;
+&lt;p&gt;
+it doesn't matter how much memory limit i set | my Hosting message me for using too many Resource of ram &amp;amp; Cpu too
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44458 (Catch WSODs and provide a means for recovery for end users) updated</title>
+      
+        <dc:creator>slackbot</dc:creator>
+
+      <pubDate>Sat, 07 Jul 2018 22:22:00 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44458#comment:8</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44458#comment:8/1531002120195994</guid>
+      <description>&lt;p&gt;
+&lt;em&gt;This ticket was mentioned in &lt;a class="ext-link" href="https://make.wordpress.org/chat/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;Slack&lt;/a&gt; in #core-php by schlessera. &lt;a class="ext-link" href="https://wordpress.slack.com/archives/core-php/p1531002119000027"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;View the logs&lt;/a&gt;.&lt;/em&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44458 (Catch WSODs and provide a means for recovery for end users) updated</title>
+      
+        <dc:creator>schlessera</dc:creator>
+
+      <pubDate>Sat, 07 Jul 2018 22:21:28 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44458#comment:7</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44458#comment:7/1531002088171258</guid>
+      <description>&lt;p&gt;
+I uploaded a first proof-of-concept of the safe mode mechanism.
+&lt;/p&gt;
+&lt;p&gt;
+I had to find out that the &lt;code&gt;debug_backtrace&lt;/code&gt; is useless, as the stack is completely unrolled before the shutdown handler is being called.
+&lt;/p&gt;
+&lt;p&gt;
+However, &lt;code&gt;error_get_last()&lt;/code&gt; returns both the type of error as well as the file where it was triggered in.
+&lt;/p&gt;
+&lt;p&gt;
+With that information, we can do some deduction, like a parse error only ever happens in the file that is actually the cause of the problem, so that can be directly tied to a plugin/mu-plugin/theme.
+&lt;/p&gt;
+&lt;p&gt;
+Also, I built it so that it can be customized on sites just like with &lt;code&gt;advanced-cache.php&lt;/code&gt;. You can drop a &lt;code&gt;shutdown-handler.php&lt;/code&gt; file into the &lt;code&gt;wp-contents&lt;/code&gt; folder that provides a &lt;code&gt;wp_handle_shutdown()&lt;/code&gt; function. This lets you customize/override/disable the shutdown handling logic.
+&lt;/p&gt;
+&lt;p&gt;
+I'm currently adding the detected culprits to a DB option called &lt;code&gt;skip_on_admin&lt;/code&gt;. When loading the admin or when you're on the login page, these plugins/mu-plugins/themes will always be skipped until you manually declare them to be safe again.
+&lt;/p&gt;
+&lt;p&gt;
+The front-end will not be impacted at all by this. We're only filtering the loading of these when we're inside the admin backend.
+&lt;/p&gt;
+&lt;p&gt;
+The basic system seems to work. When I produce a parse error in a plugin, my frontend breaks and I get a WSOD. The plugin that causes the error is stored in the DB in the &lt;code&gt;skip_on_admin&lt;/code&gt; option, though. Then, when I go to either a login or an admin screen, that particular plugin is filtered out of the active plugins list and doesn't get loaded. So although the frontend is broken and shows a WSOD, logging in and working in the admin backend still works correctly.
+&lt;/p&gt;
+&lt;p&gt;
+What needs to be added now is:
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;an admin notice to let the user know that something is broken
+&lt;/li&gt;&lt;li&gt;an integration into the plugin list that lets the user remove the plugin from the &lt;code&gt;skip_on_admin&lt;/code&gt; list.
+&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;
+Also, I'm still not sure whether I should include must-use plugins in that mechanism or not...
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>44458-1.diff attached to Ticket #44458</title>
+      
+        <dc:creator>schlessera</dc:creator>
+
+      <pubDate>Sat, 07 Jul 2018 22:17:26 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/44458/44458-1.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/44458/44458-1.diff/1531001846483906</guid>
+      <description>&lt;p&gt;
+First proof-of-concept implementation (still missing UI integrations)
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #44532 (Extreme memory leak related to wp_is_stream in ...) updated</title>
+      
+        <dc:creator>Webaxones</dc:creator>
+
+      <pubDate>Sat, 07 Jul 2018 15:38:54 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44532#comment:7</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44532#comment:7/1530977934505436</guid>
+      <description>&lt;p&gt;
+Hi, I think I got the same :
+&lt;/p&gt;
+&lt;p&gt;
+Fatal error: Allowed memory size of 1073741824 bytes exhausted (tried to allocate 12382903167681155619 bytes) in F:\www\myclient\wp-includes\functions.php on line 5231
+&lt;/p&gt;
+&lt;p&gt;
+Local, WampServer, just after 4.9.7 update
+&lt;/p&gt;
+&lt;p&gt;
+Got it sometimes with one plugin, sometimes with another one.
+Of course my PHP parameters are high enough (memory limit : 1Go)
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44510 (count_user_posts() does not check for empty $userid) updated</title>
+      
+        <dc:creator>Ste_95</dc:creator>
+
+      <pubDate>Sat, 07 Jul 2018 13:56:34 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44510#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44510#comment:3/1530971794416696</guid>
+      <description></description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44510 (count_user_posts() does not check for empty $userid) updated</title>
+      
+        <dc:creator>Ste_95</dc:creator>
+
+      <pubDate>Sat, 07 Jul 2018 13:56:13 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44510#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44510#comment:2/1530971773751983</guid>
+      <description>&lt;p&gt;
+I don't think we should check for &lt;code&gt;is_user_logged_in()&lt;/code&gt;, since &lt;code&gt;get_posts_by_author_sql()&lt;/code&gt; doesn't change its behavior in case the user is logged in.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44540 (Revision restoring redirect issue when using custom wp_query inside ...) updated</title>
+      
+        <dc:creator>vendetta90</dc:creator>
+
+      <pubDate>Sat, 07 Jul 2018 10:47:21 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44540#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44540#comment:1/1530960441998525</guid>
+      <description>&lt;p&gt;
+Fixed that using
+&lt;/p&gt;
+&lt;div class="wiki-code"&gt;&lt;div class="code"&gt;&lt;pre&gt;&lt;span class="x"&gt;add_action( 'wp_restore_post_revision', 'fix_revisions', 10, 2 );
+function fix_revisions( $post_id, $revision ) {
+        global $post;
+        $post-&amp;gt;ID = $post_id;
+}
+&lt;/span&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44540 (Revision restoring redirect issue when using custom wp_query inside ...) created</title>
+      
+        <dc:creator>vendetta90</dc:creator>
+
+      <pubDate>Sat, 07 Jul 2018 10:43:11 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44540</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44540/1530960191055589</guid>
+      <description>&lt;p&gt;
+Using a custom WP_Query inside page content shortcodes leads to weird "revisions restoring" behavior which is redirecting to improper page id. However the page content is restored correctly. Have found this lines 55, 56 in revision.php
+&lt;/p&gt;
+&lt;p&gt;
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;wp_restore_post_revision( $revision-&amp;gt;ID );
+$redirect = add_query_arg( array( 'message' =&amp;gt; 5, 'revision' =&amp;gt; $revision-&amp;gt;ID ), get_edit_post_link( $post-&amp;gt;ID, 'url' ) )
+&lt;/pre&gt;&lt;p&gt;
+While wp_restore_post_revision( $revision-&amp;gt;ID ) returns a correct post_id, the redirect is made to get_edit_post_link( $post-&amp;gt;ID, 'url' ) and $post-&amp;gt;ID may be broken by custom wp_query loop. Why not using wp_restore_post_revision( $revision-&amp;gt;ID ) returned result to perform a correct redirect?
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #43749 (Update zxcvbn to 4.4.2) updated</title>
+      
+        <dc:creator>omarreiss</dc:creator>
+
+      <pubDate>Sat, 07 Jul 2018 09:48:01 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43749#comment:10</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43749#comment:10/1530956881333916</guid>
+      <description>&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+The grunt rot13 task is currently ciphering the entire file. This needs to be updated so only the dictionary part of the file is ciphered.
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+@desrosj I've uploaded a patch that should take care of that. I just created a custom task which takes care of just that. The only thing that gets ROT13'd now is the passwords string. I haven't checked yet if that is 100% in line with what we used to do.
+&lt;/p&gt;
+&lt;p&gt;
+&lt;code&gt;grunt build&lt;/code&gt; and &lt;code&gt;grunt build:js&lt;/code&gt; now include ROT13'ing and uglifying.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>43749.3.diff attached to Ticket #43749</title>
+      
+        <dc:creator>omarreiss</dc:creator>
+
+      <pubDate>Sat, 07 Jul 2018 09:44:27 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/43749/43749.3.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/43749/43749.3.diff/1530956667419198</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>44536.patch attached to Ticket #44536</title>
+      
+        <dc:creator>Shital Patel</dc:creator>
+
+      <pubDate>Sat, 07 Jul 2018 06:58:47 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/44536/44536.patch</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/44536/44536.patch/1530946727207249</guid>
+      <description>&lt;p&gt;
+Added role in article tag
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #44531 (Multiple bytes decimal point and thousands separator in ...) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Sat, 07 Jul 2018 03:48:35 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44531#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44531#comment:1/1530935315653727</guid>
+      <description>&lt;p&gt;
+Related: &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/10373" title="#10373: defect (bug): Proper number formatting related to i18n (closed: fixed)"&gt;#10373&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44528 (Hello, I have Semplice as a theme on my WP site and since the update ...) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Sat, 07 Jul 2018 02:10:55 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44528#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44528#comment:3/1530929455304811</guid>
+      <description>&lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #43559 (wp_ajax_add_meta() does not allow empty values) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Sat, 07 Jul 2018 02:10:25 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43559#comment:10</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43559#comment:10/1530929425442109</guid>
+      <description>&lt;p&gt;
+Related: &lt;a class="new ticket" href="http://core.trac.wordpress.org/ticket/44530" title="#44530: defect (bug): Post or page custom fields give wrong error message when enter value only. (new)"&gt;#44530&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44530 (Post or page custom fields give wrong error message when enter value only.) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Sat, 07 Jul 2018 02:10:17 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44530#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44530#comment:3/1530929417990241</guid>
+      <description>&lt;p&gt;
+Related: &lt;a class="reopened ticket" href="http://core.trac.wordpress.org/ticket/43559" title="#43559: enhancement: wp_ajax_add_meta() does not allow empty values (reopened)"&gt;#43559&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44533 (wp_is_stream wrappers need preg delimiter when quoting) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Sat, 07 Jul 2018 02:02:50 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44533#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44533#comment:3/1530928970090272</guid>
+      <description>&lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44534 (wp_debug_mode() does not turn off display_errors for REST requests) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Sat, 07 Jul 2018 02:01:40 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44534#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44534#comment:1/1530928900230007</guid>
+      <description>&lt;i&gt;Version&lt;/i&gt;, &lt;i&gt;Description&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44537 (Twenty Seventeen: submenu is not available from keyboard with disabled ...) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Sat, 07 Jul 2018 02:00:02 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44537#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44537#comment:1/1530928802291671</guid>
+      <description>&lt;i&gt;Component&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44536 (Twenty Seventeen: article tag lacks role="article" parameter) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Sat, 07 Jul 2018 01:58:20 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44536#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44536#comment:1/1530928700012005</guid>
+      <description>&lt;i&gt;Component&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #42362 (WordPress database error Unknown column 'wp_mywordpresssite' in 'field ...) updated</title>
+      
+        <dc:creator>codewhy</dc:creator>
+
+      <pubDate>Sat, 07 Jul 2018 01:40:38 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/42362#comment:18</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/42362#comment:18/1530927638756772</guid>
+      <description>&lt;p&gt;
+@psykro Thanks for looking into this.
+&lt;/p&gt;
+&lt;p&gt;
+I worked through a simple installation of wordpress and only started changing settings like the PHP error logging when I encountered the problem, for troubleshooting purposes.  I did increase logging verbosity purely to try to obtain the most detailed logging possible about the problem occurring (ie. the browser hanging after clicking 'Install Wordpress' with 'Waiting for localhost' displayed on the status bar).
+&lt;/p&gt;
+&lt;p&gt;
+The last error I was able to find that was logged was:
+"[21-May-2018 13:19:29 UTC] WordPress database error Unknown column 'wp_' in 'field list' for query SELECT wp_"
+&lt;/p&gt;
+&lt;p&gt;
+I tried an array of other things to get to the bottom of this but without success.
+&lt;/p&gt;
+&lt;p&gt;
+Not sure if this sheds any light on the problem for you?  If not, can you please advise if there is any way I can determine with certainty if the wordpress installation has in fact completed successfully?
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item>
+   </channel>
+</rss>

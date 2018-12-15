@@ -1,0 +1,471 @@
+<?xml version="1.0"?>
+<rss xmlns:dc="http://purl.org/dc/elements/1.1/" version="2.0">
+  <channel>
+    <title>WordPress Trac</title>
+    <link>http://core.trac.wordpress.org/timeline</link>
+    <description>Trac Timeline</description>
+    <language>en-US</language>
+    <generator>Trac 1.2.2</generator>
+    <image>
+      <title>WordPress Trac</title>
+      <url>http://core.trac.wordpress.org/chrome/site/your_project_logo.png</url>
+      <link>http://core.trac.wordpress.org/timeline</link>
+    </image>
+    <item>
+      <title>Ticket #40510 (REST API: Post Revisions: Adding support for pagination) updated</title>
+      
+        <dc:creator>birgire</dc:creator>
+
+      <pubDate>Sun, 01 Apr 2018 20:48:55 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/40510#comment:6</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/40510#comment:6/1522615735830524</guid>
+      <description>&lt;p&gt;
+This seems to be in a good progress.
+&lt;/p&gt;
+&lt;p&gt;
+The &lt;em&gt;posts&lt;/em&gt; rest controller handles out-of-bounds cases for the &lt;code&gt;page&lt;/code&gt; parameter. I think it's originally from here:
+&lt;a class="ext-link" href="https://github.com/WP-API/WP-API/commit/789de83a3c5b4f8d6c6cf5fd63408702833c0cb5"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://github.com/WP-API/WP-API/commit/789de83a3c5b4f8d6c6cf5fd63408702833c0cb5&lt;/a&gt;
+&lt;/p&gt;
+&lt;p&gt;
+The &lt;em&gt;comments&lt;/em&gt; and &lt;em&gt;users&lt;/em&gt; rest controllers handles the &lt;code&gt;number&lt;/code&gt; and &lt;code&gt;offset&lt;/code&gt; in a similar way.
+&lt;/p&gt;
+&lt;p&gt;
+I played around with the &lt;code&gt;offset&lt;/code&gt; and &lt;code&gt;page&lt;/code&gt; parameters in &lt;a class="attachment" href="http://core.trac.wordpress.org/attachment/ticket/40510/40510.2.diff" title="Attachment '40510.2.diff' in Ticket #40510"&gt;40510.2.diff&lt;/a&gt;&lt;a class="trac-rawlink" href="http://core.trac.wordpress.org/raw-attachment/ticket/40510/40510.2.diff" title="Download"&gt;​&lt;/a&gt; and noticed that for out-of-bound values, we loose the information for &lt;code&gt;X-WP-Total&lt;/code&gt; and &lt;code&gt;X-WP-TotalPages&lt;/code&gt; as they only show &lt;code&gt;0&lt;/code&gt;.
+&lt;/p&gt;
+&lt;p&gt;
+Here's an example for a post with two revisions and &lt;code&gt;per_page&lt;/code&gt; as &lt;code&gt;1&lt;/code&gt;:
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;page=1:
+    X-WP-Total 2
+    X-WP-TotalPages 2
+    Link &amp;lt;http://wp.localhost/index.php?rest_route=%2Fwp%2Fv2%2Fposts%2F3%2Frevisions&amp;amp;per_page=1&amp;amp;page=2&amp;gt;; rel="next"
+page=2:
+    X-WP-Total 2
+    X-WP-TotalPages 2
+    Link &amp;lt;http://wp.localhost/index.php?rest_route=%2Fwp%2Fv2%2Fposts%2F3%2Frevisions&amp;amp;per_page=1&amp;amp;page=1&amp;gt;; rel="prev"
+page=3:
+    X-WP-Total 0
+    X-WP-TotalPages 0
+    Link &amp;lt;http://wp.localhost/index.php?rest_route=%2Fwp%2Fv2%2Fposts%2F3%2Frevisions&amp;amp;per_page=1&amp;amp;page=0&amp;gt;; rel="prev"
+&lt;/pre&gt;&lt;p&gt;
+Here we see what happens with the out-of-bound value &lt;code&gt;3&lt;/code&gt; for &lt;code&gt;page&lt;/code&gt;.
+&lt;/p&gt;
+&lt;p&gt;
+The reason is that the &lt;code&gt;found_posts&lt;/code&gt; and &lt;code&gt;max_num_pages&lt;/code&gt; properties of &lt;code&gt;WP_Query&lt;/code&gt; are not calculated for empty results set. I'm not sure why that has to happen, because it's useful information.
+&lt;/p&gt;
+&lt;p&gt;
+We can see that here:
+&lt;/p&gt;
+&lt;p&gt;
+&lt;a href="https://core.trac.wordpress.org/browser/tags/4.9.4/src/wp-includes/class-wp-query.php#L2828"&gt;https://core.trac.wordpress.org/browser/tags/4.9.4/src/wp-includes/class-wp-query.php#L2828&lt;/a&gt;
+&lt;/p&gt;
+&lt;p&gt;
+as there is no &lt;code&gt;$this-&amp;gt;set_found_posts( $q, $limits );&lt;/code&gt; call, but even if it were, there's an empty posts check within that method too.
+&lt;/p&gt;
+&lt;p&gt;
+Then I started to look at the corresponding tests and &lt;a class="attachment" href="http://core.trac.wordpress.org/attachment/ticket/40510/40510.3.diff" title="Attachment '40510.3.diff' in Ticket #40510"&gt;40510.3.diff&lt;/a&gt;&lt;a class="trac-rawlink" href="http://core.trac.wordpress.org/raw-attachment/ticket/40510/40510.3.diff" title="Download"&gt;​&lt;/a&gt; is a suggestion that:
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;Handles out-of-bound values for &lt;code&gt;offset&lt;/code&gt; and &lt;code&gt;page&lt;/code&gt; in the same way as the &lt;em&gt;posts&lt;/em&gt;, &lt;em&gt;comments&lt;/em&gt; and &lt;em&gt;users&lt;/em&gt; rest controllers do.
+&lt;/li&gt;&lt;li&gt;Adds the &lt;code&gt;rest_revision_invalid_offset_number&lt;/code&gt; error, similar to the existing &lt;code&gt;rest_revision_invalid_page_number&lt;/code&gt; error.
+&lt;/li&gt;&lt;li&gt;Introduces tests for the revision query parameters:
+&lt;ul&gt;&lt;li&gt;&lt;code&gt;offset&lt;/code&gt;
+&lt;/li&gt;&lt;li&gt;&lt;code&gt;page&lt;/code&gt;
+&lt;/li&gt;&lt;li&gt;&lt;code&gt;per_page&lt;/code&gt;
+&lt;/li&gt;&lt;li&gt;&lt;code&gt;search&lt;/code&gt;
+&lt;/li&gt;&lt;/ul&gt;&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;
+The tests for the &lt;em&gt;posts&lt;/em&gt; rest controller where really helpful, but I tried to break them up into single test methods.
+&lt;/p&gt;
+&lt;p&gt;
+The patch also adds another revision and the total revision count to the current fixtures, to make it more usable by the newly added tests. I was hesitated to do this, but I ended up doing it to reduce the new code lines ;-) Using data providers might also be considered.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #34776 (Introduced the `$site_root` and `$home_root` parameter in ...) updated</title>
+      
+        <dc:creator>slackbot</dc:creator>
+
+      <pubDate>Sun, 01 Apr 2018 18:34:16 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/34776#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/34776#comment:2/1522607656466859</guid>
+      <description>&lt;p&gt;
+&lt;em&gt;This ticket was mentioned in &lt;a class="ext-link" href="https://make.wordpress.org/chat/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;Slack&lt;/a&gt; in #core by sebastian.pisula. &lt;a class="ext-link" href="https://wordpress.slack.com/archives/core/p1522607653000073"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;View the logs&lt;/a&gt;.&lt;/em&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #34776 (Introduced the `$site_root` and `$home_root` parameter in ...) updated</title>
+      
+        <dc:creator>sebastian.pisula</dc:creator>
+
+      <pubDate>Sun, 01 Apr 2018 18:29:19 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/34776#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/34776#comment:1/1522607359969814</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #42438 (Add support for preload links (similar to resource hints)) updated</title>
+      
+        <dc:creator>igrigorik</dc:creator>
+
+      <pubDate>Sun, 01 Apr 2018 18:29:18 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/42438#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/42438#comment:3/1522607358947405</guid>
+      <description>&lt;p&gt;
+Hey folks! Would love to see preload available in core. A couple of drive-by thoughts..
+&lt;/p&gt;
+&lt;p&gt;
+Resource Hints &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/1" title="New repository initialized by cvs2svn."&gt;[1]&lt;/a&gt; and Preload &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/2" title="*** empty log message ***
+"&gt;[2]&lt;/a&gt; have different semantics; Resource Hints != Preload.
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;dns-prefect, preconnect, prefetch, prerender are speculative optimization hints
+&lt;/li&gt;&lt;li&gt;preload is a &lt;em&gt;directive&lt;/em&gt; to the UA to fetch the resource
+&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;
+Addy Osmani has a nice writeup on the differences &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/3" title="*** empty log message ***
+"&gt;[3]&lt;/a&gt;. My recommendation would be to keep Preload and RH as separate APIs, because they have different processing behavior and attributes. Case in point, current wp_resource_hints() exposes "as" attribute, but that only applies to rel=preload resources. On a related note "pr" attribute is now deprecated, so that can be removed from the function as well.
+&lt;/p&gt;
+&lt;p&gt;
+Concretely, I'd propose...
+&lt;/p&gt;
+&lt;ol&gt;&lt;li&gt;Do some cleanup on wp_resource_hints() to remove "pr" and "as".
+&lt;/li&gt;&lt;li&gt;Expose new wp_preload() function to emit preload links.
+&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;
+WDYT? Crazytalk? :)
+&lt;/p&gt;
+&lt;p&gt;
+---
+&lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/1" title="New repository initialized by cvs2svn."&gt;[1]&lt;/a&gt; &lt;a class="ext-link" href="https://w3c.github.io/resource-hints/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://w3c.github.io/resource-hints/&lt;/a&gt;
+&lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/2" title="*** empty log message ***
+"&gt;[2]&lt;/a&gt; &lt;a class="ext-link" href="https://w3c.github.io/preload/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://w3c.github.io/preload/&lt;/a&gt;
+&lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/3" title="*** empty log message ***
+"&gt;[3]&lt;/a&gt; &lt;a class="ext-link" href="https://medium.com/reloading/preload-prefetch-and-priorities-in-chrome-776165961bbf"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://medium.com/reloading/preload-prefetch-and-priorities-in-chrome-776165961bbf&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>34776.3.patch attached to Ticket #34776</title>
+      
+        <dc:creator>sebastian.pisula</dc:creator>
+
+      <pubDate>Sun, 01 Apr 2018 18:29:00 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/34776/34776.3.patch</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/34776/34776.3.patch/1522607340150461</guid>
+      <description>&lt;p&gt;
+Refreshed patch
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #43436 (Add opt-in for commenter cookies) updated</title>
+      
+        <dc:creator>slackbot</dc:creator>
+
+      <pubDate>Sun, 01 Apr 2018 18:01:25 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43436#comment:23</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43436#comment:23/1522605685214165</guid>
+      <description>&lt;p&gt;
+&lt;em&gt;This ticket was mentioned in &lt;a class="ext-link" href="https://make.wordpress.org/chat/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;Slack&lt;/a&gt; in #themereview by xkon. &lt;a class="ext-link" href="https://wordpress.slack.com/archives/themereview/p1522605683000010"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;View the logs&lt;/a&gt;.&lt;/em&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #43435 (Add settings screen for creating a privacy policy) updated</title>
+      
+        <dc:creator>xkon</dc:creator>
+
+      <pubDate>Sun, 01 Apr 2018 17:44:16 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43435#comment:42</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43435#comment:42/1522604656508752</guid>
+      <description>&lt;p&gt;
+To answer the question easily, it's just how it was done at that time without over-thinking about it.
+&lt;/p&gt;
+&lt;p&gt;
+Further information:
+&lt;/p&gt;
+&lt;p&gt;
+You can 'create' a new page if you put the option back to &lt;code&gt;-Select-&lt;/code&gt; and hit the Save button to clear the ID, not that it's obvious of course :D but that triggers the code of if there's no ID set so the buttons to create a page are there again.
+&lt;/p&gt;
+&lt;p&gt;
+Either way all of these where UI/UX proposals as we where chatting about the whole concept and they changed day by day as the idea was to get everything in asap and then sit down and refine them as we move forward.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #43392 (Support 'object' and 'array' types in register_meta()) updated</title>
+      
+        <dc:creator>ajfleming</dc:creator>
+
+      <pubDate>Sun, 01 Apr 2018 13:52:17 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43392#comment:5</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43392#comment:5/1522590737227813</guid>
+      <description>&lt;p&gt;
+This post by Ryan McCue; &lt;a class="ext-link" href="https://journal.rmccue.io/351/the-complex-state-of-meta-in-the-wordpress-rest-api/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;The (Complex) State of Meta in the WordPress REST API&lt;/a&gt; explains why complex values &amp;amp; serialized data are not exposed by &lt;code&gt;register_meta()&lt;/code&gt;.
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+The key reason for this is that accepting serialized data is either lossy or unsafe.
+&lt;/p&gt;
+&lt;/blockquote&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #43671 ('Search installed plugins' on plugins page unneccesary and possibly ...) created</title>
+      
+        <dc:creator>Vishnja1</dc:creator>
+
+      <pubDate>Sun, 01 Apr 2018 11:46:07 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43671</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43671/1522583167783129</guid>
+      <description>&lt;p&gt;
+Hello!
+&lt;/p&gt;
+&lt;p&gt;
+I consider 'Search installed plugins' input on plugins page unneccesary and possibly misleading. Very often I use this input to search for plugin that I want to install.
+Also I don't know whether there is any reason at all to have search for installed plugins, because usually user just scrolls window to check this and rarely can remember name of the plugin etc.
+It would be cool to replace this input with input for searching for new plugins (or totally remove it).
+&lt;/p&gt;
+&lt;p&gt;
+Thanks!
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #43670 (cannot login as Admin with 404 error) created</title>
+      
+        <dc:creator>serros88</dc:creator>
+
+      <pubDate>Sat, 31 Mar 2018 22:58:49 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43670</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43670/1522537129738487</guid>
+      <description>&lt;p&gt;
+Hi,
+&lt;/p&gt;
+&lt;p&gt;
+Actually I noticed that many folks have this error as mentioned (or so).
+Impossible today to login as Admin on my website, on which I just did some changes (under win10). I tried many ways for hours but no success, really annoying!!!
+&lt;/p&gt;
+&lt;p&gt;
+Maybe the BUG:
+Suddenly I tried to login with my mobile phone (huawai p8 android) and I could immediately access my website with Admin login. Then, I could also do it immediately on my 2 PC win10.... ;-)
+&lt;/p&gt;
+&lt;p&gt;
+Am sure you agree that it is very strange and I have no idea how it could work that way.
+&lt;/p&gt;
+&lt;p&gt;
+Maybe a......BUG! :-)
+&lt;/p&gt;
+&lt;p&gt;
+Cheers
+Serge
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #42785 (Change default of `show_in_rest` in register_post_type and ...) updated</title>
+      
+        <dc:creator>joehoyle</dc:creator>
+
+      <pubDate>Sat, 31 Mar 2018 15:46:22 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/42785#comment:31</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/42785#comment:31/1522511182687532</guid>
+      <description>&lt;blockquote class="citation"&gt;
+&lt;blockquote&gt;
+&lt;p&gt;
+Exactly this. However, show_in_rest has historically meant "reveal in REST" (whether or not the data is exposed), so I don't think it makes sense to change this on a whim. Possibly, the intermediate implementation could be editable_in_rest and default to true.
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+I don't think this is the right approach, and also I don't think anything is changing on a whim. Forget any "REST" based flag, we should be saying what is public, and what isn't, and for not-public things, who has access to read them. We have to deal with the backwards compat of &lt;code&gt;show_in_rest&lt;/code&gt; (hence this ticket), but introducing more technology specific flags has to be the wrong direction.
+&lt;/p&gt;
+&lt;p&gt;
+This is precisely what I've proposed in this ticket:
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;blockquote&gt;
+&lt;p&gt;
+I propose we default show_in_rest to true in the following scenarios:
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;/blockquote&gt;
+&lt;blockquote class="citation"&gt;
+&lt;blockquote&gt;
+&lt;p&gt;
+Object types registered with public =&amp;gt; true (only).
+Object types registered with publicly_queryable =&amp;gt; true.
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+Because those &lt;em&gt;are&lt;/em&gt; already public. I think there are more cases to open up more "private" post types to the REST API, however I'm not trying to boil the ocean with this ticket. Even if we think that &lt;code&gt;public =&amp;gt; true&lt;/code&gt; is too broad, there has to be a case for &lt;code&gt;publicly_queryable =&amp;gt; true&lt;/code&gt;, as I can get that data from any WordPress site by adding a query var to the URL.
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;blockquote&gt;
+&lt;p&gt;
+Correct. But these aren't present in 42785.4.diff. That patch, for instance, would give me (a WordPress.com user) access to every CPT registered on every CPT site. Not only that, but it also incorrectly overrides the value passed by the developer.
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+Yes, I think 42785.4.diff is a very bad hack and should not be committed - &lt;code&gt;is_user_logged_in&lt;/code&gt; means next to nothing.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #43316 (REST API: Support autosaves) updated</title>
+      
+        <dc:creator>schlessera</dc:creator>
+
+      <pubDate>Sat, 31 Mar 2018 14:49:58 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43316#comment:58</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43316#comment:58/1522507798562788</guid>
+      <description>&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+Sorry I'm going to repeat myself but autosaving is "trigger saving a post". It is the same concept of "saving a post", uses the same data shape, form, and size, and performs the same action as a result of the same intent by the client.
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+Please note that you're talking about integrating a "switch" to distinguish between them so that you can have differing behavior between the two.
+&lt;/p&gt;
+&lt;p&gt;
+But, yes, I agree, the discussion has taken place. I'm indeed +1 on an &lt;code&gt;/autosaves/&lt;/code&gt; endpoint.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #42937 (Success Message should display on insertion of new category in ...) updated</title>
+      
+        <dc:creator>manishamakhija</dc:creator>
+
+      <pubDate>Sat, 31 Mar 2018 13:45:18 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/42937#comment:7</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/42937#comment:7/1522503918893524</guid>
+      <description>&lt;p&gt;
+Need for this new enhancement:
+In one of my project when I was entering new term in category, it doesn't show at the top/first position though it is added in the backend which displays after page refresh. For more clarification see video I've attached in it. So it's better if we can add success message too.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>error-in-UI-in-add-term.webm attached to Ticket #42937</title>
+      
+        <dc:creator>manishamakhija</dc:creator>
+
+      <pubDate>Sat, 31 Mar 2018 13:44:13 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/42937/error-in-UI-in-add-term.webm</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/42937/error-in-UI-in-add-term.webm/1522503853881939</guid>
+      <description>&lt;p&gt;
+New term not append in term list after successful insertion
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #42814 (PHP 7.2 Warning: ...wp-includes/post-template.php on line 284) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Sat, 31 Mar 2018 10:49:22 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/42814#comment:43</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/42814#comment:43/1522493362438739</guid>
+      <description>&lt;p&gt;
+Replying to &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/42814#comment:42" title="Comment 42"&gt;FPCSJames&lt;/a&gt;:
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+This also occurs when calling wp_calculate_image_srcset().
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+That one's already fixed in &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/43201" title="#43201: defect (bug): PHP Warning:  count(): Parameter must be an array or an object that ... (closed: fixed)"&gt;#43201&lt;/a&gt;, the fix will ship with 4.9.5.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #43372 ($wp_query-&gt;max_num_pages return value as float) updated</title>
+      
+        <dc:creator>birgire</dc:creator>
+
+      <pubDate>Sat, 31 Mar 2018 09:52:53 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43372#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43372#comment:2/1522489973177780</guid>
+      <description>&lt;p&gt;
+@ironghost63 Welcome to WordPress Trac and thank you for the report.
+&lt;/p&gt;
+&lt;p&gt;
+But there is more!
+&lt;/p&gt;
+&lt;p&gt;
+The example:
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;$q = new WP_Query( ['posts_per_page' =&amp;gt; 2 ] );
+var_dump( $q-&amp;gt;post_count );
+var_dump( $q-&amp;gt;found_posts );
+var_dump( $q-&amp;gt;max_num_pages );
+&lt;/pre&gt;&lt;p&gt;
+displays:
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;int(2)
+string(1) "2"
+double(1)
+&lt;/pre&gt;&lt;p&gt;
+So these counting properties of &lt;code&gt;WP_Query&lt;/code&gt; have three different types!
+&lt;/p&gt;
+&lt;p&gt;
+Within the &lt;code&gt;WP_Query&lt;/code&gt; class, the inline docs says it's an integer:
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;/**
+ * The amount of pages.
+ *
+ * @since 2.1.0
+ * @var int
+ */
+public $max_num_pages = 0;
+&lt;/pre&gt;&lt;p&gt;
+The calculated value comes from:
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;$this-&amp;gt;max_num_pages = ceil( $this-&amp;gt;found_posts / $q['posts_per_page'] );
+&lt;/pre&gt;&lt;p&gt;
+but from the &lt;a class="ext-link" href="http://php.net/manual/en/function.ceil.php"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;PHP docs&lt;/a&gt;:
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+The return value of &lt;code&gt;ceil()&lt;/code&gt; is still of type float as the value range of float is usually bigger than that of integer.
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+The inline docs for &lt;code&gt;found_posts&lt;/code&gt; also says:
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;/**
+ * The amount of found posts for the current query.
+ *
+ * If limit clause was not used, equals $post_count.
+ *
+ * @since 2.1.0
+ * @var int
+ */
+public $found_posts = 0;
+&lt;/pre&gt;&lt;p&gt;
+but the data query
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;$this-&amp;gt;found_posts = $wpdb-&amp;gt;get_var(...);
+&lt;/pre&gt;&lt;p&gt;
+returns a string.
+&lt;/p&gt;
+&lt;p&gt;
+So it looks like either we need to adjust the inline docs or adjust the return types.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #43669 (Menu Item should have remove button near to accordion title) updated</title>
+      
+        <dc:creator>mukesh27</dc:creator>
+
+      <pubDate>Sat, 31 Mar 2018 06:36:36 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43669#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43669#comment:1/1522478196083081</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt;, &lt;i&gt;Focuses&lt;/i&gt;, &lt;i&gt;Type&lt;/i&gt;, &lt;i&gt;Version&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item>
+   </channel>
+</rss>

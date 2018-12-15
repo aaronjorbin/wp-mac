@@ -1,0 +1,1137 @@
+<?xml version="1.0"?>
+<rss xmlns:dc="http://purl.org/dc/elements/1.1/" version="2.0">
+  <channel>
+    <title>WordPress Trac</title>
+    <link>http://core.trac.wordpress.org/timeline</link>
+    <description>Trac Timeline</description>
+    <language>en-US</language>
+    <generator>Trac 1.2.2</generator>
+    <image>
+      <title>WordPress Trac</title>
+      <url>http://core.trac.wordpress.org/chrome/site/your_project_logo.png</url>
+      <link>http://core.trac.wordpress.org/timeline</link>
+    </image>
+    <item>
+      <title>Ticket #10576 (Use subqueries for taxonomy queries) updated</title>
+      
+        <dc:creator>dd32</dc:creator>
+
+      <pubDate>Mon, 10 Aug 2009 23:19:19 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/10576#comment:4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/10576#comment:4/1249946359000000</guid>
+      <description>&lt;p&gt;
+What about multiple-taxonomy querying Denis?
+&lt;/p&gt;
+&lt;p&gt;
+Or is that as easy as?
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;AND (
+tag_tax.term_id IN ( '$tag_ids' )  AND tag_tax.taxonomy = 'tag'
+OR
+tag_tax.term_id IN ( '$cat_ids' )  AND tag_tax.taxonomy = 'cat'
+)
+&lt;/pre&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #10580 (WPMU 2.5 - 2.8.1Home page does not allow direct link to media files.) updated</title>
+      
+        <dc:creator>dd32</dc:creator>
+
+      <pubDate>Mon, 10 Aug 2009 23:17:20 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/10580#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/10580#comment:1/1249946240000000</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Does this apply to WordPress? Or just WordPress MU?
+&lt;/p&gt;
+&lt;p&gt;
+I suspect MU-only: &lt;a class="ext-link" href="http://trac.mu.wordpress.org/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;http://trac.mu.wordpress.org/&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #10576 (Use subqueries for taxonomy queries) updated</title>
+      
+        <dc:creator>Denis-de-Bernardy</dc:creator>
+
+      <pubDate>Mon, 10 Aug 2009 22:52:38 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/10576#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/10576#comment:3/1249944758000000</guid>
+      <description>&lt;p&gt;
+err, nm on the merge join mention in the first query, it's definitely looking forward for a hash join. but anyway... :-P
+&lt;/p&gt;
+&lt;p&gt;
+using the joins instead of subqueries will be faster if there is no IN() clause, and an order by limit.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #10576 (Use subqueries for taxonomy queries) updated</title>
+      
+        <dc:creator>Denis-de-Bernardy</dc:creator>
+
+      <pubDate>Mon, 10 Aug 2009 22:47:05 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/10576#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/10576#comment:2/1249944425000000</guid>
+      <description>&lt;p&gt;
+actually, that particular one would be &lt;strong&gt;much&lt;/strong&gt; faster with a join:
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;SELECT $wpdb-&amp;gt;posts.ID FROM  $wpdb-&amp;gt;posts
+JOIN $wpdb-&amp;gt;term_relationships
+ON $wpdb-&amp;gt;term_relationships.object_id = $wpdb-&amp;gt;posts.ID
+JOIN $wpdb-&amp;gt;term_taxonomy
+ON $wpdb-&amp;gt;term_taxonomy.term_taxonomy_id = $wpdb-&amp;gt;term_relationships.term_taxonomy_id
+AND $wpdb-&amp;gt;term_taxonomy.term_id = '$cat_id'
+AND $wpdb-&amp;gt;term_taxonomy.taxonomy = 'category'
+WHERE $wpdb-&amp;gt;posts.post_type = 'post'
+AND $wpdb-&amp;gt;posts.post_status = 'draft' "
+ORDER BY $wpdb-&amp;gt;posts.post_date DESC LIMIT $limit OFFSET $offset
+&lt;/pre&gt;&lt;p&gt;
+else, you end up with a temporary table, a merge join plan, and no index whatsoever if the mysql optimizer misses the potential optimization.
+&lt;/p&gt;
+&lt;p&gt;
+the same kind of query holds for tags. for a combo of one tag and one category, using a big join will be fastest.
+&lt;/p&gt;
+&lt;p&gt;
+the issue is when we query for multiple terms. one with multiple tags and categories would become something like the following and it no longer uses any kind of meaningful index, because it's a tough one to for optimizers to get right:
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;SELECT $wpdb-&amp;gt;posts.ID FROM  $wpdb-&amp;gt;posts
+JOIN $wpdb-&amp;gt;term_relationships as cat_rel
+ON cat_rel.object_id = $wpdb-&amp;gt;posts.ID
+JOIN $wpdb-&amp;gt;term_taxonomy as cat_tax
+ON cat_tax.term_taxonomy_id = cat_rel.term_taxonomy_id
+AND cat_tax.term_id IN ( '$cat_ids' )  AND cat_rel.taxonomy = 'category'
+JOIN $wpdb-&amp;gt;term_relationships as tag_rel
+ON tag_rel.object_id = $wpdb-&amp;gt;posts.ID
+JOIN $wpdb-&amp;gt;term_taxonomy as tag_tax
+ON tag_tax.term_taxonomy_id = tag_rel.term_taxonomy_id
+AND tag_tax.term_id IN ( '$tag_ids' )  AND tag_tax.taxonomy = 'tag'
+WHERE $wpdb-&amp;gt;posts.post_type = 'post'
+AND $wpdb-&amp;gt;posts.post_status = 'draft' "
+GROUP BY $wpdb-&amp;gt;posts.ID
+ORDER BY $wpdb-&amp;gt;posts.post_date DESC LIMIT $limit OFFSET $offset
+&lt;/pre&gt;&lt;p&gt;
+where:
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;$cat_ids = join("', '", array_map('intval', $cat_ids));
+$tag_ids = join("', '", array_map('intval', $tag_ids));
+&lt;/pre&gt;&lt;p&gt;
+the latter is a case where, intuitively, a subquery along the lines of your example would probably win based on the table stats because we then get rid of the group by and end up with a hash join plan. but it'll probably be the exception.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #10583 (Admin Panel Window Box) created</title>
+      
+        <dc:creator>elgunwp</dc:creator>
+
+      <pubDate>Mon, 10 Aug 2009 21:02:00 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/10583</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/10583/1249938120000000</guid>
+      <description>&lt;p&gt;
+Hi Guys,
+&lt;/p&gt;
+&lt;p&gt;
+I recently upgraded to 2.8.3 and I have unpleasant bug to be fixed. In Admin panel my widnow box does not pop up. For example,
+&lt;/p&gt;
+&lt;p&gt;
+I want to add theme and before adding I want to preview it but it does not new window box and it shows with ugly way below footer on the left. The same thing happens when I try to install new plugins. It does not pop up the install window box when you click install from admin panel.
+&lt;/p&gt;
+&lt;p&gt;
+It does the same thing using default theme and without plugins. It was not before and it happened as soon as I upgraded to 2.8.3
+&lt;/p&gt;
+&lt;p&gt;
+So the same thing happens with adding images, media and other things like that when posting a page or articles.
+&lt;/p&gt;
+&lt;p&gt;
+I am not a coder and do not know how to solve it.  Please contact me at karimov.mb@… for how to solve it. I can provide my log in info if you need to witness it. Thanks Elgun
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Changeset [11796]: get_sample_permalink_html filter</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Mon, 10 Aug 2009 20:49:09 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/11796</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/11796/1249937349499137</guid>
+      <description>&lt;p&gt;
+get_sample_permalink_html filter
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Ticket #10582 (Support for JavaScript concatenation) created</title>
+      
+        <dc:creator>emartin24</dc:creator>
+
+      <pubDate>Mon, 10 Aug 2009 20:38:30 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/10582</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/10582/1249936710000000</guid>
+      <description>&lt;p&gt;
+I realize concatenation is already supported, but I believe it is only in the admin section.
+&lt;/p&gt;
+&lt;p&gt;
+What I am looking for is a way to use a concatenated file, but still utilize the features provided by wp_enqueue_script().
+&lt;/p&gt;
+&lt;p&gt;
+I started a discussion on wp-hackers:
+&lt;a class="ext-link" href="http://groups.google.com/group/wp-hackers/browse_thread/thread/1b431b699bfa2eab"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;http://groups.google.com/group/wp-hackers/browse_thread/thread/1b431b699bfa2eab&lt;/a&gt;
+&lt;/p&gt;
+&lt;p&gt;
+I realize the complications of automatically concatenating files, dealing with plugins scripts, headers, footers, etc. However, I still think there should be a way to make it work.
+&lt;/p&gt;
+&lt;p&gt;
+One idea is to allow us to pass in the same source file for wp_enqueue_script calls, which would allow the scripts to be registered, but then the print scripts function would only print out 1 line for the single file.
+&lt;/p&gt;
+&lt;p&gt;
+Anyway, just wanted to open it up for discussion and see if there were any other ideas/suggestions/alternatives/etc.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #10579 (Allow filtering of get_edit_post_link for custom post_type's) closed</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Mon, 10 Aug 2009 16:33:48 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/10579#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/10579#comment:2/1249922028000000</guid>
+      <description>fixed: &lt;p&gt;
+(In &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/11795" title="Apply get_edit_post_link filter. Props prettyboymp. fixes #10579"&gt;[11795]&lt;/a&gt;) Apply get_edit_post_link filter. Props prettyboymp. fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/10579" title="#10579: enhancement: Allow filtering of get_edit_post_link for custom post_type's (closed: fixed)"&gt;#10579&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Changeset [11795]: Apply get_edit_post_link filter. Props prettyboymp. fixes #10579</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Mon, 10 Aug 2009 16:33:42 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/11795</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/11795/1249922022481267</guid>
+      <description>&lt;p&gt;
+Apply get_edit_post_link filter. Props prettyboymp. fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/10579" title="#10579: enhancement: Allow filtering of get_edit_post_link for custom post_type's (closed: fixed)"&gt;#10579&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Ticket #10579 (Allow filtering of get_edit_post_link for custom post_type's) updated</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Mon, 10 Aug 2009 16:32:55 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/10579#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/10579#comment:1/1249921975000000</guid>
+      <description>&lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #10021 (Unresponsive script errors on widgets screen) updated</title>
+      
+        <dc:creator>aaroncampbell</dc:creator>
+
+      <pubDate>Mon, 10 Aug 2009 16:14:25 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/10021#comment:22</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/10021#comment:22/1249920865000000</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+I finally got a chance to fully test in IE 8, FF 3.5.2, Chrome 2, Safari 4, Opera 9.64.  In every browser I'm able to drag widgets to sidebars as well as the inactive area, drag widgets between sidebars, edit and save widgets, remove widgets, etc.
+&lt;/p&gt;
+&lt;p&gt;
+The speed differences are definitely measurable, although I wasn't testing with very many widgets or sidebars.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #10581 (Add Bulk Edit and Quick Edit to Links screen) created</title>
+      
+        <dc:creator>janeforshort</dc:creator>
+
+      <pubDate>Mon, 10 Aug 2009 15:58:14 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/10581</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/10581/1249919894000000</guid>
+      <description>&lt;p&gt;
+Add Bulk Edit functionality to Links screen to allow for bulk editing of link categories, and Quick Edit to allow for inline editing of individual link info.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #10578 (wp-config &amp; NONCE_KEY) closed</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Mon, 10 Aug 2009 15:55:22 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/10578#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/10578#comment:1/1249919722000000</guid>
+      <description>duplicate: &lt;p&gt;
+Just add the key.  You don't have to change the other keys.  We don't currently update config files, although there are some tickets requesting such.  I'll close this one as a dupe.
+&lt;/p&gt;
+</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Ticket #10580 (WPMU 2.5 - 2.8.1Home page does not allow direct link to media files.) created</title>
+      
+        <dc:creator>jkershner</dc:creator>
+
+      <pubDate>Mon, 10 Aug 2009 15:49:05 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/10580</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/10580/1249919345000000</guid>
+      <description>&lt;p&gt;
+Reference : &lt;a class="ext-link" href="http://wordpress.org/support/topic/212798?replies=8"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;http://wordpress.org/support/topic/212798?replies=8&lt;/a&gt;
+&lt;/p&gt;
+&lt;p&gt;
+When linking to a file on home page wp always uses the post link and not the direct file link.
+&lt;/p&gt;
+&lt;ol&gt;&lt;li&gt;Edit the home page.
+&lt;/li&gt;&lt;li&gt;Upload media into library
+&lt;/li&gt;&lt;li&gt;Click "show" on desired file in library
+&lt;/li&gt;&lt;li&gt;Click on File URL for PDF in question
+&lt;/li&gt;&lt;li&gt;Click on "insert into post" button.
+&lt;/li&gt;&lt;li&gt;update or save page
+&lt;/li&gt;&lt;li&gt;check the page link
+&lt;/li&gt;&lt;li&gt;link now magically uses the post link and not the file link.
+&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;
+This is on an upgraded WPMU 2.8.1 with PHP 5.1.2 on Apache2 with the Suhosin patch (0.9.6)..
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #10563 (Text widget adds extra slashes when edited by someone without the ...) updated</title>
+      
+        <dc:creator>Denis-de-Bernardy</dc:creator>
+
+      <pubDate>Mon, 10 Aug 2009 13:37:10 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/10563#comment:7</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/10563#comment:7/1249911430000000</guid>
+      <description>&lt;p&gt;
+Replying to &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/10563#comment:6" title="Comment 6"&gt;jamescollins&lt;/a&gt;:
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+The change in WPMU has been running on our WPMU installs for a few weeks and it seems to have fixed the problem.
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+try feeding it stuff with a backslash... the correct patch is to:
+&lt;/p&gt;
+&lt;p&gt;
+stripslashes(wp_filter_post_kses(addslashes(...)))
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>link-template.patch attached to Ticket #10579</title>
+      
+        <dc:creator>prettyboymp</dc:creator>
+
+      <pubDate>Mon, 10 Aug 2009 13:32:54 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/10579/link-template.patch</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/10579/link-template.patch/1249911174000000</guid>
+      <description>&lt;p&gt;
+Suggested fix
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #10579 (Allow filtering of get_edit_post_link for custom post_type's) created</title>
+      
+        <dc:creator>prettyboymp</dc:creator>
+
+      <pubDate>Mon, 10 Aug 2009 13:32:16 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/10579</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/10579/1249911136000000</guid>
+      <description>&lt;p&gt;
+Currently the default case for the get_edit_post_link function returns void if the user can't edit the given post.  However, when using a custom post_type with it's own custom permissions, the 'get_edit_post_link' filter is never called.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #10578 (wp-config &amp; NONCE_KEY) created</title>
+      
+        <dc:creator>F J Kaiser</dc:creator>
+
+      <pubDate>Mon, 10 Aug 2009 13:30:16 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/10578</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/10578/1249911016000000</guid>
+      <description>&lt;p&gt;
+Hi, i was updating from 2.7x to 2.8 and then to all newer version when they came out. Now i took a look at the wp-config.php-File and saw that there was still no "NONCE_KEY". I would say this is a bug (?).
+&lt;/p&gt;
+&lt;hr /&gt;
+&lt;p&gt;
+btw: Could i just add a NONCE_KEY with a custom phrase or do i have to make all phrases for all keys new?
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #10577 (/wp-includes/author-template.php space at the end of the file) updated</title>
+      
+        <dc:creator>dd32</dc:creator>
+
+      <pubDate>Mon, 10 Aug 2009 08:45:14 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/10577#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/10577#comment:1/1249893914000000</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+PHP ignores a blank line after a closing tag, So that file is not causing the problem. (And it'd happen on every page, As that file is ALWAYS included, and a space wouldnt cause an issue when a function from the file is used, but in every page)
+&lt;/p&gt;
+&lt;p&gt;
+What is the error message exactly? It'll tell you where the output started, and what is trying to set a header.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #10577 (/wp-includes/author-template.php space at the end of the file) created</title>
+      
+        <dc:creator>serbanghita</dc:creator>
+
+      <pubDate>Mon, 10 Aug 2009 08:37:25 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/10577</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/10577/1249893445000000</guid>
+      <description>&lt;p&gt;
+/wp-includes/author-template.php seems to have an empty space at the end of the file, so if i use in template one of the functions in here it gives me 'headers already sent'
+&lt;/p&gt;
+&lt;p&gt;
+I updated the latest version from the SVN and this still appears. Thanks.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #10576 (Use subqueries for taxonomy queries) updated</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Mon, 10 Aug 2009 00:44:37 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/10576#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/10576#comment:1/1249865077000000</guid>
+      <description>&lt;p&gt;
+Sample query:
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;SELECT $wpdb-&amp;gt;posts.ID FROM  $wpdb-&amp;gt;posts WHERE
+$wpdb-&amp;gt;posts.ID IN (
+     SELECT $wpdb-&amp;gt;term_relationships.object_id FROM $wpdb-&amp;gt;term_relationships
+     WHERE $wpdb-&amp;gt;term_relationships.term_taxonomy_id IN (
+          SELECT $wpdb-&amp;gt;term_taxonomy.term_taxonomy_id FROM $wpdb-&amp;gt;term_taxonomy
+          WHERE $wpdb-&amp;gt;term_taxonomy.term_id = '$cat_id' AND $wpdb-&amp;gt;term_taxonomy.taxonomy = 'category'
+          )
+     )
+AND $wpdb-&amp;gt;posts.post_type = 'post'
+AND $wpdb-&amp;gt;posts.post_status = 'draft' "
+ORDER BY $wpdb-&amp;gt;posts.post_date DESC LIMIT $limit OFFSET $offset
+&lt;/pre&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #10576 (Use subqueries for taxonomy queries) created</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Mon, 10 Aug 2009 00:40:17 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/10576</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/10576/1249864817000000</guid>
+      <description>&lt;p&gt;
+Fetching posts within a given categories/tags would be faster with subqueries.  2.9 will bump the MySQL requirement to 4.1 so we can rewrite to make use of subqueries.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #10563 (Text widget adds extra slashes when edited by someone without the ...) updated</title>
+      
+        <dc:creator>jamescollins</dc:creator>
+
+      <pubDate>Sun, 09 Aug 2009 23:20:03 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/10563#comment:6</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/10563#comment:6/1249860003000000</guid>
+      <description>&lt;p&gt;
+Replying to &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/10563#comment:4" title="Comment 4"&gt;Denis-de-Bernardy&lt;/a&gt;:
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+The patch that got applied seems wrong. wp_filter_post_kses() expects slashed data, and we're feeding it unslashed data.
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+The logic for my patch was taken from &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/10802" title="Move text widget to WP_Widget. see #8441"&gt;[10802]&lt;/a&gt;. If you look this changeset, line 403 (in &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/10801" title="Move submit check into WP_Widget"&gt;r10801&lt;/a&gt;) was effectively replaced with line 354 (in &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/10802" title="Move text widget to WP_Widget. see #8441"&gt;r10802&lt;/a&gt;).
+&lt;/p&gt;
+&lt;p&gt;
+According to &lt;a class="ext-link" href="http://core.trac.wordpress.org/browser/trunk/wp-includes/kses.php#L1064"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;http://core.trac.wordpress.org/browser/trunk/wp-includes/kses.php#L1064&lt;/a&gt;, the wp_filter_post_kses() function strips slashes, KSES filters, then adds the slashes again.
+&lt;/p&gt;
+&lt;p&gt;
+The change in WPMU has been running on our WPMU installs for a few weeks and it seems to have fixed the problem.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #10561 (Improve do_action(): Make $wp_actions an assoc array.) updated</title>
+      
+        <dc:creator>koopersmith</dc:creator>
+
+      <pubDate>Sun, 09 Aug 2009 18:20:29 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/10561#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/10561#comment:3/1249842029000000</guid>
+      <description>&lt;i&gt;Cc&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Sounds good, I'll see if I can write a patch for the performance tests sometime soon.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>general-template.php.diff attached to Ticket #10575</title>
+      
+        <dc:creator>sirzooro</dc:creator>
+
+      <pubDate>Sun, 09 Aug 2009 18:12:01 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/10575/general-template.php.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/10575/general-template.php.diff/1249841521000000</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #10575 (Do not buffer Calendar widget and allow to filter it) created</title>
+      
+        <dc:creator>sirzooro</dc:creator>
+
+      <pubDate>Sun, 09 Aug 2009 18:11:34 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/10575</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/10575/1249841494000000</guid>
+      <description>&lt;p&gt;
+Calendar widget uses output buffering. Attached patch removes it. Additionally it adds get_calendar filter.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #10563 (Text widget adds extra slashes when edited by someone without the ...) updated</title>
+      
+        <dc:creator>azaozz</dc:creator>
+
+      <pubDate>Sun, 09 Aug 2009 13:18:04 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/10563#comment:5</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/10563#comment:5/1249823884000000</guid>
+      <description>&lt;p&gt;
+As this affects mostly WPMU, perhaps add comment on the ticket there (referenced above).
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #10570 (Flush/Init the $wp_rewrite on theme change.) updated</title>
+      
+        <dc:creator>frumph</dc:creator>
+
+      <pubDate>Sun, 09 Aug 2009 12:39:51 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/10570#comment:4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/10570#comment:4/1249821591000000</guid>
+      <description>&lt;p&gt;
+Just an example off the top of my head, this is no way reflects what the real code is.. but I was working on having for author pages have it change the name author/ to users/  or members/  so that I can create member pages from the author template.  Now mind you this works, however switching themes it keeps the /user/ portion of the rewrite while the rest reverts back after switching themes.  (bad idea for someone who just wants to check out the theme)   So I end up $wp_rewrite-&amp;gt;init(); it back after switching themes in whatever theme i'm working on.
+&lt;/p&gt;
+&lt;p&gt;
+So I was thinking, how does this effect generate_rewrite_rules and all of those others, apparently they too stay.   So having an init(); or flush_rules(); on switching themes doesn't sound like a bad idea.  Premium templete themes that have special rewrite rules associated with them will no longer bleed into other themes used.
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;if ($some_run_once_var) {
+   add_action('init','cp_rewrite_author_to_user',5);
+}
+function cp_rewrite_author_to_user() {
+	global $wp_rewrite;
+	$wp_rewrite-&amp;gt;author_base = 'user';
+	$wp_rewrite-&amp;gt;flush_rules();
+}
+&lt;/pre&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #10200 (Cron not running) updated</title>
+      
+        <dc:creator>tflight</dc:creator>
+
+      <pubDate>Sun, 09 Aug 2009 12:36:50 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/10200#comment:4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/10200#comment:4/1249821410000000</guid>
+      <description>&lt;i&gt;Cc&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Replying to &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/10200#comment:1" title="Comment 1"&gt;azaozz&lt;/a&gt;:
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+There are some changes to wp-cron in 2.8, see &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/10521" title="Cron spawning improvement, see #9005"&gt;[10521]&lt;/a&gt;. Use the native cron if available or try adding
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;define('ALTERNATE_WP_CRON', true);
+&lt;/pre&gt;&lt;p&gt;
+to wp-config.php.
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+While adding that to my config file did work, it seems to create some funny links. I'm guessing this works by occasionally appending '?doing_wp_cron' to the URL. I've seen a few visitors to my site create links they've seen with that appended to the URL since making that change. And I'm seeing some of those URLs get indexed in Google that way:
+&lt;a class="ext-link" href="http://www.google.com/search?q=inurl:%3Fdoing_wp_cron"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;http://www.google.com/search?q=inurl:%3Fdoing_wp_cron&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #10563 (Text widget adds extra slashes when edited by someone without the ...) reopened</title>
+      
+        <dc:creator>Denis-de-Bernardy</dc:creator>
+
+      <pubDate>Sun, 09 Aug 2009 12:36:35 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/10563#comment:4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/10563#comment:4/1249821395000000</guid>
+      <description>&lt;p&gt;
+The patch that got applied seems wrong. wp_filter_post_kses() expects slashed data, and we're feeding it unslashed data.
+&lt;/p&gt;
+</description>
+      <category>reopenedticket</category>
+    </item><item>
+      <title>Ticket #10563 (Text widget adds extra slashes when edited by someone without the ...) closed</title>
+      
+        <dc:creator>azaozz</dc:creator>
+
+      <pubDate>Sun, 09 Aug 2009 12:32:21 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/10563#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/10563#comment:3/1249821141000000</guid>
+      <description>fixed: &lt;p&gt;
+(In &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/11794" title="Strip slashes in the text widget for users without the unfiltered_html ..."&gt;[11794]&lt;/a&gt;) Strip slashes in the text widget for users without the unfiltered_html capability, props jamescollins, fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/10563" title="#10563: defect (bug): Text widget adds extra slashes when edited by someone without the ... (closed: fixed)"&gt;#10563&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Changeset [11794]: Strip slashes in the text widget for users without the unfiltered_html ...</title>
+      
+        <dc:creator>azaozz</dc:creator>
+
+      <pubDate>Sun, 09 Aug 2009 12:32:18 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/11794</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/11794/1249821138351479</guid>
+      <description>&lt;p&gt;
+Strip slashes in the text widget for users without the unfiltered_html capability, props jamescollins, fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/10563" title="#10563: defect (bug): Text widget adds extra slashes when edited by someone without the ... (closed: fixed)"&gt;#10563&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Ticket #10563 (Text widget adds extra slashes when edited by someone without the ...) updated</title>
+      
+        <dc:creator>azaozz</dc:creator>
+
+      <pubDate>Sun, 09 Aug 2009 12:30:21 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/10563#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/10563#comment:2/1249821021000000</guid>
+      <description>&lt;p&gt;
+Yes, this is WPMU specific since in WP only administrators can configure widgets and they have 'unfiltered_html' cap. so kses is never run there.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #5741 (No Edit Comment Form Hook) updated</title>
+      
+        <dc:creator>westi</dc:creator>
+
+      <pubDate>Sun, 09 Aug 2009 11:03:11 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/5741#comment:7</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/5741#comment:7/1249815791000000</guid>
+      <description>&lt;i&gt;Owner&lt;/i&gt;, &lt;i&gt;Status&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+This looks like a reasonable idea.
+&lt;/p&gt;
+&lt;p&gt;
+Could you possible knock together a proof-of-concept plugin.
+&lt;/p&gt;
+&lt;p&gt;
+i.e. one that adds an extra field to the comment form, processes it and displays it here
+&lt;/p&gt;
+&lt;p&gt;
+This is to make sure we are not missing any other necessary hooks
+&lt;/p&gt;
+&lt;p&gt;
+Thanks :-)
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #4529 ("Trash" status for comments and posts) updated</title>
+      
+        <dc:creator>westi</dc:creator>
+
+      <pubDate>Sun, 09 Aug 2009 11:00:41 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/4529#comment:74</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/4529#comment:74/1249815641000000</guid>
+      <description>&lt;p&gt;
+Fixed a Notice in &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/11793" title="Fix notice when trying to view comments due to Trash implementation."&gt;[11793]&lt;/a&gt;.
+&lt;/p&gt;
+&lt;p&gt;
+Still get this when trying to trash a comment from the idividual comment view.
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;Notice: Undefined index: dt in /Applications/MAMP/htdocs/wordpress-trunk/wp-admin/comment.php on line 154
+&lt;/pre&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Changeset [11793]: Fix notice when trying to view comments due to Trash implementation.</title>
+      
+        <dc:creator>westi</dc:creator>
+
+      <pubDate>Sun, 09 Aug 2009 10:58:41 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/11793</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/11793/1249815521660393</guid>
+      <description>&lt;p&gt;
+Fix notice when trying to view comments due to Trash implementation.
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Ticket #6109 (Add class attribute for next_posts_link and previous_posts_link) updated</title>
+      
+        <dc:creator>westi</dc:creator>
+
+      <pubDate>Sun, 09 Aug 2009 10:49:52 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/6109#comment:5</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/6109#comment:5/1249814992000000</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Sounds like a reasonable idea.
+&lt;/p&gt;
+&lt;p&gt;
+Someone needs to cook up a new patch for it.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #10570 (Flush/Init the $wp_rewrite on theme change.) updated</title>
+      
+        <dc:creator>westi</dc:creator>
+
+      <pubDate>Sun, 09 Aug 2009 10:48:03 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/10570#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/10570#comment:3/1249814883000000</guid>
+      <description>&lt;i&gt;Owner&lt;/i&gt;, &lt;i&gt;Status&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #6479 (Encourage people to change default tagline) updated</title>
+      
+        <dc:creator>westi</dc:creator>
+
+      <pubDate>Sun, 09 Aug 2009 10:47:01 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/6479#comment:4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/6479#comment:4/1249814821000000</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt;, &lt;i&gt;Owner&lt;/i&gt;, &lt;i&gt;Status&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+This sounds like a good idea.
+&lt;/p&gt;
+&lt;p&gt;
+Maybe it should be promoted to an Install time configurable?
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #10570 (Flush/Init the $wp_rewrite on theme change.) updated</title>
+      
+        <dc:creator>westi</dc:creator>
+
+      <pubDate>Sun, 09 Aug 2009 10:41:49 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/10570#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/10570#comment:2/1249814509000000</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt;, &lt;i&gt;Priority&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+That sounds reasonable.
+&lt;/p&gt;
+&lt;p&gt;
+It is hard to have a definitive opinion without seeing what and how the themes are doing stuff.
+&lt;/p&gt;
+&lt;p&gt;
+We really need some example code here - just something simple which demonstrates how and what these themes are doing so we can understand the issue and use-case fully.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #10574 (Widgets - text block not working) updated</title>
+      
+        <dc:creator>serbanghita</dc:creator>
+
+      <pubDate>Sun, 09 Aug 2009 10:37:19 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/10574#comment:5</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/10574#comment:5/1249814239000000</guid>
+      <description>&lt;p&gt;
+Agree. Thanks for the quick response!
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #10573 (Pass $instance to the "widget_text" filter) closed</title>
+      
+        <dc:creator>westi</dc:creator>
+
+      <pubDate>Sun, 09 Aug 2009 10:35:31 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/10573#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/10573#comment:3/1249814131000000</guid>
+      <description>fixed: &lt;p&gt;
+(In &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/11792" title="Pass the widget instance as context to the widget_title and ..."&gt;[11792]&lt;/a&gt;) Pass the widget instance as context to the widget_title and widget_text filters. Fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/10573" title="#10573: enhancement: Pass $instance to the &amp;#34;widget_text&amp;#34; filter (closed: fixed)"&gt;#10573&lt;/a&gt; props Viper007Bond.
+&lt;/p&gt;
+</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Changeset [11792]: Pass the widget instance as context to the widget_title and ...</title>
+      
+        <dc:creator>westi</dc:creator>
+
+      <pubDate>Sun, 09 Aug 2009 10:35:28 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/11792</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/11792/1249814128510844</guid>
+      <description>&lt;p&gt;
+Pass the widget instance as context to the widget_title and widget_text filters. Fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/10573" title="#10573: enhancement: Pass $instance to the &amp;#34;widget_text&amp;#34; filter (closed: fixed)"&gt;#10573&lt;/a&gt; props Viper007Bond.
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Ticket #10574 (Widgets - text block not working) closed</title>
+      
+        <dc:creator>dd32</dc:creator>
+
+      <pubDate>Sun, 09 Aug 2009 10:09:31 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/10574#comment:4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/10574#comment:4/1249812571000000</guid>
+      <description>invalid: &lt;p&gt;
+I would say its your  theme, As the Text widget which ships with  WordPress has the title "Text" and a description of "Arbitrary text or HTML", yours shows "text" and "text" meaning that something has replaced it. Since you've only got the theme active, it points to that.
+&lt;/p&gt;
+&lt;p&gt;
+You'll need to bug the Theme author to make the theme compatible.
+&lt;/p&gt;
+&lt;p&gt;
+I've just looked up the theme, and it indeed does replace the default text widget, and doesnt provide a interface to modify it, It seems a fluke that it worked under WordPress 2.7.. relying upon the inherited forms rather than defining its own.
+&lt;/p&gt;
+&lt;p&gt;
+You could try removing the line &lt;code&gt;register_sidebar_widget(__('text'), 'widget_aoe_text');&lt;/code&gt; from the themes functions.php file, but no guarantee's it'll work.
+&lt;/p&gt;
+&lt;p&gt;
+invalid: Its not a WordPress core issue
+&lt;/p&gt;
+</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Ticket #10574 (Widgets - text block not working) updated</title>
+      
+        <dc:creator>serbanghita</dc:creator>
+
+      <pubDate>Sun, 09 Aug 2009 10:03:29 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/10574#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/10574#comment:3/1249812209000000</guid>
+      <description>&lt;p&gt;
+My current widget screen: bug-wordpress3.jpg (in attach) shows a 'text' option but as you see in bug-wordpress2.jpg i have no text box to update it.
+&lt;/p&gt;
+&lt;p&gt;
+Does this mean that the current active Wordpress theme is not compatible with 2.8.3 ?
+&lt;/p&gt;
+&lt;p&gt;
+PS: i only have 1 plugin active (Akismet)
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>bug-wordpress3.jpg attached to Ticket #10574</title>
+      
+        <dc:creator>serbanghita</dc:creator>
+
+      <pubDate>Sun, 09 Aug 2009 10:01:02 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/10574/bug-wordpress3.jpg</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/10574/bug-wordpress3.jpg/1249812062000000</guid>
+      <description>&lt;p&gt;
+My actual Widget screen after upgrade
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #10574 (Widgets - text block not working) updated</title>
+      
+        <dc:creator>dd32</dc:creator>
+
+      <pubDate>Sun, 09 Aug 2009 09:48:20 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/10574#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/10574#comment:2/1249811300000000</guid>
+      <description>&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+Re-upload the files, Sounds like you've missed one or one is corrupt.
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+Actualy.. Cancel that..
+&lt;/p&gt;
+&lt;p&gt;
+You shouldnt be directly  accessing &lt;code&gt;wp-includes/default-widgets.php&lt;/code&gt; at all.
+&lt;/p&gt;
+&lt;p&gt;
+The reason the widget content is not there, Is most likely due to the theme not being compatible with WordPress 2.8.. you might want to check for an update to it, It looks like it may use a custom Text widget, and not the default one which shipped with WordPress(WordPress upgraded the core widgets, but the themes widget may not've been included in that)
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #10574 (Widgets - text block not working) updated</title>
+      
+        <dc:creator>dd32</dc:creator>
+
+      <pubDate>Sun, 09 Aug 2009 09:45:36 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/10574#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/10574#comment:1/1249811136000000</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Re-upload the files, Sounds like you've missed one or one is corrupt.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>bug-wordpress2.jpg attached to Ticket #10574</title>
+      
+        <dc:creator>serbanghita</dc:creator>
+
+      <pubDate>Sun, 09 Aug 2009 09:45:09 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/10574/bug-wordpress2.jpg</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/10574/bug-wordpress2.jpg/1249811109000000</guid>
+      <description>&lt;p&gt;
+How 'Admin -&amp;gt; Widgets' looks in 2.8.3
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>bug-wordpress1.jpg attached to Ticket #10574</title>
+      
+        <dc:creator>serbanghita</dc:creator>
+
+      <pubDate>Sun, 09 Aug 2009 09:44:48 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/10574/bug-wordpress1.jpg</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/10574/bug-wordpress1.jpg/1249811088000000</guid>
+      <description>&lt;p&gt;
+How 'Admin -&amp;gt; Widgets' looked in 2.7.1
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #10574 (Widgets - text block not working) created</title>
+      
+        <dc:creator>serbanghita</dc:creator>
+
+      <pubDate>Sun, 09 Aug 2009 09:43:21 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/10574</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/10574/1249811001000000</guid>
+      <description>&lt;p&gt;
+Hello,
+&lt;/p&gt;
+&lt;p&gt;
+I manually upgraded a blog from WordPress 2.7.1 to 2.8.3, overwriting
+/wp-admin/
+/wp-includes/
+/*.php excluding the config file
+&lt;/p&gt;
+&lt;p&gt;
+Previously i had a Text block added in my theme (modern-wordpad) from the Widget section and had some HTML code in it and a custom title. Now in the newer version it has dissapeared from the admin and website.
+&lt;/p&gt;
+&lt;p&gt;
+Also accesing &lt;a class="ext-link" href="http://www.myblog.com/wp-includes/default-widgets.php"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;http://www.myblog.com/wp-includes/default-widgets.php&lt;/a&gt; being logged in as an admin throws the following error: Fatal error: Class 'WP_Widget' not found in /usr/local/www/wp-includes/default-widgets.php on line 15
+&lt;/p&gt;
+&lt;p&gt;
+I attached some screenshots to make it a lot clear.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #10573 (Pass $instance to the "widget_text" filter) updated</title>
+      
+        <dc:creator>Viper007Bond</dc:creator>
+
+      <pubDate>Sun, 09 Aug 2009 07:42:49 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/10573#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/10573#comment:2/1249803769000000</guid>
+      <description>&lt;i&gt;Version&lt;/i&gt;, &lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #10573 (Pass $instance to the "widget_text" filter) updated</title>
+      
+        <dc:creator>Viper007Bond</dc:creator>
+
+      <pubDate>Sun, 09 Aug 2009 07:42:19 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/10573#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/10573#comment:1/1249803739000000</guid>
+      <description>&lt;i&gt;Type&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>10573.patch attached to Ticket #10573</title>
+      
+        <dc:creator>Viper007Bond</dc:creator>
+
+      <pubDate>Sun, 09 Aug 2009 07:41:54 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/10573/10573.patch</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/10573/10573.patch/1249803714000000</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #10573 (Pass $instance to the "widget_text" filter) created</title>
+      
+        <dc:creator>Viper007Bond</dc:creator>
+
+      <pubDate>Sun, 09 Aug 2009 07:41:25 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/10573</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/10573/1249803685000000</guid>
+      <description>&lt;p&gt;
+I'm trying to conditionally change the content of the text widget. I'm storing whether I need to modify the content or not in the widget's settings by using the &lt;code&gt;widget_update_callback&lt;/code&gt; filter and adding a key to the array. However I cannot access the reset of the widget's settings (where my new key is) from within the &lt;code&gt;widget_text&lt;/code&gt; filter.
+&lt;/p&gt;
+&lt;p&gt;
+Attached patch passes &lt;code&gt;$instance&lt;/code&gt; to the &lt;code&gt;widget_title&lt;/code&gt; and &lt;code&gt;widget_text&lt;/code&gt; filters for increased flexibility.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #10021 (Unresponsive script errors on widgets screen) updated</title>
+      
+        <dc:creator>Denis-de-Bernardy</dc:creator>
+
+      <pubDate>Sun, 09 Aug 2009 05:22:11 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/10021#comment:21</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/10021#comment:21/1249795331000000</guid>
+      <description>&lt;p&gt;
+by the same token, this:
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;$( 'table:visible tbody .check-column :checkbox' ).click(...)
+&lt;/pre&gt;&lt;p&gt;
+is much slower than merely:
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;$( 'tbody .check-column :checkbox' ).click(...)
+&lt;/pre&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #10021 (Unresponsive script errors on widgets screen) updated</title>
+      
+        <dc:creator>Denis-de-Bernardy</dc:creator>
+
+      <pubDate>Sun, 09 Aug 2009 05:21:08 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/10021#comment:20</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/10021#comment:20/1249795268000000</guid>
+      <description>&lt;p&gt;
+here's another interesting one... show() and :hidden are extremely slow on slow rendering engines, e.g. Opera 9 with a 400kb widgets page gets:
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;6ms -- $('#contextual-help-link-wrap')
+6071ms -- $('#contextual-help-link-wrap:hidden')
+&lt;/pre&gt;&lt;p&gt;
+the next calls are very fast, until a new class gets added.
+&lt;/p&gt;
+&lt;p&gt;
+similarly, adding an arbitrary ID to the page will render the next selector that users "#whatever" extremely slow in some engines...
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #10572 (Media Library: add fields for media information to describe license info) created</title>
+      
+        <dc:creator>TomasM</dc:creator>
+
+      <pubDate>Sun, 09 Aug 2009 02:09:48 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/10572</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/10572/1249783788000000</guid>
+      <description>&lt;p&gt;
+Media Library: add fields for media information to describe license info.
+&lt;/p&gt;
+&lt;p&gt;
+These days CC license becomes very popular and sometimes it's difficult to find place were you could Attribute author. In case it would be possible to have this meta data inside WP, you could simply link image or small text (like: CC License) to image page where all this info would be displayed automatically next to media file, plus, link to Creative Commons license page (according license type) could be automatically added too.
+&lt;/p&gt;
+&lt;p&gt;
+It would be very convenient to have fields to Attribute author of the media.
+&lt;/p&gt;
+&lt;p&gt;
+It would be very nice to have fields for media info describing:
+&lt;/p&gt;
+&lt;p&gt;
+License type: (for example: Creative Commons - Attribution)
+&lt;/p&gt;
+&lt;p&gt;
+Author Name:
+&lt;/p&gt;
+&lt;p&gt;
+Author URL:
+&lt;/p&gt;
+&lt;p&gt;
+Thank you!
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #10571 (Media library: tooltip of image menu "View" shows name of next post) created</title>
+      
+        <dc:creator>TomasM</dc:creator>
+
+      <pubDate>Sun, 09 Aug 2009 01:53:15 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/10571</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/10571/1249782795000000</guid>
+      <description>&lt;p&gt;
+Media library:
+&lt;/p&gt;
+&lt;p&gt;
+tooltip of image menu "View" item shows name of next post, not the post, related with image.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>4529.notices.patch attached to Ticket #4529</title>
+      
+        <dc:creator>Viper007Bond</dc:creator>
+
+      <pubDate>Sun, 09 Aug 2009 00:12:13 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/4529/4529.notices.patch</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/4529/4529.notices.patch/1249776733000000</guid>
+      <description>&lt;p&gt;
+Fix a notice on the edit comment screen
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #10570 (Flush/Init the $wp_rewrite on theme change.) updated</title>
+      
+        <dc:creator>dd32</dc:creator>
+
+      <pubDate>Sun, 09 Aug 2009 00:08:55 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/10570#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/10570#comment:1/1249776535000000</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt;, &lt;i&gt;Version&lt;/i&gt;, &lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Theme authors may hook the 'switch_themes' action to catch when the theme is being deactivated.
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;add_action('switch_themes', array(&amp;amp;$GLOBALS['wp_rewrite'], 'flush_rules') );
+&lt;/pre&gt;&lt;p&gt;
+would work for theme authors(who should be taking care of it IMO), or in core..
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #10553 (Movable Elements in the Widgets Page) closed</title>
+      
+        <dc:creator>azaozz</dc:creator>
+
+      <pubDate>Sun, 09 Aug 2009 00:08:44 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/10553#comment:6</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/10553#comment:6/1249776524000000</guid>
+      <description>wontfix: &lt;p&gt;
+Replying to &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/10553#comment:5" title="Comment 5"&gt;dcole07&lt;/a&gt;:
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+Another idea would be to hide the closed sidebars...
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+One of the main requests for the Widgets screen was to have all sidebars on it at the same time. Why would you want to revert this?
+&lt;/p&gt;
+&lt;p&gt;
+Perhaps an improvement to the UI would be to have the sidebars vertically draggable so the user can bring the needed sidebar (when there are many) closer to the Available Widgets area and maybe hiding the descriptions in Available Widgets. Both can be implemented easily by plugin.
+&lt;/p&gt;
+</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Ticket #10369 (ftp upgrade fails when hosting uses different paths for php and ftp access) updated</title>
+      
+        <dc:creator>dd32</dc:creator>
+
+      <pubDate>Sun, 09 Aug 2009 00:05:36 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/10369#comment:4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/10369#comment:4/1249776336000000</guid>
+      <description>&lt;p&gt;
+(wontfix: Because it cant be fixed in core for -every- host)
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #10369 (ftp upgrade fails when hosting uses different paths for php and ftp access) closed</title>
+      
+        <dc:creator>dd32</dc:creator>
+
+      <pubDate>Sun, 09 Aug 2009 00:05:18 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/10369#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/10369#comment:3/1249776318000000</guid>
+      <description>wontfix: &lt;p&gt;
+I do not see how WordPress can manage either of those paths automatically.
+&lt;/p&gt;
+&lt;p&gt;
+Thats what the constants i've mentioned in the first comment are for, Rare cases like yours which are just impossible.
+&lt;/p&gt;
+&lt;p&gt;
+Add those defines to your wp-config.php file and you'll be set, The option to specify those on the connection page is plugin Material IMO.
+&lt;/p&gt;
+</description>
+      <category>closedticket</category>
+    </item>
+   </channel>
+</rss>

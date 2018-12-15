@@ -1,0 +1,262 @@
+<?xml version="1.0"?>
+<rss xmlns:dc="http://purl.org/dc/elements/1.1/" version="2.0">
+  <channel>
+    <title>WordPress Trac</title>
+    <link>http://core.trac.wordpress.org/timeline</link>
+    <description>Trac Timeline</description>
+    <language>en-US</language>
+    <generator>Trac 1.2.2</generator>
+    <image>
+      <title>WordPress Trac</title>
+      <url>http://core.trac.wordpress.org/chrome/site/your_project_logo.png</url>
+      <link>http://core.trac.wordpress.org/timeline</link>
+    </image>
+    <item>
+      <title>a.patch attached to Ticket #2754</title>
+      
+        <dc:creator>sdiz</dc:creator>
+
+      <pubDate>Tue, 30 May 2006 17:57:08 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/2754/a.patch</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/2754/a.patch/1149011828000000</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #2754 (get_comment_time / get_comment_date filter should pass the format string) created</title>
+      
+        <dc:creator>sdiz</dc:creator>
+
+      <pubDate>Tue, 30 May 2006 17:56:51 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/2754</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/2754/1149011811000000</guid>
+      <description>&lt;p&gt;
+get_comment_time / get_comment_date filter should pass the format string. see the patch
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #2582 (Full text feed problem when using &lt;!--more--&gt; tag) updated</title>
+      
+        <dc:creator>tinyau</dc:creator>
+
+      <pubDate>Tue, 30 May 2006 16:02:04 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/2582</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/2582/1149004924000000</guid>
+      <description>&lt;p&gt;
+Any progress?  Since the behavior of WordPress 1.5.x and 2.0.x is the same, keep it the same in version 2.1 should be the most appropriate approach.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #2753 (Use shared memory caching facilities) updated</title>
+      
+        <dc:creator>markjaquith</dc:creator>
+
+      <pubDate>Tue, 30 May 2006 14:45:45 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/2753</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/2753/1149000345000000</guid>
+      <description>&lt;p&gt;
+For APC, you'll need to put ABSPATH into the key, or multiple blogs on the same server will interfere with each other.  Also, I've had problems with APC (using my own object cache backend) returning the wrong category (e.g. :category:1 will return data from :category:112 sometimes).  I'm still investigating it... my solution for now has been to md5 the key, to ensure that I don't get some sort of partial match.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #2753 (Use shared memory caching facilities) created</title>
+      
+        <dc:creator>dammit</dc:creator>
+
+      <pubDate>Tue, 30 May 2006 12:35:17 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/2753</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/2753/1148992517000000</guid>
+      <description>&lt;pre class="wiki"&gt;Index: wp-includes/cache.php
+===================================================================
+--- wp-includes/cache.php       (revision 3809)
++++ wp-includes/cache.php       (working copy)
+@@ -31,8 +31,13 @@
+ function wp_cache_init() {
+        global $wp_object_cache;
+-
+-       $wp_object_cache = new WP_Object_Cache();
++       if (defined('DISABLE_CACHE') or !defined('ENABLE_CACHE')) {
++               $wp_object_cache = new WP_Object_Cache_Void();
++       } elseif (function_exists('apc_store')) {
++               $wp_object_cache = new WP_Object_Cache_APC();
++       } else {
++               $wp_object_cache = new WP_Object_Cache();
++       }
+ }
+ function wp_cache_replace($key, $data, $flag = '', $expire = 0) {
+@@ -417,4 +422,56 @@
+                $this-&amp;gt;blog_id = md5($blog_id);
+        }
+ }
++
++/**
++ * Base class for shared-memory enabled caches, like APC, Turck, etc
++ */
++class WP_Object_Cache_Void {
++       /* May be reused by children */
++       function add($id, $data, $group='default', $expire=0) {
++               if (empty($group))
++                       $group = 'default';
++               if ($this-&amp;gt;get($id, $group))
++                       return false;
++               return $this-&amp;gt;set($id, $data, $group, $expire);
++       }
++       /* May be reused */
++       function replace($id, $data, $group = 'default', $expire = 0) {
++               if (empty ($group))
++                       $group = 'default';
++
++               if (false === $this-&amp;gt;get($id, $group))
++                       return false;
++
++               return $this-&amp;gt;set($id, $data, $group, $expire);
++       }
++
++       /* Just a common useful function :) */
++       function getKey($id,$group) {
++               global $blog_id;
++               return "{$blog_id}:{$id}:{$group}";
++       }
++
++       function save() { return true; }
++       function delete($id, $group = 'default', $force = false) { return true; }
++       function flush() { return true; }
++       function get($id, $group = 'default') { return false; }
++       function set($id, $data, $group = 'default', $expire = 0) { return true;}
++}
++
++class WP_Object_Cache_APC extends WP_Object_Cache_Void {
++       function get($id,$group='default') {
++               if (empty ($group)) $group = 'default';
++               return apc_fetch($this-&amp;gt;getKey($id,$group));
++       }
++       function set($id,$data,$group='default',$expire=0) {
++               if (empty ($group)) $group = 'default';
++               return apc_store($this-&amp;gt;getkey($id,$group),$data,$expire);
++       }
++       function delete($id,$group='default', $forse = false) {
++               if (empty ($group)) $group = 'default';
++               return apc_delete($this-&amp;gt;getkey($id,$group));
++       }
++}
++
+ ?&amp;gt;
+&lt;/pre&gt;</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #2752 (link_pages space missing) updated</title>
+      
+        <dc:creator>vxnick</dc:creator>
+
+      <pubDate>Tue, 30 May 2006 09:55:12 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/2752</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/2752/1148982912000000</guid>
+      <description>&lt;p&gt;
+Hi,
+&lt;/p&gt;
+&lt;p&gt;
+It seems this patch stops the Pages from showing in the Sidebar - any ideas why?
+&lt;/p&gt;
+&lt;p&gt;
+Regards,
+Nick.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #2701 (Centralize javascript inclusions) updated</title>
+      
+        <dc:creator>mdawaffe</dc:creator>
+
+      <pubDate>Tue, 30 May 2006 00:47:09 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/2701</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/2701/1148950029000000</guid>
+      <description>&lt;p&gt;
+The wp_head hook passes an empty string to wp_print_scripts() which breaks the script loader since various pieces test that value for identicality with false (not equality).
+&lt;/p&gt;
+&lt;p&gt;
+2701h.diff
+&lt;/p&gt;
+&lt;ol&gt;&lt;li&gt;Fix for call from wp_head.
+&lt;/li&gt;&lt;/ol&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>2701h.diff attached to Ticket #2701</title>
+      
+        <dc:creator>mdawaffe</dc:creator>
+
+      <pubDate>Tue, 30 May 2006 00:39:37 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/2701/2701h.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/2701/2701h.diff/1148949577000000</guid>
+      <description>&lt;p&gt;
+Fix for call from wp_head
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #2752 (link_pages space missing) updated</title>
+      
+        <dc:creator>vxnick</dc:creator>
+
+      <pubDate>Mon, 29 May 2006 19:27:17 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/2752</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/2752/1148930837000000</guid>
+      <description>&lt;p&gt;
+Hi,
+&lt;/p&gt;
+&lt;p&gt;
+I've just attached a newer patch to address the following:
+&lt;/p&gt;
+&lt;p&gt;
+When using the new $sep variable, it would show the $sep value on the last page, after the 'previouspagelink', and on the first page before 'nextpagelink'.
+&lt;/p&gt;
+&lt;p&gt;
+This patch now hides the $sep value if on the first or last page.
+&lt;/p&gt;
+&lt;p&gt;
+Regards,
+Nick.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>template-functions-post.php-2.diff attached to Ticket #2752</title>
+      
+        <dc:creator>vxnick</dc:creator>
+
+      <pubDate>Mon, 29 May 2006 19:24:50 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/2752/template-functions-post.php-2.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/2752/template-functions-post.php-2.diff/1148930690000000</guid>
+      <description>&lt;p&gt;
+Second patch to hide $sep characters.
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>edit-comments.php.diff attached to Ticket #2749</title>
+      
+        <dc:creator>davidhouse</dc:creator>
+
+      <pubDate>Mon, 29 May 2006 09:11:51 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/2749/edit-comments.php.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/2749/edit-comments.php.diff/1148893911000000</guid>
+      <description>&lt;p&gt;
+For the record and all that jazz.
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #2752 (link_pages space missing) updated</title>
+      
+        <dc:creator>davidhouse</dc:creator>
+
+      <pubDate>Mon, 29 May 2006 09:08:01 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/2752</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/2752/1148893681000000</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item>
+   </channel>
+</rss>

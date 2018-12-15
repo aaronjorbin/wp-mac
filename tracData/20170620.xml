@@ -1,0 +1,2617 @@
+<?xml version="1.0"?>
+<rss xmlns:dc="http://purl.org/dc/elements/1.1/" version="2.0">
+  <channel>
+    <title>WordPress Trac</title>
+    <link>http://core.trac.wordpress.org/timeline</link>
+    <description>Trac Timeline</description>
+    <language>en-US</language>
+    <generator>Trac 1.2.2</generator>
+    <image>
+      <title>WordPress Trac</title>
+      <url>http://core.trac.wordpress.org/chrome/site/your_project_logo.png</url>
+      <link>http://core.trac.wordpress.org/timeline</link>
+    </image>
+    <item>
+      <title>Ticket #37189 (In wp_term_query on cache ids) updated</title>
+      
+        <dc:creator>flixos90</dc:creator>
+
+      <pubDate>Tue, 20 Jun 2017 23:21:57 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/37189#comment:8</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/37189#comment:8/1498000917470085</guid>
+      <description>&lt;p&gt;
+Great work on this so far, I agree it generally makes sense to follow the other query classes and query IDs only to make the caches applicable more generally.
+&lt;/p&gt;
+&lt;p&gt;
+I jumped into the code for a while and reviewed it. Here are my thoughts:
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;Even though it looks a bit less elegant, I prefer generating the cache key in the way that @spacedmonkey did in &lt;a class="attachment" href="http://core.trac.wordpress.org/attachment/ticket/37189/37189.2.patch" title="Attachment '37189.2.patch' in Ticket #37189"&gt;37189.2.patch&lt;/a&gt;&lt;a class="trac-rawlink" href="http://core.trac.wordpress.org/raw-attachment/ticket/37189/37189.2.patch" title="Download"&gt;​&lt;/a&gt;. His idea has parity with other query classes and I don't see any harm in manually removing the &lt;code&gt;fields&lt;/code&gt; key from the arguments unless its value is &lt;code&gt;count&lt;/code&gt; or &lt;code&gt;all_with_object_id&lt;/code&gt; (see below).
+&lt;/li&gt;&lt;li&gt;The &lt;code&gt;all_with_object_id&lt;/code&gt; value is (in addition of &lt;code&gt;count&lt;/code&gt;) the only value for the &lt;code&gt;fields&lt;/code&gt; key that requires a different information that simply an array of IDs being in the cache. Given my above point, I think it would make sense to add this field to the condition in &lt;a class="attachment" href="http://core.trac.wordpress.org/attachment/ticket/37189/37189.2.patch" title="Attachment '37189.2.patch' in Ticket #37189"&gt;37189.2.patch&lt;/a&gt;&lt;a class="trac-rawlink" href="http://core.trac.wordpress.org/raw-attachment/ticket/37189/37189.2.patch" title="Download"&gt;​&lt;/a&gt;, in order to leave it in the key generator array under these circumstances. Some logic would need to be added then in &lt;a class="attachment" href="http://core.trac.wordpress.org/attachment/ticket/37189/37189.3.patch" title="Attachment '37189.3.patch' in Ticket #37189"&gt;37189.3.patch&lt;/a&gt;&lt;a class="trac-rawlink" href="http://core.trac.wordpress.org/raw-attachment/ticket/37189/37189.3.patch" title="Download"&gt;​&lt;/a&gt; in the same location where the special &lt;code&gt;count&lt;/code&gt; cache is handled, in order to set an array of objects in the cache where each object contains &lt;code&gt;term_id&lt;/code&gt; and &lt;code&gt;object_id&lt;/code&gt; properties. This information would be sufficient to create the objects. In case of a cache hit, the &lt;code&gt;term_id&lt;/code&gt; field could be used to create an array of term objects via calls to &lt;code&gt;get_term()&lt;/code&gt; and then the &lt;code&gt;object_id&lt;/code&gt; simply needs to be set for each object.
+&lt;/li&gt;&lt;li&gt;In &lt;a class="attachment" href="http://core.trac.wordpress.org/attachment/ticket/37189/37189.3.patch" title="Attachment '37189.3.patch' in Ticket #37189"&gt;37189.3.patch&lt;/a&gt;&lt;a class="trac-rawlink" href="http://core.trac.wordpress.org/raw-attachment/ticket/37189/37189.3.patch" title="Download"&gt;​&lt;/a&gt; the check for &lt;code&gt;! empty( $args['object_ids'] )&lt;/code&gt; is missing: The &lt;code&gt;tr.object_id&lt;/code&gt; field should only be queried if actual object IDs have been passed, similar as before.
+&lt;/li&gt;&lt;li&gt;While I like the idea of not running the &lt;code&gt;get_term()&lt;/code&gt; queries when only &lt;code&gt;ids&lt;/code&gt; are queried a lot, I'm a bit wary this could cause unexpected issues, especially surrounding the hacky logic of manually creating &lt;code&gt;stdClass&lt;/code&gt; objects with the &lt;code&gt;term_id&lt;/code&gt; property set. Looking for any unexpected calls to other term properties (which would not exist in that case), I wasn't able to detect any issue since all such cases should be prevented by respective if-clauses. However, since this part is rather complex, let's pay particular attention to this change. We need thorough unit tests for this especially.
+&lt;/li&gt;&lt;li&gt;+1 on fixing the &lt;code&gt;_split_shared_term()&lt;/code&gt; bug and introducing a &lt;code&gt;clean_taxonomy_cache()&lt;/code&gt; function. The action name, as noticed by @spacedmonkey above, should be &lt;code&gt;clean_taxonomy_cache&lt;/code&gt;, I assume this was just a typo.
+&lt;/li&gt;&lt;/ul&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #40922 (Use finer-grained capabilities with `customize_changeset` post type) updated</title>
+      
+        <dc:creator>westonruter</dc:creator>
+
+      <pubDate>Tue, 20 Jun 2017 22:47:04 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/40922#comment:6</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/40922#comment:6/1497998824397118</guid>
+      <description>&lt;p&gt;
+@dlh ok, good point. Yeah, re-using the existing primitive cap &lt;code&gt;edit_theme_options&lt;/code&gt; is probably the right. But, will not switching to not use the &lt;code&gt;customize&lt;/code&gt; meta cap cause problems for plugins (like Customize Posts) that grant the &lt;code&gt;customize&lt;/code&gt; cap to allow users to access the Customizer to edit posts there? Since those users don't have &lt;code&gt;edit_theme_options&lt;/code&gt; would they not be prevented from being able to make any changes? Wouldn't that mean that granting &lt;code&gt;customize&lt;/code&gt; capability then no longer be sufficient to grant effective access?
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #41070 (register_sidebar and dynamic_sidebar inconsistency) updated</title>
+      
+        <dc:creator>mdifelice</dc:creator>
+
+      <pubDate>Tue, 20 Jun 2017 22:36:12 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/41070#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/41070#comment:1/1497998172809204</guid>
+      <description>&lt;p&gt;
+Hi @derkjanspeelman, I've tried your code in my environment and I did not get the same output. Could you please give us more information: the sidebar has widgets? your theme has other sidebars? etc.
+&lt;/p&gt;
+&lt;p&gt;
+The &lt;code&gt;dynamic_sidebar()&lt;/code&gt; function does return &lt;code&gt;true&lt;/code&gt; when there is at least one widget loaded in it. So it is weird it does also print the widget itself when calling it.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #24142 (Zero value for posts_per_page value in wp_query custom instance and ...) updated</title>
+      
+        <dc:creator>teraviva</dc:creator>
+
+      <pubDate>Tue, 20 Jun 2017 22:31:09 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/24142#comment:8</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/24142#comment:8/1497997869197647</guid>
+      <description>&lt;p&gt;
+I want to give you an other case. For example I have CPT Destination with Tours and Posts attached to it. And I have no need to show posts at Destination page, because I provide further links to inner categories for Tours and Info posts at this page.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #40960 (Widgets: The Text widget should respect the “Disable the visual editor ...) updated</title>
+      
+        <dc:creator>dfterry</dc:creator>
+
+      <pubDate>Tue, 20 Jun 2017 22:30:52 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/40960#comment:16</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/40960#comment:16/1497997852392607</guid>
+      <description>&lt;p&gt;
+Will 4.8.1 it be safe to update? I won't be updating to a version which costs hours of dev time to deal with.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #40960 (Widgets: The Text widget should respect the “Disable the visual editor ...) updated</title>
+      
+        <dc:creator>westonruter</dc:creator>
+
+      <pubDate>Tue, 20 Jun 2017 22:26:54 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/40960#comment:15</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/40960#comment:15/1497997614603568</guid>
+      <description>&lt;p&gt;
+Replying to &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/40960#comment:11" title="Comment 11"&gt;carasmo&lt;/a&gt;:
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+The new image widget doesn't even allow a link.
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+It does allow a link. Select the image and then under Display Settings select Link To =&amp;gt; Custom Link and then provide the URL for the link.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #37038 (WP_Tax_Query needs caching) updated</title>
+      
+        <dc:creator>spacedmonkey</dc:creator>
+
+      <pubDate>Tue, 20 Jun 2017 22:26:26 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/37038#comment:10</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/37038#comment:10/1497997586409717</guid>
+      <description>&lt;ul&gt;&lt;li&gt;I like that the tax query using fields=&amp;gt;'all'. I think it adds a little overhead, but it always primes term caches. I feel like it highly likely that you would using a post's terms in a loop. Like displaying a post categories. That could be a performance win down stream.
+&lt;/li&gt;&lt;li&gt;Allow filters is great, it adds an array of filters in play for tax query, which currently has no hooks in it. A massive benefit.
+&lt;/li&gt;&lt;li&gt;Might be worth testing this patch alongside &lt;a class="new ticket" href="http://core.trac.wordpress.org/ticket/37189" title="#37189: enhancement: In wp_term_query on cache ids (new)"&gt;#37189&lt;/a&gt; as they are somewhat related.
+&lt;/li&gt;&lt;li&gt;On line 579 (in class-wp-tax-query.php) hierarchical taxonomies query by term_id. Correct me if I am but if term splitting is complete, then tt_id and term_id should be the same. Could we do something like this.
+&lt;div class="wiki-code"&gt;&lt;div class="code"&gt;&lt;pre&gt;&lt;span class="x"&gt;$field = (get_option('finished_splitting_shared_terms', false) ) ? 'term_taxonomy_id' : 'term_id';
+$this-&amp;gt;transform_query( $query, $field );
+&lt;/span&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;
+This may save another query or hit existing caches.
+&lt;/p&gt;
+&lt;p&gt;
+Otherwise I think we are there.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #37094 (wp_get_nav_menu_items should use tax_query) updated</title>
+      
+        <dc:creator>spacedmonkey</dc:creator>
+
+      <pubDate>Tue, 20 Jun 2017 21:55:37 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/37094#comment:6</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/37094#comment:6/1497995737416834</guid>
+      <description>&lt;p&gt;
+So the reason I created this ticket is I have a navigation caching plugin. I noticed that when profiling, that get_objects_in_term runs a query. get_objects_in_term has no hooks or caching, so there was nothing I could do about that query.
+&lt;/p&gt;
+&lt;p&gt;
+By using the tax query and tt_id, it results in on extra query. However, if the site has lots of terms and linked, I could understand it might be slow. However, this is a general problem with the tax query.
+&lt;/p&gt;
+&lt;p&gt;
+Personally, I would use the tax query and work on &lt;a class="new ticket" href="http://core.trac.wordpress.org/ticket/22176" title="#22176: enhancement: Cache the results of the posts_request_ids query (new)"&gt;#22176&lt;/a&gt; and &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/37038" title="#37038: enhancement: WP_Tax_Query needs caching (closed: fixed)"&gt;#37038&lt;/a&gt; tickets. In short, do this query in the wordpress way (a tax query) and make the rest of the core better around it.
+&lt;/p&gt;
+&lt;p&gt;
+But I am not against &lt;code&gt;get_objects_in_term&lt;/code&gt;, it is a quick and simple solution.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #40987 (Text Widget not working properly) closed</title>
+      
+        <dc:creator>kraftbj</dc:creator>
+
+      <pubDate>Tue, 20 Jun 2017 21:53:34 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/40987#comment:4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/40987#comment:4/1497995614703733</guid>
+      <description>invalid: &lt;p&gt;
+@wafwaf I would suspect there is a JavaScript error in your browser console due to some conflict between WP, your plugins, your theme, etc, which is preventing TinyMCE from loading.
+&lt;/p&gt;
+&lt;p&gt;
+Can you start a new thread on &lt;a class="ext-link" href="https://wordpress.org/support/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://wordpress.org/support/&lt;/a&gt; and explain the issue if you need assistance tracking it down from there.
+&lt;/p&gt;
+&lt;p&gt;
+Thanks!
+&lt;/p&gt;
+</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Ticket #41103 (Widgets on customize.php page should refresh after data was sent) closed</title>
+      
+        <dc:creator>westonruter</dc:creator>
+
+      <pubDate>Tue, 20 Jun 2017 21:36:47 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/41103#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/41103#comment:3/1497994607259993</guid>
+      <description>invalid: &lt;p&gt;
+@alexvorn2 do you mean whether or not there is an "Apply" button? This is indeed by design that the widgets in the customizer not get fully refreshed. The presence of the Apply button indicates that the the JS logic wasn't able to sync the values from the server update to the form in the UI. For more info on this, see § No more Update button (usually) at &lt;a class="ext-link" href="https://make.wordpress.org/core/2014/04/17/live-widget-previews-widget-management-in-the-customizer-in-wordpress-3-9/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://make.wordpress.org/core/2014/04/17/live-widget-previews-widget-management-in-the-customizer-in-wordpress-3-9/&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Ticket #41099 (update_option return value ambiguous) updated</title>
+      
+        <dc:creator>mdifelice</dc:creator>
+
+      <pubDate>Tue, 20 Jun 2017 21:32:44 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/41099#comment:4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/41099#comment:4/1497994364279372</guid>
+      <description>&lt;p&gt;
+My mistake @cloughit. You are right, I was thinking in get_option() instead of update_option(). So sorry for that.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #41099 (update_option return value ambiguous) updated</title>
+      
+        <dc:creator>cloughit</dc:creator>
+
+      <pubDate>Tue, 20 Jun 2017 21:20:22 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/41099#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/41099#comment:3/1497993622950164</guid>
+      <description>&lt;p&gt;
+@mdifelice @alexvorn2 My issue differs as I am concerned with the return values of 'update_option' rather than trying to save a boolean (in your case 'false').
+&lt;/p&gt;
+&lt;p&gt;
+Consider a scenario where option 'foo' exists with value 'bar':
+&lt;/p&gt;
+&lt;p&gt;
+update_option( 'foo', 'ram' ) - returns true (Line 386)
+update_option( 'foo', 'bar' ) - returns false (Line 308 - option exists and is the same value)
+update_option( 1, 'ram' ) - returns false (Line 344 - error inserting in database)
+update_option( ' ', 'ram' ) - returns false (Line 263 - empty option name)
+&lt;/p&gt;
+&lt;p&gt;
+If (as it is in my case) it is necessary to provide user feedback on the status of an option update (such as 'Settings Saved!), there is no way to differentiate if the returned 'false' value is due to option exists / same or an error occurred saving.
+&lt;/p&gt;
+&lt;p&gt;
+By returning NULL at Line 308 it would be possible to then differentiate and handle responses correctly without the overhead of calling 'get_option'. For example:
+&lt;/p&gt;
+&lt;div class="wiki-code"&gt;&lt;div class="code"&gt;&lt;pre&gt;&lt;span class="x"&gt;$update = update_option( 'foo', 'bar' );
+if ( false === $update ) {
+    {... show 'Error Saving Settings' message ...}
+} else if ( is_null( $update ) ) {
+    {... show 'No Changes Made' message ...}
+} else {
+    {... show 'Settings Saved!' message ...}
+}
+&lt;/span&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;p&gt;
+Currently the only way to achieve the desired result:
+&lt;/p&gt;
+&lt;div class="wiki-code"&gt;&lt;div class="code"&gt;&lt;pre&gt;&lt;span class="x"&gt;$update = ( get_option( 'foo' ) == 'bar' ) ? NULL : update_option( 'foo', 'bar' ); // returns either (bool)true, (bool)false or NULL
+if ( false === $update ) {
+    {... show 'Error Saving Settings' message ...}
+} else if ( is_null( $update ) ) {
+    {... show 'No Changes Made' message ...}
+} else {
+    {... show 'Settings Saved!' message ...}
+}
+&lt;/span&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;p&gt;
+I believe that this differentiation should occur within the 'update_option' function.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #41106 (wp_editor() doesn't support attributes besides id and class) created</title>
+      
+        <dc:creator>Shelob9</dc:creator>
+
+      <pubDate>Tue, 20 Jun 2017 20:31:16 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/41106</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/41106/1497990676318629</guid>
+      <description>&lt;p&gt;
+I'm replacing a generic textarea with a WYSIWIG field. My textarea has an &lt;code&gt;aria-describedby&lt;/code&gt; attribute, but wp_editor()  -- really &lt;code&gt;_WP_Editors::editor()&lt;/code&gt; -- can't set any HTML attributes besides ID and class on the WYSIWIG.
+&lt;/p&gt;
+&lt;p&gt;
+Would be better if I could do something like this:
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;	wp_editor( 'hi-roy', 'Some text', array(
+		'attrs' =&amp;gt; array(
+			'aria-describedby' =&amp;gt; 'description'
+		)
+	));
+	echo '&amp;lt;p id="description"&amp;gt;Some description&amp;lt;/p&amp;gt;';
+&lt;/pre&gt;</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #40993 (WordPress is auto-generating a line break in my widgets) closed</title>
+      
+        <dc:creator>sandduner350</dc:creator>
+
+      <pubDate>Tue, 20 Jun 2017 20:07:40 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/40993#comment:4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/40993#comment:4/1497989260531991</guid>
+      <description>invalid: &lt;p&gt;
+My code that I use is not shortcodes.  It is straight HTML for links to my social media sprites. and links to my social media accounts. When I saved it the widget put the line breaks in the code, so the links showed up in a list.
+&lt;/p&gt;
+&lt;p&gt;
+When I save it and go back it doesn't show the code, it just shows the empty div I created for the formatting.
+&lt;/p&gt;
+</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Ticket #40972 (TinyMCE editor in Text widget does not have RTL contents) updated</title>
+      
+        <dc:creator>westonruter</dc:creator>
+
+      <pubDate>Tue, 20 Jun 2017 19:58:22 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/40972#comment:8</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/40972#comment:8/1497988702861366</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #41099 (update_option return value ambiguous) updated</title>
+      
+        <dc:creator>mdifelice</dc:creator>
+
+      <pubDate>Tue, 20 Jun 2017 19:57:43 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/41099#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/41099#comment:2/1497988663646363</guid>
+      <description>&lt;p&gt;
+Hi @cloughit I had the same problem, and I think that update_option should return NULL also when no option is set, but that kind of change would have such a big impact that it would be necessary to update a lot of files.
+&lt;/p&gt;
+&lt;p&gt;
+My problem happened using the cache functions. All options are cached by the object cache plugin (if you are using it), but if you save a false value in the option the cache plugin interprets that the options is not cached and it tries to fetch it from the database. So, any option with the false value is not being cached in practice.
+&lt;/p&gt;
+&lt;p&gt;
+The solution I found is using string values: "yes" or "no". In fact, WordPress uses those values for its boolean options and I guess that the reason to do that is to identify if the options was created or not. It is not ideal, because you are using more space to store and transfer the options but I guess this is the only solution for now.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #40993 (WordPress is auto-generating a line break in my widgets) updated</title>
+      
+        <dc:creator>westonruter</dc:creator>
+
+      <pubDate>Tue, 20 Jun 2017 19:56:48 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/40993#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/40993#comment:3/1497988608316829</guid>
+      <description>&lt;i&gt;Description&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+@bobbingwide shortcodes are not supported in Text widgets, so you must be adding support via a plugin? The filter priorities probably need to be modified so that shortcodes are processed earlier than &lt;code&gt;wpautop&lt;/code&gt;.
+&lt;/p&gt;
+&lt;p&gt;
+Rationale for shortcodes not being supported in core is explained in &lt;a class="ext-link" href="https://make.wordpress.org/core/2017/05/23/addition-of-tinymce-to-the-text-widget/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://make.wordpress.org/core/2017/05/23/addition-of-tinymce-to-the-text-widget/&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #41105 (Fire action hook after updating option group.) updated</title>
+      
+        <dc:creator>mdifelice</dc:creator>
+
+      <pubDate>Tue, 20 Jun 2017 19:50:52 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/41105#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/41105#comment:1/1497988252913567</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>options.diff attached to Ticket #41105</title>
+      
+        <dc:creator>mdifelice</dc:creator>
+
+      <pubDate>Tue, 20 Jun 2017 19:46:40 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/41105/options.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/41105/options.diff/1497988000189760</guid>
+      <description>&lt;p&gt;
+Possible place to add the proposed action hook.
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #41105 (Fire action hook after updating option group.) created</title>
+      
+        <dc:creator>mdifelice</dc:creator>
+
+      <pubDate>Tue, 20 Jun 2017 19:45:35 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/41105</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/41105/1497987935576759</guid>
+      <description>&lt;p&gt;
+This suggestion affects the Settings API. There are hooks that fire after updating a single option, but not when a group of options is updated. Options updated via the Settings API are handled by /wp-admin/options.php, which after updating them does a redirection to the previous page, not firing any hook beside the shutdown action hook. In fact, the shutdown hook could be used for the same purpose but it would require some more extra checks.
+&lt;/p&gt;
+&lt;p&gt;
+Basically the hook would allow to perform some action that is required after all options in that group are updated.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #37189 (In wp_term_query on cache ids) updated</title>
+      
+        <dc:creator>spacedmonkey</dc:creator>
+
+      <pubDate>Tue, 20 Jun 2017 19:14:07 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/37189#comment:7</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/37189#comment:7/1497986047775414</guid>
+      <description>&lt;p&gt;
+My feedback so.
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;How the key is generated is how over query classes with cache (such as site query) generate the key. Because of the nature of the code in wp_term_query, the request (sql query) is in place. I don't see a problem with using it is a cache key. It just makes it an outlier.
+&lt;/li&gt;&lt;li&gt;The patch remove the cache expiry time of DAY_IN_SECONDS on the term cache. I have never understood why this was put in, as if cache invalidation is correct, then it should never be needed. Caching for just one day might end up in surges on the databases when all caches invalidate at once on high traffic sites.
+&lt;/li&gt;&lt;li&gt;Querying by id then a second query to populate the terms, is how over query classes work. It results in more queries, but each query is simpler, returning faster from the db.
+&lt;/li&gt;&lt;li&gt;Completely forgot to mention the bug in WP_Term, my bad. Seems unrelated to the changes and was there before.
+&lt;/li&gt;&lt;li&gt;I like breaking out the cache invalidation term into two. Current the clean_term_cache action is broken. The current action looks like this &lt;code&gt;&lt;/code&gt;&lt;code&gt;do_action( 'clean_term_cache', $ids, $taxonomy, $clean_taxonomy );&lt;/code&gt;&lt;code&gt;&lt;/code&gt; in the patch it looks like this &lt;code&gt;&lt;/code&gt;&lt;code&gt;do_action( 'clean_term_cache', $taxonomy ); &lt;/code&gt;&lt;code&gt;&lt;/code&gt;. The current action should be maintained and a new &lt;code&gt;clean_taxonomy_cache&lt;/code&gt; added.
+&lt;/li&gt;&lt;li&gt;Any tests that query count should be removed. Whenever caching is added in core, lots of random tests start to fail.
+&lt;/li&gt;&lt;/ul&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #41058 (wp_dropdown_categories documentation is missing arguments) updated</title>
+      
+        <dc:creator>theMikeD</dc:creator>
+
+      <pubDate>Tue, 20 Jun 2017 18:56:15 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/41058#comment:7</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/41058#comment:7/1497984975510144</guid>
+      <description>&lt;p&gt;
+Looks to me like the ones removed are the ones specified in &lt;code&gt;WP_Term_Query::_construct&lt;/code&gt; so removing them is the right DRY decision IMHO.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #41052 (Need validation update in video widget) reopened</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Tue, 20 Jun 2017 18:44:43 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/41052#comment:4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/41052#comment:4/1497984283124552</guid>
+      <description></description>
+      <category>reopenedticket</category>
+    </item><item>
+      <title>Ticket #41058 (wp_dropdown_categories documentation is missing arguments) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Tue, 20 Jun 2017 18:43:01 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/41058#comment:6</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/41058#comment:6/1497984181748886</guid>
+      <description>&lt;p&gt;
+Replying to &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/41058#comment:5" title="Comment 5"&gt;ArnaudBan&lt;/a&gt;:
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+Having just some of the arguments documented but not all was considered misleading and not that good of an idea.
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+Right, but at least all of the entries in the &lt;code&gt;$defaults&lt;/code&gt; array should be documented, and &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/40903" title="Simplify documentation for `wp_dropdown_categories()`.
+Props ..."&gt;[40903]&lt;/a&gt; removed some of those. I think they should be reinstated.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #40736 (Ensure that `get_blog_count()` and `get_user_count()` return an integer) updated</title>
+      
+        <dc:creator>pmbaldha</dc:creator>
+
+      <pubDate>Tue, 20 Jun 2017 18:35:21 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/40736#comment:8</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/40736#comment:8/1497983721946087</guid>
+      <description>&lt;p&gt;
+wp_update_network_site_counts() function is used or called by internal wordpress code. Generally, Normal Wordpress developer doesn't know about wp_update_network_site_counts() function. He/she are are familiar wth get_blog_count() function. There is no worth to change get_site_count() to get_network_site_count().
+This is my personal opinion.
+&lt;/p&gt;
+&lt;p&gt;
+If community like get_network_site_count() (would also need a get_network_user_count()) function name, Please tell me. I will create new patch.
+&lt;/p&gt;
+&lt;p&gt;
+May i know what is opinion of other contributors?
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #41049 (Visual editor adds extra space to top of the post) updated</title>
+      
+        <dc:creator>programmin</dc:creator>
+
+      <pubDate>Tue, 20 Jun 2017 18:35:13 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/41049#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/41049#comment:1/1497983713588994</guid>
+      <description>&lt;p&gt;
+A similar, new bug in WP4.8 regarding how the text widget now breaks styles - probably also because visual mode loads first, as in this bug. &lt;a class="ext-link" href="https://www.zigpress.com/2017/06/14/the-wordpress-4-8-text-widget-will-destroy-your-content/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://www.zigpress.com/2017/06/14/the-wordpress-4-8-text-widget-will-destroy-your-content/&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #41022 (About: Change "Contributing Developers" to indicate there are more ...) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Tue, 20 Jun 2017 18:31:06 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/41022#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/41022#comment:1/1497983466863039</guid>
+      <description>&lt;i&gt;Component&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #41096 (Add missing @param and @return descriptions in /wp-includes/taxonomy.php) closed</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Tue, 20 Jun 2017 18:27:53 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/41096#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/41096#comment:3/1497983273988700</guid>
+      <description>fixed: &lt;p&gt;
+In &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/40917" title="Docs: Add missing `@param` and `@return` descriptions for ..."&gt;40917&lt;/a&gt;:
+&lt;/p&gt;
+&lt;div class="message"&gt;&lt;p&gt;
+Docs: Add missing &lt;code&gt;@param&lt;/code&gt; and &lt;code&gt;@return&lt;/code&gt; descriptions for &lt;code&gt;has_term_meta()&lt;/code&gt;, &lt;code&gt;wp_delete_category()&lt;/code&gt;, and &lt;code&gt;wp_term_is_shared()&lt;/code&gt;.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Props keesiemeijer.&lt;br /&gt;
+Fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/41096" title="#41096: defect (bug): Add missing @param and @return descriptions in /wp-includes/taxonomy.php (closed: fixed)"&gt;#41096&lt;/a&gt;.&lt;br /&gt;
+&lt;/p&gt;
+&lt;/div&gt;</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Changeset [40917]: Docs: Add missing `@param` and `@return` descriptions for ...</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Tue, 20 Jun 2017 18:27:53 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/40917</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/40917/1497983273476618</guid>
+      <description>&lt;p&gt;
+Docs: Add missing &lt;code&gt;@param&lt;/code&gt; and &lt;code&gt;@return&lt;/code&gt; descriptions for &lt;code&gt;has_term_meta()&lt;/code&gt;, &lt;code&gt;wp_delete_category()&lt;/code&gt;, and &lt;code&gt;wp_term_is_shared()&lt;/code&gt;.
+&lt;/p&gt;
+&lt;p&gt;
+Props keesiemeijer.
+Fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/41096" title="#41096: defect (bug): Add missing @param and @return descriptions in /wp-includes/taxonomy.php (closed: fixed)"&gt;#41096&lt;/a&gt;.
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Ticket #41096 (Add missing @param and @return descriptions in /wp-includes/taxonomy.php) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Tue, 20 Jun 2017 18:12:55 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/41096#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/41096#comment:2/1497982375485212</guid>
+      <description>&lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #10340 (Unchecked "Automatically add paragraphs." but still auto added paragraphs) updated</title>
+      
+        <dc:creator>programmin</dc:creator>
+
+      <pubDate>Tue, 20 Jun 2017 18:12:36 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/10340#comment:7</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/10340#comment:7/1497982356508768</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+This is much worse in 4.8, at least this didn't happen before, and this should probably be escalated to critical issue.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Screen Shot 2017-06-20 at 1.06.44 PM.png attached to Ticket #41104</title>
+      
+        <dc:creator>johnjamesjacoby</dc:creator>
+
+      <pubDate>Tue, 20 Jun 2017 18:12:24 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/41104/Screen%20Shot%202017-06-20%20at%201.06.44%20PM.png</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/41104/Screen%20Shot%202017-06-20%20at%201.06.44%20PM.png/1497982344112291</guid>
+      <description>&lt;p&gt;
+This is the dropdown I'm talking about (hard to describe using words)
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #41104 (Add "Site" to the "New" admin-bar dropdown) created</title>
+      
+        <dc:creator>johnjamesjacoby</dc:creator>
+
+      <pubDate>Tue, 20 Jun 2017 18:11:52 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/41104</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/41104/1497982312451264</guid>
+      <description>&lt;p&gt;
+For multisite installations, it would be nice to have a shortcut to create a new site under the "New" admin-bar menu.
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;Every other single-site object is already listed (posts, pages, etc...)
+&lt;/li&gt;&lt;li&gt;"User" is listed, and you can add a new User to a site or install, but from the site dashboard
+&lt;/li&gt;&lt;li&gt;Visually, it should be a separate, secondary menu group (probably at the top?)
+&lt;/li&gt;&lt;li&gt;That secondary group could be used for any "network/global" Add shortcut
+&lt;/li&gt;&lt;/ul&gt;</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #37189 (In wp_term_query on cache ids) updated</title>
+      
+        <dc:creator>boonebgorges</dc:creator>
+
+      <pubDate>Tue, 20 Jun 2017 17:50:05 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/37189#comment:6</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/37189#comment:6/1497981005403934</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt;, &lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Thanks for continuing to work on this, @spacedmonkey.
+&lt;/p&gt;
+&lt;p&gt;
+Your patch generated a couple of PHPUnit failures for me (outside of the taxonomy component). As I started digging into why, it became clear to me that our efforts would be better spent doing the right thing and simply splitting the query.
+&lt;/p&gt;
+&lt;p&gt;
+Specifically: The fact that you switched to &lt;code&gt;SELECT t.*, t.**&lt;/code&gt; for most queries got me concerned that we'd cause memory issues for people using the &lt;code&gt;fields&lt;/code&gt; parameter for bulk operations. Yet, because your patch worked within the existing parameters of term-query caching, there was no easy way to work around this problem - no way to actually utilize the single-term cache during &lt;code&gt;get_terms()&lt;/code&gt; queries. The possibility of additional overhead in the main &lt;code&gt;SELECT&lt;/code&gt; query only seems worth the trade-off if we also offer a more efficient caching layer for single terms. The way we handle this elsewhere is by doing a &lt;code&gt;SELECT {id}&lt;/code&gt; query and then filling the objects from the cache.
+&lt;/p&gt;
+&lt;p&gt;
+&lt;a class="attachment" href="http://core.trac.wordpress.org/attachment/ticket/37189/37189.3.patch" title="Attachment '37189.3.patch' in Ticket #37189"&gt;37189.3.patch&lt;/a&gt;&lt;a class="trac-rawlink" href="http://core.trac.wordpress.org/raw-attachment/ticket/37189/37189.3.patch" title="Download"&gt;​&lt;/a&gt; is a first pass at making this happen. It allows us to simplify the internals of &lt;code&gt;WP_Term_Query::query()&lt;/code&gt;, but requires some other fixes. Some notes:
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;Your technique for building keys is a bit redundant. Once we've built the &lt;code&gt;request&lt;/code&gt;, we have a key that's guaranteed to be unique. So let's use it, and do away with the &lt;code&gt;default_args&lt;/code&gt; parsing.
+&lt;/li&gt;&lt;li&gt;I've written the patch in such a way that &lt;code&gt;fields=ids&lt;/code&gt; queries generally do not require the second query to populate the term objects. The exception is in the case of hierarchical queries, where the tree must be descended after the initial query takes place. So this is a fairly big performance win for most &lt;code&gt;fields=ids&lt;/code&gt; queries.
+&lt;/li&gt;&lt;li&gt;The patch uncovered a pretty deep bug (actually, two related bugs) in &lt;code&gt;_split_shared_term()&lt;/code&gt; that was agonizing to figure out. Briefly, the way that taxonomy hierarchy caches were being regenerated (&lt;code&gt;{$taxonomy}_children&lt;/code&gt;) was not consistent: certain child terms were not properly triggering taxonomy cache clears, and the calls to &lt;code&gt;clean_term_cache()&lt;/code&gt; in the context of a &lt;code&gt;foreach()&lt;/code&gt; loop was causing race conditions in cases where &lt;code&gt;get_terms()&lt;/code&gt; descends the hierarchy tree. The fixes in &lt;code&gt;_split_shared_term()&lt;/code&gt; should go in, no matter what happens with the rest of the patch.
+&lt;/li&gt;&lt;li&gt;As part of these fixes, I broke the taxonomy-cache busting functionality into a new &lt;code&gt;clean_taxonomy_cache()&lt;/code&gt; function.
+&lt;/li&gt;&lt;li&gt;On an installation without a persistent cache (or with an empty cache), term queries now generate two queries instead of one. This requires a reworking of certain unit tests that count &lt;code&gt;num_queries&lt;/code&gt;. I've refactored most of them so that they're not counting the queries specifically, but instead check for data invalidation (which is the important part anyway). A few tests - those that rely on examining a &lt;code&gt;last_query&lt;/code&gt; that no longer points to the right thing - had to be removed.
+&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;
+I'd welcome a careful review from @spacedmonkey, @flixos90 or anyone else with some experience in how term caching has historically differed from caching for posts, comments, etc.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>37189.3.patch attached to Ticket #37189</title>
+      
+        <dc:creator>boonebgorges</dc:creator>
+
+      <pubDate>Tue, 20 Jun 2017 17:49:11 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/37189/37189.3.patch</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/37189/37189.3.patch/1497980951301284</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #40736 (Ensure that `get_blog_count()` and `get_user_count()` return an integer) updated</title>
+      
+        <dc:creator>flixos90</dc:creator>
+
+      <pubDate>Tue, 20 Jun 2017 17:22:32 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/40736#comment:7</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/40736#comment:7/1497979352710452</guid>
+      <description>&lt;p&gt;
+Highlighting &lt;a href="https://core.trac.wordpress.org/ticket/40736#comment:2"&gt;https://core.trac.wordpress.org/ticket/40736#comment:2&lt;/a&gt; again: Is it reasonable to change the name from &lt;code&gt;get_blog_count()&lt;/code&gt; to the more appropriate &lt;code&gt;get_site_count()&lt;/code&gt;? In my opinion it's fine since we're practically breaking back-compatibility anyway, so we might as well deprecate the function in favor of the new one (and of course also adjust its old calls in core).
+&lt;/p&gt;
+&lt;p&gt;
+Alternatively, we may even aim for &lt;code&gt;get_network_site_count()&lt;/code&gt; (would also need a &lt;code&gt;get_network_user_count()&lt;/code&gt;) in order to have parity with the other functions that deal with these settings (such as &lt;code&gt;wp_update_network_site_counts()&lt;/code&gt;). This is only an idea though.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #34668 (Network admin can't be accessed via keyboard) updated</title>
+      
+        <dc:creator>Cheffheid</dc:creator>
+
+      <pubDate>Tue, 20 Jun 2017 17:14:02 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/34668#comment:18</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/34668#comment:18/1497978842347117</guid>
+      <description>&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+Recommendation at the time of writing) still refers to menus similar to the ones on desktop application but then in the authoring practices demos (still not official) the role=menu is used for site navigation:
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+Honestly, this is what makes sense to me. Simply because of the use of the word "presented", meaning that it'd apply when it &lt;em&gt;looks&lt;/em&gt; like it not just &lt;em&gt;acts&lt;/em&gt; like it. But I'm also aware that my interpretation is different from what seems to be the consensus on it. :)
+&lt;/p&gt;
+&lt;p&gt;
+Guess we'll need to wait and see what happens when 1.1's status finally changes, unless someone has a brilliant idea to fix this. :)
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #41099 (update_option return value ambiguous) updated</title>
+      
+        <dc:creator>alexvorn2</dc:creator>
+
+      <pubDate>Tue, 20 Jun 2017 16:52:49 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/41099#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/41099#comment:1/1497977569487422</guid>
+      <description>&lt;p&gt;
+Is your ticket the same issue as my ticket? &lt;a class="reopened ticket" href="http://core.trac.wordpress.org/ticket/40007" title="#40007: defect (bug): update_option function does not work if the $value argument is false ... (reopened)"&gt;#40007&lt;/a&gt;
+&lt;/p&gt;
+&lt;p&gt;
+It seems the bug is in update_option function.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #41103 (Widgets on customize.php page should refresh after data was sent) updated</title>
+      
+        <dc:creator>alexvorn2</dc:creator>
+
+      <pubDate>Tue, 20 Jun 2017 16:46:43 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/41103#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/41103#comment:2/1497977203189286</guid>
+      <description>&lt;p&gt;
+So my ticked is to make widgets refresh every time on customize.php page like they do on widgets.php page.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #41103 (Widgets on customize.php page should refresh after data was sent) updated</title>
+      
+        <dc:creator>alexvorn2</dc:creator>
+
+      <pubDate>Tue, 20 Jun 2017 16:42:56 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/41103#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/41103#comment:1/1497976976179135</guid>
+      <description>&lt;p&gt;
+I noticed that widgets DO refresh but not every time, only when the number of inputs are greater then the original state, so it does not work It should be.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #41102 (Deprecate current_user_can_for_blog() and replace it with ...) closed</title>
+      
+        <dc:creator>flixos90</dc:creator>
+
+      <pubDate>Tue, 20 Jun 2017 16:42:10 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/41102#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/41102#comment:1/1497976930515161</guid>
+      <description>maybelater: &lt;p&gt;
+Thanks for opening a ticket @pmbaldha!
+&lt;/p&gt;
+&lt;p&gt;
+However, we currently have a policy in core to only deprecate functions and improve their naming if there are more severe reasons for deprecating, for example improving performance or other technical internals of the function. Even though better names would generally help, a simple rename of a function carries a higher burden on backward compatibility than its benefits would justify.
+&lt;/p&gt;
+&lt;p&gt;
+We can revisit this once there is a more technical reason for the function to be deprecated, or in the case that we actually focus on renaming functions to follow the new conventions.
+&lt;/p&gt;
+</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Ticket #41103 (Widgets on customize.php page should refresh after data was sent) created</title>
+      
+        <dc:creator>alexvorn2</dc:creator>
+
+      <pubDate>Tue, 20 Jun 2017 16:33:00 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/41103</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/41103/1497976380495948</guid>
+      <description>&lt;p&gt;
+On widgets.php page, widgets are refreshed after you press Save button, but in customize.php page widgets - do not refresh.
+&lt;/p&gt;
+&lt;p&gt;
+Is this by design ?, because I think widgets should work the same way the do on widgets.php page.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #41102 (Deprecate current_user_can_for_blog() and replace it with ...) created</title>
+      
+        <dc:creator>pmbaldha</dc:creator>
+
+      <pubDate>Tue, 20 Jun 2017 16:30:59 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/41102</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/41102/1497976259798851</guid>
+      <description>&lt;p&gt;
+Since we're striving towards an API with site/network terminology in favor of blog/site long-term, we should consider deprecating current_user_can_for_blog() in favor of a current_user_can_for_site()
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>41101.diff attached to Ticket #41101</title>
+      
+        <dc:creator>jmdodd</dc:creator>
+
+      <pubDate>Tue, 20 Jun 2017 15:50:33 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/41101/41101.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/41101/41101.diff/1497973833252574</guid>
+      <description>&lt;p&gt;
+Proposed filter and unit tests
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #41101 (Add filter to prevent the addition of a user to a blog) created</title>
+      
+        <dc:creator>jmdodd</dc:creator>
+
+      <pubDate>Tue, 20 Jun 2017 15:45:31 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/41101</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/41101/1497973531611647</guid>
+      <description>&lt;p&gt;
+In some multisite instances, we may want to establish a policy that only certain users may be added to a given blog.
+&lt;/p&gt;
+&lt;p&gt;
+The current option available for preventing the addition of a user to a given blog is hooking into the &lt;code&gt;add_user_to_blog&lt;/code&gt; action and undoing the user addition after it has already taken place. This is problematic because the user has already been added to the blog and any related actions may have already fired, depending on their priority.
+&lt;/p&gt;
+&lt;p&gt;
+This introduces a filter to allow a plugin to override the addition of a user to a given blog. There is already precedent in &lt;code&gt;add_user_to_blog()&lt;/code&gt; for returning a WP_Error if the user does not exist.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #41057 (Update PHP codebase per WordPress PHP Coding Standards) updated</title>
+      
+        <dc:creator>slackbot</dc:creator>
+
+      <pubDate>Tue, 20 Jun 2017 15:05:30 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/41057#comment:35</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/41057#comment:35/1497971130545435</guid>
+      <description>&lt;p&gt;
+&lt;em&gt;This ticket was mentioned in &lt;a class="ext-link" href="https://make.wordpress.org/chat/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;Slack&lt;/a&gt; in #core-coding-standards by garyj. &lt;a class="ext-link" href="https://wordpress.slack.com/archives/core-coding-standards/p1497971119381990"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;View the logs&lt;/a&gt;.&lt;/em&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #41047 (Allow to customize insert/edit link dialog box) updated</title>
+      
+        <dc:creator>slackbot</dc:creator>
+
+      <pubDate>Tue, 20 Jun 2017 14:29:38 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/41047#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/41047#comment:1/1497968978257980</guid>
+      <description>&lt;p&gt;
+&lt;em&gt;This ticket was mentioned in &lt;a class="ext-link" href="https://make.wordpress.org/chat/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;Slack&lt;/a&gt; in #core-coding-standards by pento. &lt;a class="ext-link" href="https://wordpress.slack.com/archives/core-coding-standards/p1497968976478913"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;View the logs&lt;/a&gt;.&lt;/em&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #40834 (Introduce a JS module pattern to WordPress) updated</title>
+      
+        <dc:creator>slackbot</dc:creator>
+
+      <pubDate>Tue, 20 Jun 2017 13:52:28 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/40834#comment:5</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/40834#comment:5/1497966748342379</guid>
+      <description>&lt;p&gt;
+&lt;em&gt;This ticket was mentioned in &lt;a class="ext-link" href="https://make.wordpress.org/chat/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;Slack&lt;/a&gt; in #core-js by pento. &lt;a class="ext-link" href="https://wordpress.slack.com/archives/core-js/p1497966739405874"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;View the logs&lt;/a&gt;.&lt;/em&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #41068 (editor-expand.js documentation) updated</title>
+      
+        <dc:creator>jipmoors</dc:creator>
+
+      <pubDate>Tue, 20 Jun 2017 13:14:40 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/41068#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/41068#comment:2/1497964480032981</guid>
+      <description>&lt;p&gt;
+Please make sure to give props to the mentioned profiles!
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #41063 (color-picker.js documentation) updated</title>
+      
+        <dc:creator>jipmoors</dc:creator>
+
+      <pubDate>Tue, 20 Jun 2017 13:14:24 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/41063#comment:4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/41063#comment:4/1497964464017558</guid>
+      <description>&lt;p&gt;
+Please make sure to give props to the mentioned profiles!
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #41057 (Update PHP codebase per WordPress PHP Coding Standards) updated</title>
+      
+        <dc:creator>netweb</dc:creator>
+
+      <pubDate>Tue, 20 Jun 2017 12:18:54 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/41057#comment:34</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/41057#comment:34/1497961134665307</guid>
+      <description>&lt;p&gt;
+Replying to &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/41057#comment:33" title="Comment 33"&gt;jrf&lt;/a&gt;:
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+It's currently running PHPCS against the latest dev-master WPCS sniffs without error.
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+@netweb Without error ? From what I've seen so far, hardly any individual file patches are 100% bug-free, so please be very careful for now when pulling patches.
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+My bad, I meant I've got Scrutinizer working without error, patches are not being generated yet.
+&lt;/p&gt;
+&lt;p&gt;
+My plan is just to make available the patches available in the easiest way possible to get eyes on and examine.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #41100 (Cannot delete categories, plugins, themes when using Firefox 54 on ...) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Tue, 20 Jun 2017 12:11:47 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/41100#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/41100#comment:2/1497960707423175</guid>
+      <description>&lt;i&gt;Component&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #41100 (Cannot delete categories, plugins, themes when using Firefox 54 on ...) updated</title>
+      
+        <dc:creator>Soean</dc:creator>
+
+      <pubDate>Tue, 20 Jun 2017 11:59:27 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/41100#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/41100#comment:1/1497959967622110</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Hello Adrienne,
+welcome to the WordPress trac!
+I tested the problem on Firefox 54 on Mac and can't reproduce it.
+Have you tested the bug without any activated plugins and a default theme?
+&lt;/p&gt;
+&lt;p&gt;
+Are there any errors in your js console?
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #40993 (WordPress is auto-generating a line break in my widgets) reopened</title>
+      
+        <dc:creator>bobbingwide</dc:creator>
+
+      <pubDate>Tue, 20 Jun 2017 11:49:03 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/40993#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/40993#comment:2/1497959343960191</guid>
+      <description>&lt;p&gt;
+In my opinion this is a separate issue from &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/40951" title="#40951: defect (bug): New Text Widget - Switching Between Visual/Text Editor Strips Out Code (closed: fixed)"&gt;#40951&lt;/a&gt;.
+&lt;/p&gt;
+&lt;p&gt;
+It is associated with running wpautop() against the content to generate breaks.
+&lt;/p&gt;
+&lt;p&gt;
+In my scenario the text widget contains a simple shortcode:
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;[add_to_cart id=101]
+&lt;/pre&gt;&lt;p&gt;
+Once the shortcode has been expanded the HTML gets mangled by wpautop and the resulting output is incorrectly styled.
+&lt;/p&gt;
+&lt;p&gt;
+Using the add-paragraphs-option-to-text-widget plugin, which re-introduces the capability of setting the  &lt;code&gt;filter&lt;/code&gt; field to false, gives the desired results.
+&lt;/p&gt;
+</description>
+      <category>reopenedticket</category>
+    </item><item>
+      <title>Ticket #41100 (Cannot delete categories, plugins, themes when using Firefox 54 on ...) created</title>
+      
+        <dc:creator>freudianslit</dc:creator>
+
+      <pubDate>Tue, 20 Jun 2017 11:29:54 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/41100</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/41100/1497958194371038</guid>
+      <description>&lt;p&gt;
+Hi,
+Using Firefox 54.0+build3-0ubuntu0.17.04.1 I am unable to delete categories, plugins, or themes using wp-admin. I click delete and nothing happens.
+&lt;/p&gt;
+&lt;p&gt;
+This bug does not occur on Chromium.
+&lt;/p&gt;
+&lt;p&gt;
+Thanks!
+&lt;/p&gt;
+&lt;p&gt;
+Adrienne
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #41057 (Update PHP codebase per WordPress PHP Coding Standards) updated</title>
+      
+        <dc:creator>jrf</dc:creator>
+
+      <pubDate>Tue, 20 Jun 2017 10:29:21 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/41057#comment:33</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/41057#comment:33/1497954561683772</guid>
+      <description>&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+Would you mind posting your updates as new comments, rather than editing comments? Comment edits aren't emailed to ticket subscribers, so I only noticed your updates by chance.
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+@pento I didn't want to spam the participants of this thread with the details of individual PHPCS/WPCS issues found/fixed. If someone is interested to follow that in detail, I suggest "watching" the &lt;a class="ext-link" href="https://github.com/WordPress-Coding-Standards/WordPress-Coding-Standards"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;WPCS repo&lt;/a&gt; instead to get notifications about the individual issues/fixes.
+&lt;/p&gt;
+&lt;p&gt;
+Latest issues identified based on visual review of some of the patches:
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;&lt;a class="ext-link" href="https://github.com/WordPress-Coding-Standards/WordPress-Coding-Standards/issues/982"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://github.com/WordPress-Coding-Standards/WordPress-Coding-Standards/issues/982&lt;/a&gt;
+&lt;/li&gt;&lt;li&gt;&lt;a class="ext-link" href="https://github.com/WordPress-Coding-Standards/WordPress-Coding-Standards/issues/983"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://github.com/WordPress-Coding-Standards/WordPress-Coding-Standards/issues/983&lt;/a&gt;
+&lt;/li&gt;&lt;li&gt;&lt;a class="ext-link" href="https://github.com/WordPress-Coding-Standards/WordPress-Coding-Standards/issues/985"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://github.com/WordPress-Coding-Standards/WordPress-Coding-Standards/issues/985&lt;/a&gt;
+&lt;/li&gt;&lt;li&gt;&lt;a class="ext-link" href="https://github.com/WordPress-Coding-Standards/WordPress-Coding-Standards/issues/986"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://github.com/WordPress-Coding-Standards/WordPress-Coding-Standards/issues/986&lt;/a&gt;
+&lt;/li&gt;&lt;li&gt;&lt;a class="ext-link" href="https://github.com/WordPress-Coding-Standards/WordPress-Coding-Standards/issues/988"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://github.com/WordPress-Coding-Standards/WordPress-Coding-Standards/issues/988&lt;/a&gt;
+&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;
+Latest PRs fixing some of these things:
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;&lt;a class="ext-link" href="https://github.com/WordPress-Coding-Standards/WordPress-Coding-Standards/pull/981"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://github.com/WordPress-Coding-Standards/WordPress-Coding-Standards/pull/981&lt;/a&gt;
+&lt;/li&gt;&lt;li&gt;&lt;a class="ext-link" href="https://github.com/WordPress-Coding-Standards/WordPress-Coding-Standards/pull/987"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://github.com/WordPress-Coding-Standards/WordPress-Coding-Standards/pull/987&lt;/a&gt;
+&lt;/li&gt;&lt;li&gt;&lt;a class="ext-link" href="https://github.com/WordPress-Coding-Standards/WordPress-Coding-Standards/pull/989"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://github.com/WordPress-Coding-Standards/WordPress-Coding-Standards/pull/989&lt;/a&gt;
+&lt;/li&gt;&lt;/ul&gt;&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+Is there are definitive method for running PHPCS/WPCS with the various PRs? Being fairly unfamiliar with both projects, it's a bit tricky to figure out whether bugs are being caused by know or unknown issues.
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+PRs to WPCS are generally merged quite quickly, so using the latest &lt;code&gt;develop&lt;/code&gt; branch should work. Unless I've accidentally done something silly, I expect the above three mentioned PRs to be merged within the next 24 hours.
+&lt;/p&gt;
+&lt;p&gt;
+There are no open PRs in PHPCS at this moment related to this ticket, so using the PHPCS &lt;code&gt;2.9&lt;/code&gt; branch should be ok.
+&lt;/p&gt;
+&lt;p&gt;
+When figuring out where issues are coming from, the following PHPCS tricks can be useful:
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;Use the &lt;code&gt;-s&lt;/code&gt; flag when running &lt;code&gt;phpcs&lt;/code&gt; to see which sniff is reporting issues on which line.
+&lt;/li&gt;&lt;li&gt;Running &lt;code&gt;phpcs -p -s ./filename.php --standard=WordPress-Core --report-diff -vv&lt;/code&gt; will give you a full report on all the fixes which PHPCS tries to apply in the various loops without the file actually being changed. (report is very long, but the relevant bit is at the bottom anyway)
+&lt;/li&gt;&lt;/ul&gt;&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+Also, while I remember, another thing noticed - multibyte characters seem to cause invalid PHP to be produced. If you remove /tests/ from the excluded locations, tests/phpunit/tests/pomo/po.php and tests/phpunit/tests/pomo/mo.php will have curly braces immediately following a multibyte string missing, after reformatting.
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+The default encoding PHPCS 2.x uses for interpreting files is &lt;code&gt;ISO-8859-1&lt;/code&gt;. This can be changed by setting &lt;code&gt;--encoding=utf-8&lt;/code&gt; on the command line or using &lt;code&gt;&amp;lt;config name="encoding" value="utf-8"/&amp;gt;&lt;/code&gt; in a custom ruleset.
+AFAIK, this can not be changed for an individual file, so will affect how all files are read.
+&lt;/p&gt;
+&lt;p&gt;
+If so desired, we can add this directive to the &lt;code&gt;WordPress-Core&lt;/code&gt; ruleset in WPCS.
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+It's currently running PHPCS against the latest dev-master WPCS sniffs without error.
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+@netweb Without error ? From what I've seen so far, hardly any individual file patches are 100% bug-free, so please be very careful for now when pulling patches.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #40889 (REST API: New terms creation with meta causes PHP Notice) updated</title>
+      
+        <dc:creator>caercam</dc:creator>
+
+      <pubDate>Tue, 20 Jun 2017 09:18:26 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/40889#comment:4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/40889#comment:4/1497950306141014</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #40891 (map_meta_cap() causing PHP notice on term meta permissions) updated</title>
+      
+        <dc:creator>caercam</dc:creator>
+
+      <pubDate>Tue, 20 Jun 2017 09:15:48 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/40891#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/40891#comment:1/1497950148720394</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>40891.diff attached to Ticket #40891</title>
+      
+        <dc:creator>caercam</dc:creator>
+
+      <pubDate>Tue, 20 Jun 2017 09:15:35 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/40891/40891.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/40891/40891.diff/1497950135877126</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #41098 (Some cron scheduling events are ignored) updated</title>
+      
+        <dc:creator>swissspidy</dc:creator>
+
+      <pubDate>Tue, 20 Jun 2017 08:10:35 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/41098#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/41098#comment:3/1497946235929286</guid>
+      <description>&lt;p&gt;
+I think &lt;a class="new ticket" href="http://core.trac.wordpress.org/ticket/13158" title="#13158: defect (bug): Cron : some events may not be scheduled (new)"&gt;#13158&lt;/a&gt; is the one I was referring to. See also &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/15148" title="#15148: enhancement: Cron Storage Abstraction (closed: wontfix)"&gt;#15148&lt;/a&gt;.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #18997 (Adding wp_unschedule_hook function) updated</title>
+      
+        <dc:creator>swissspidy</dc:creator>
+
+      <pubDate>Tue, 20 Jun 2017 08:07:16 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/18997#comment:32</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/18997#comment:32/1497946036644623</guid>
+      <description>&lt;p&gt;
++1 from me as a component maintainer.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #35243 (Extending the text widget to also allow visual mode) updated</title>
+      
+        <dc:creator>BackuPs</dc:creator>
+
+      <pubDate>Tue, 20 Jun 2017 07:58:41 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/35243#comment:70</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/35243#comment:70/1497945521274656</guid>
+      <description>&lt;p&gt;
+Replying to &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/35243#comment:69" title="Comment 69"&gt;theMikeD&lt;/a&gt;:
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+The decision to update the text widget rather than create a new rich text widget was a very poorly thought through one. In one step you have destroyed the custom code in countless widgets using the existing text widget, and rendered invalid every tutorial on adding custom code into a widget.
+&lt;/p&gt;
+&lt;p&gt;
+Other related bugs are filling up with issues around code being removed by this new feature.
+&lt;/p&gt;
+&lt;p&gt;
+This need to be reverted in 4.8.1 and re-introduced as a Rich Text widget. IMHO this is an urgent issue that needs to be resolved asap.
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+I could not agree more... but this will be like talking to a deaf person if you ask me as i dont expect the wp core team to acknowledge or change this.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #12955 (Add get_post filter) updated</title>
+      
+        <dc:creator>wido</dc:creator>
+
+      <pubDate>Tue, 20 Jun 2017 07:48:35 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/12955#comment:59</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/12955#comment:59/1497944915229600</guid>
+      <description>&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+Replying to &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/12955#comment:55" title="Comment 55"&gt;Mte90&lt;/a&gt;:
+Any chance for the 4.8?
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
++1
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #41058 (wp_dropdown_categories documentation is missing arguments) updated</title>
+      
+        <dc:creator>ArnaudBan</dc:creator>
+
+      <pubDate>Tue, 20 Jun 2017 07:41:05 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/41058#comment:5</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/41058#comment:5/1497944465511499</guid>
+      <description>&lt;p&gt;
+There was a discussion about adding all the missing argument or add a reference to the documentation where to find them all. The second option was the one we choose.
+Having juste some of the arguments documented but not all was considered misleading and not that good of an idea.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #40976 (No Scroll Menu) closed</title>
+      
+        <dc:creator>Clorith</dc:creator>
+
+      <pubDate>Tue, 20 Jun 2017 07:22:19 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/40976#comment:6</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/40976#comment:6/1497943339833684</guid>
+      <description>invalid: &lt;p&gt;
+Closing this ticket as it's a theme related issue, unrelated to core.
+&lt;/p&gt;
+</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Ticket #41057 (Update PHP codebase per WordPress PHP Coding Standards) updated</title>
+      
+        <dc:creator>netweb</dc:creator>
+
+      <pubDate>Tue, 20 Jun 2017 06:13:54 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/41057#comment:32</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/41057#comment:32/1497939234523504</guid>
+      <description>&lt;p&gt;
+I've setup a Scrutinizer-ci.com job, based on a PR of my mirror:
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;&lt;a class="ext-link" href="https://scrutinizer-ci.com/g/ntwb/wordpress/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://scrutinizer-ci.com/g/ntwb/wordpress/&lt;/a&gt;
+&lt;/li&gt;&lt;li&gt;&lt;a class="ext-link" href="https://github.com/ntwb/wordpress/pull/2"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://github.com/ntwb/wordpress/pull/2&lt;/a&gt;
+&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;
+Scrutinizer should be able to run &lt;code&gt;phpcbf&lt;/code&gt; to then create pull requests to the source repo with the changes, hopefully this can work as a saner way to view, and share the latest changes between everyone playing along with this ticket :)
+&lt;/p&gt;
+&lt;p&gt;
+It's currently running PHPCS against the latest &lt;code&gt;dev-master&lt;/code&gt; WPCS sniffs without error.
+&lt;/p&gt;
+&lt;p&gt;
+Next up, is to try and have it create the &lt;code&gt;phpcbf&lt;/code&gt; pull requests, but alas, out of time available today.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #40342 (Update name in toolbar when changing user display name) updated</title>
+      
+        <dc:creator>slackbot</dc:creator>
+
+      <pubDate>Tue, 20 Jun 2017 04:48:49 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/40342#comment:14</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/40342#comment:14/1497934129059094</guid>
+      <description>&lt;p&gt;
+&lt;em&gt;This ticket was mentioned in &lt;a class="ext-link" href="https://make.wordpress.org/chat/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;Slack&lt;/a&gt; in #core by menakas. &lt;a class="ext-link" href="https://wordpress.slack.com/archives/core/p1497934126696126"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;View the logs&lt;/a&gt;.&lt;/em&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #40304 (PressThis: Incorrect icon for "Chat") updated</title>
+      
+        <dc:creator>slackbot</dc:creator>
+
+      <pubDate>Tue, 20 Jun 2017 04:48:48 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/40304#comment:5</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/40304#comment:5/1497934128576026</guid>
+      <description>&lt;p&gt;
+&lt;em&gt;This ticket was mentioned in &lt;a class="ext-link" href="https://make.wordpress.org/chat/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;Slack&lt;/a&gt; in #core by menakas. &lt;a class="ext-link" href="https://wordpress.slack.com/archives/core/p1497934126696126"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;View the logs&lt;/a&gt;.&lt;/em&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #41057 (Update PHP codebase per WordPress PHP Coding Standards) updated</title>
+      
+        <dc:creator>pento</dc:creator>
+
+      <pubDate>Tue, 20 Jun 2017 04:33:13 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/41057#comment:31</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/41057#comment:31/1497933193882958</guid>
+      <description>&lt;p&gt;
+Thanks for your work on this so far, @jrf!
+&lt;/p&gt;
+&lt;p&gt;
+Would you mind posting your updates as new comments, rather than editing comments? Comment edits aren't emailed to ticket subscribers, so I only noticed your updates by chance.
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+And just in case someone is now thinking "Cricky, PHPCS is really buggy, shouldn't we use something else ?"... The majority of the fixes - I'd wager &amp;gt; 95% - is correct. Using PHPCS on WP core is, however, in a way a stress-test of PHPCS, we're really getting into all the nooks and crannies, so I'm not surprised we're finding bugs.
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+Agreed, WordPress has a huge variety of code, so I'm not surprised that we're running into edge cases, either.
+&lt;/p&gt;
+&lt;p&gt;
+Is there are definitive method for running PHPCS/WPCS with the various PRs? Being fairly unfamiliar with both projects, it's a bit tricky to figure out whether bugs are being caused by know or unknown issues.
+&lt;/p&gt;
+&lt;p&gt;
+Also, while I remember, another thing noticed - multibyte characters seem to cause invalid PHP to be produced. If you remove &lt;code&gt;/tests/&lt;/code&gt; from the excluded locations, &lt;code&gt;tests/phpunit/tests/pomo/po.php&lt;/code&gt; and &lt;code&gt;tests/phpunit/tests/pomo/mo.php&lt;/code&gt; will have curly braces immediately following a multibyte string missing, after reformatting.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #41057 (Update PHP codebase per WordPress PHP Coding Standards) updated</title>
+      
+        <dc:creator>pento</dc:creator>
+
+      <pubDate>Tue, 20 Jun 2017 01:32:24 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/41057#comment:30</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/41057#comment:30/1497922344832774</guid>
+      <description>&lt;p&gt;
+Replying to &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/41057#comment:29" title="Comment 29"&gt;markjaquith&lt;/a&gt;:
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+Since the update zips include files with any changes, we can just run this specifically on the files that will be modified by a security backport. That way the backport is much more likely to apply cleanly.
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+This is a really good idea!
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #35243 (Extending the text widget to also allow visual mode) updated</title>
+      
+        <dc:creator>theMikeD</dc:creator>
+
+      <pubDate>Tue, 20 Jun 2017 01:19:36 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/35243#comment:69</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/35243#comment:69/1497921576559035</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt;, &lt;i&gt;Severity&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+The decision to update the text widget rather than create a new rich text widget was a very poorly thought through one. In one step you have destroyed the custom code in countless widgets using the existing text widget, and rendered invalid every tutorial on adding custom code into a widget.
+&lt;/p&gt;
+&lt;p&gt;
+Other related bugs are filling up with issues around code being removed by this new feature.
+&lt;/p&gt;
+&lt;p&gt;
+This need to be reverted in 4.8.1 and re-introduced as a Rich Text widget. IMHO this is an urgent issue that needs to be resolved asap.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #40960 (Widgets: The Text widget should respect the “Disable the visual editor ...) updated</title>
+      
+        <dc:creator>theMikeD</dc:creator>
+
+      <pubDate>Tue, 20 Jun 2017 01:15:41 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/40960#comment:14</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/40960#comment:14/1497921341263647</guid>
+      <description>&lt;p&gt;
+deleted. I re-read the initial description. Sorry for the noise.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #41083 (IP with port number triggers warnings in WP_Community_Events) updated</title>
+      
+        <dc:creator>iandunn</dc:creator>
+
+      <pubDate>Tue, 20 Jun 2017 00:26:03 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/41083#comment:6</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/41083#comment:6/1497918363815676</guid>
+      <description>&lt;p&gt;
+For reproducing the IPv6 issue, the site is hosted on a SiteGround shared "Start Up" hosting plan. In this case, it looks like it's running Linux, Apache, and PHP 5.6.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #41083 (IP with port number triggers warnings in WP_Community_Events) updated</title>
+      
+        <dc:creator>iandunn</dc:creator>
+
+      <pubDate>Mon, 19 Jun 2017 23:34:23 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/41083#comment:5</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/41083#comment:5/1497915263212523</guid>
+      <description>&lt;p&gt;
+Got another report of this, but with an IPv6 address that lacks a port. We'll need to test for this case too.
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+Warning: inet_pton(): Unrecognized address 2601:601:f00:d1bb:a468:d709:115e:de78 in wp-admin/includes/class-wp-community-events.php on line 268
+&lt;/p&gt;
+&lt;p&gt;
+Warning: inet_pton(): Unrecognized address ffff:ffff:ffff:ffff:0000:0000:0000:0000 in wp-admin/includes/class-wp-community-events.php on line 274
+&lt;/p&gt;
+&lt;p&gt;
+Warning: inet_ntop(): Invalid in_addr value in wp-admin/includes/class-wp-community-events.php on line 274
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+I wasn't able to reproduce it on Ubuntu 14 w/ Nginx and PHP 5.5.9, though, so it may only happen on certain setups. It looks like PHP can be compiled without IPv6 support. We can use &lt;code&gt;defined( 'AF_INET6' )&lt;/code&gt; to detect that.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #41058 (wp_dropdown_categories documentation is missing arguments) reopened</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Mon, 19 Jun 2017 23:04:58 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/41058#comment:4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/41058#comment:4/1497913498601400</guid>
+      <description>&lt;p&gt;
+Adding a reference to &lt;code&gt;WP_Term_Query::__construct()&lt;/code&gt; is good, but what's the benefit of removing the existing entries that are also present in the &lt;code&gt;$defaults&lt;/code&gt; array?
+&lt;/p&gt;
+</description>
+      <category>reopenedticket</category>
+    </item><item>
+      <title>Ticket #40960 (Widgets: The Text widget should respect the “Disable the visual editor ...) updated</title>
+      
+        <dc:creator>skoen</dc:creator>
+
+      <pubDate>Mon, 19 Jun 2017 22:42:30 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/40960#comment:13</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/40960#comment:13/1497912150252961</guid>
+      <description>&lt;p&gt;
+Replying to &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/40960#comment:12" title="Comment 12"&gt;pipdig&lt;/a&gt;:
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
++1 for reverting the Text widget back and creating a new widget with TinyMCE functionality.
+&lt;/p&gt;
+&lt;p&gt;
+We're receiving more and more support requests relating to this with people finally updating to 4.8. I don't think the full effect of this breaking change has been felt yet...
+&lt;/p&gt;
+&lt;p&gt;
+For the first time, we're now recommending to clients that they should hold-off on updating to the latest version. Sad times.
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
++1 here as well. It's sad to make them hold off on an update that adds better stuff into Wordpress. Just sad to see that they tried to fix the widgets. Haven't they heard the saying «Don't fix something that ain't broken». I would rather have Hello Dolly removed from WP than this widget «fix»
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #41081 (Improve Custom Menu widget, show notification if menu is empty or no ...) updated</title>
+      
+        <dc:creator>mdifelice</dc:creator>
+
+      <pubDate>Mon, 19 Jun 2017 22:31:07 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/41081#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/41081#comment:2/1497911467627885</guid>
+      <description>&lt;p&gt;
+Following @welcher recommendation I sent a patch. Maybe, we could show the error to only administrator users on the site in order to follow @alexvorn2 suggestion.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>class-wp-nav-menu-widget.diff attached to Ticket #41081</title>
+      
+        <dc:creator>mdifelice</dc:creator>
+
+      <pubDate>Mon, 19 Jun 2017 22:27:32 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/41081/class-wp-nav-menu-widget.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/41081/class-wp-nav-menu-widget.diff/1497911252424200</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #40960 (Widgets: The Text widget should respect the “Disable the visual editor ...) updated</title>
+      
+        <dc:creator>pipdig</dc:creator>
+
+      <pubDate>Mon, 19 Jun 2017 22:14:59 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/40960#comment:12</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/40960#comment:12/1497910499508068</guid>
+      <description>&lt;p&gt;
++1 for reverting the Text widget back and creating a new widget with TinyMCE functionality.
+&lt;/p&gt;
+&lt;p&gt;
+We're receiving more and more support requests relating to this with people finally updating to 4.8. I don't think the full effect of this breaking change has been felt yet...
+&lt;/p&gt;
+&lt;p&gt;
+For the first time, we're now recommending to clients that they should hold-off on updating to the latest version. Sad times.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>37189.2.patch attached to Ticket #37189</title>
+      
+        <dc:creator>spacedmonkey</dc:creator>
+
+      <pubDate>Mon, 19 Jun 2017 21:50:18 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/37189/37189.2.patch</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/37189/37189.2.patch/1497909018605690</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #37189 (In wp_term_query on cache ids) updated</title>
+      
+        <dc:creator>spacedmonkey</dc:creator>
+
+      <pubDate>Mon, 19 Jun 2017 21:49:53 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/37189#comment:5</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/37189#comment:5/1497908993558598</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+@boonebgorges thanks for the feedback. My latest patch is a rewrite so I am not sure that you feedback is valid. The new patch does the following.
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;There are now only two query types, everything and count. This makes the code much more simple.
+&lt;/li&gt;&lt;li&gt;All caches now are stored as a list of ids, no matter the format.
+&lt;/li&gt;&lt;li&gt;The cache key is generated differently. As all query are cached as a list of ids, the same cache can be used for all formats of return (apart from count). This means for example, two queries one with fields=&amp;gt;'ids' and one with fields=&amp;gt;'all' they will hit the same cache. This could be a massive performance win for many :D
+&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;
+Looping @flixos90 into this ticket, as he did the work on wp_term_query.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>37189.patch attached to Ticket #37189</title>
+      
+        <dc:creator>spacedmonkey</dc:creator>
+
+      <pubDate>Mon, 19 Jun 2017 21:32:05 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/37189/37189.patch</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/37189/37189.patch/1497907925054112</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #18997 (Adding wp_unschedule_hook function) updated</title>
+      
+        <dc:creator>jrf</dc:creator>
+
+      <pubDate>Mon, 19 Jun 2017 21:18:48 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/18997#comment:31</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/18997#comment:31/1497907128462098</guid>
+      <description>&lt;p&gt;
+@chriscct7 Thanks for that. Is the patch still good or would you like me to refresh it ?
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #41099 (update_option return value ambiguous) created</title>
+      
+        <dc:creator>cloughit</dc:creator>
+
+      <pubDate>Mon, 19 Jun 2017 20:58:45 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/41099</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/41099/1497905925748128</guid>
+      <description>&lt;p&gt;
+WordPress 4.8
+&lt;/p&gt;
+&lt;p&gt;
+The return value 'false' does not allow for differentiating if there was an error saving or if the option value already exists and is the same as the new value.
+&lt;/p&gt;
+&lt;p&gt;
+Consider this scenario: a plugin sends option values via AJAX to be updated. The AJAX function returns the return value of 'update_option' which determines the feedback provided to the user, such as a 'success' or 'failure' message.
+&lt;/p&gt;
+&lt;p&gt;
+Rather than returning 'false' if an option already exists and is the same as the new option, I suggest returning NULL.  In this way the return value of 'update_option' can be checked as follows:
+&lt;/p&gt;
+&lt;div class="wiki-code"&gt;&lt;div class="code"&gt;&lt;pre&gt;&lt;span class="x"&gt;if ( is_null( update_option( $option, $value, $autoload) ) ) { ... } // option exists and value is the same as existing option value
+if ( false === update_option( $option, $value, $autoload) ) { ... } // an error occured when saving the option
+if ( update_option( $option, $value, $autoload) ) { ... } // option updated successfully
+&lt;/span&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;p&gt;
+The 'update_option' function would need line 308 changed from:
+&lt;/p&gt;
+&lt;div class="wiki-code"&gt;&lt;div class="code"&gt;&lt;pre&gt;&lt;span class="x"&gt;return false;
+&lt;/span&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;p&gt;
+to:
+&lt;/p&gt;
+&lt;div class="wiki-code"&gt;&lt;div class="code"&gt;&lt;pre&gt;&lt;span class="x"&gt;return NULL;
+&lt;/span&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #35760 (Provide API for TinyMCE editor to be dynamically instantiated via JS) updated</title>
+      
+        <dc:creator>theMikeD</dc:creator>
+
+      <pubDate>Mon, 19 Jun 2017 19:36:39 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/35760#comment:44</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/35760#comment:44/1497900999991976</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt;, &lt;i&gt;Severity&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+The decision to update the text widget rather than create a new rich text widget was a very poorly thought through one. In one step you have destroyed the custom code in countless widgets using the existing text widget, and rendered invalid every tutorial on adding custom code into a widget.
+&lt;/p&gt;
+&lt;p&gt;
+This need to be reverted in 4.8.1 and re-introduced as a Rich Text widget.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #40907 (Introduce widget dedicated for HTML code) updated</title>
+      
+        <dc:creator>theMikeD</dc:creator>
+
+      <pubDate>Mon, 19 Jun 2017 19:23:26 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/40907#comment:34</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/40907#comment:34/1497900206780444</guid>
+      <description>&lt;p&gt;
+I appreciate what is trying to be done here. But the core issue is that the addition of the rich text stuff to the text widget is breaking sites that use the text widget for arbitrary html. This is is a breaking change. Full stop. It cannot be reverted without a full DB backup and will just happen again the next time the widget is edited.
+&lt;/p&gt;
+&lt;p&gt;
+The mantra of WP is backwards compatibility. This fails that test, badly.
+&lt;/p&gt;
+&lt;p&gt;
+There are other views on this in &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/40960" title="#40960: defect (bug): Widgets: The Text widget should respect the “Disable the visual editor ... (closed: fixed)"&gt;#40960&lt;/a&gt; FTR
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #21603 (Add ability to delete multiple menu items) updated</title>
+      
+        <dc:creator>welcher</dc:creator>
+
+      <pubDate>Mon, 19 Jun 2017 19:19:27 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/21603#comment:9</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/21603#comment:9/1497899967076914</guid>
+      <description>&lt;p&gt;
+Adding an alternate approach using checkboxes and a dedicated button. When clicked, the &lt;code&gt;click&lt;/code&gt; events are fire on the inner remove buttons for the selected items.
+&lt;/p&gt;
+&lt;p&gt;
+I didn't add a confirmation dialogue as the user will has to click the &lt;code&gt;Save Menu&lt;/code&gt; button to complete the edits.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #41098 (Some cron scheduling events are ignored) updated</title>
+      
+        <dc:creator>bor0</dc:creator>
+
+      <pubDate>Mon, 19 Jun 2017 19:18:17 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/41098#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/41098#comment:2/1497899897809001</guid>
+      <description>&lt;p&gt;
+I was told there is a possibility a similar issue exists (&lt;a class="ext-link" href="https://wordpress.slack.com/archives/C02RQBWTW/p1497894482517202?thread_ts=1497891360.458419&amp;amp;cid=C02RQBWTW"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://wordpress.slack.com/archives/C02RQBWTW/p1497894482517202?thread_ts=1497891360.458419&amp;amp;cid=C02RQBWTW&lt;/a&gt;) but I couldn't find it when searching.
+&lt;/p&gt;
+&lt;p&gt;
+If that turns out to be the case, please close this as duplicate.
+&lt;/p&gt;
+&lt;p&gt;
+Otherwise, I provided a proof of concept diff.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>alternate approach 21603.png attached to Ticket #21603</title>
+      
+        <dc:creator>welcher</dc:creator>
+
+      <pubDate>Mon, 19 Jun 2017 19:17:40 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/21603/alternate%20approach%2021603.png</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/21603/alternate%20approach%2021603.png/1497899860744749</guid>
+      <description>&lt;p&gt;
+Alternate approach using a checkbox and dedicated button
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #41098 (Some cron scheduling events are ignored) updated</title>
+      
+        <dc:creator>bor0</dc:creator>
+
+      <pubDate>Mon, 19 Jun 2017 19:17:19 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/41098#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/41098#comment:1/1497899839998462</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>41098-poc.diff attached to Ticket #41098</title>
+      
+        <dc:creator>bor0</dc:creator>
+
+      <pubDate>Mon, 19 Jun 2017 19:16:41 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/41098/41098-poc.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/41098/41098-poc.diff/1497899801029651</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #41098 (Some cron scheduling events are ignored) created</title>
+      
+        <dc:creator>bor0</dc:creator>
+
+      <pubDate>Mon, 19 Jun 2017 19:16:13 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/41098</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/41098/1497899773667931</guid>
+      <description>&lt;p&gt;
+The problem appears when two different events are scheduled at the same time.
+&lt;/p&gt;
+&lt;p&gt;
+It's a bit hard to reproduce, but if one plugin is continuously scheduling events (e.g. recurrent schedule every 5 mins, but they execute for 5 mins), another plugin's scheduling events might be completely ignored.
+&lt;/p&gt;
+&lt;p&gt;
+I believe this is because there is no lock mechanism in the schedule functions where we write to the &lt;code&gt;cron&lt;/code&gt; option in the database.
+&lt;/p&gt;
+&lt;p&gt;
+What happens in the code is:
+&lt;/p&gt;
+&lt;p&gt;
+Continuous (plugin #1): wp-cron.php has &lt;code&gt;wp_unschedule_event&lt;/code&gt; in a loop (which may overwrite &lt;code&gt;cron&lt;/code&gt; option in the database)
+&lt;/p&gt;
+&lt;p&gt;
+Random (plugin #2): Call &lt;code&gt;wp_schedule_event&lt;/code&gt; to update &lt;code&gt;cron&lt;/code&gt; option, but plugin #1 may have overwritten it already.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>21603.2.diff attached to Ticket #21603</title>
+      
+        <dc:creator>welcher</dc:creator>
+
+      <pubDate>Mon, 19 Jun 2017 19:15:02 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/21603/21603.2.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/21603/21603.2.diff/1497899702430766</guid>
+      <description>&lt;p&gt;
+Alternate approach using a checkbox and dedicated button
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #41007 (Custom_Image_Header::customize_set_last_used() blocking customizer ...) updated</title>
+      
+        <dc:creator>Collizo4sky</dc:creator>
+
+      <pubDate>Mon, 19 Jun 2017 19:08:39 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/41007#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/41007#comment:3/1497899319047813</guid>
+      <description>&lt;p&gt;
+Happy to help. This is actually my first WordPress contribution. I hope this is the beginning of more contribution to come.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #15955 (move_uploaded_file mangles non-ascii characters on Windows platforms) updated</title>
+      
+        <dc:creator>timon33</dc:creator>
+
+      <pubDate>Mon, 19 Jun 2017 19:00:06 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/15955#comment:51</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/15955#comment:51/1497898806079066</guid>
+      <description>&lt;p&gt;
+Replying to &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/15955#comment:50" title="Comment 50"&gt;alexvorn2&lt;/a&gt;:
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+I tested with Cyrillic filename, uploading an image and it seems working, nice!
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+I've tested German, Greek, Nordic, Russian almost any language and all seems to work just fine(I'm migrating websites from Joomla to WP and was looking for this a long time ago).
+&lt;/p&gt;
+&lt;p&gt;
+I cannot confirm Right-to-Left Languages.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #40960 (Widgets: The Text widget should respect the “Disable the visual editor ...) updated</title>
+      
+        <dc:creator>carasmo</dc:creator>
+
+      <pubDate>Mon, 19 Jun 2017 18:53:39 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/40960#comment:11</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/40960#comment:11/1497898419835373</guid>
+      <description>&lt;p&gt;
+Yes, nearly every tut on "how to add an image" or how to add this or that is using the old text widget and regular html. ( The new image widget doesn't even allow a link. Who does that? So rare. And confusing. Regular people don't think in terms of a link with an image, it's just an image. I just had a client the new Image widget and wonder how to add a link, so I used an image widget that had an optional field for a link and used
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;unregister_widget('WP_Widget_Media_Image');
+&lt;/pre&gt;&lt;p&gt;
+so she wouldn't be confused.)
+&lt;/p&gt;
+&lt;p&gt;
+I would switch the text widget back to the previous text widget, just rename it html widget and add a rich text editor.
+&lt;/p&gt;
+&lt;p&gt;
+WordPress is super confusing these days.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #40960 (Widgets: The Text widget should respect the “Disable the visual editor ...) updated</title>
+      
+        <dc:creator>theMikeD</dc:creator>
+
+      <pubDate>Mon, 19 Jun 2017 18:42:36 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/40960#comment:10</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/40960#comment:10/1497897756439079</guid>
+      <description>&lt;blockquote&gt;
+&lt;p&gt;
+That's great, but it still means that every site that has ever used to code in the text widget now has to be manually updated. Backwards compatibility wise, this decision was not well thought out. I would like to see the rich text  parts of the text widget reverted and a new rich text editor in trunk. In other words, don't replace the one that's already there, add a new one.
+&lt;/p&gt;
+&lt;/blockquote&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #40873 (Fatal Error from class-wp-ajax-upgrader-skin.php file) updated</title>
+      
+        <dc:creator>bappi.d.great</dc:creator>
+
+      <pubDate>Mon, 19 Jun 2017 18:38:49 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/40873#comment:4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/40873#comment:4/1497897529492781</guid>
+      <description>&lt;i&gt;Severity&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #41007 (Custom_Image_Header::customize_set_last_used() blocking customizer ...) updated</title>
+      
+        <dc:creator>westonruter</dc:creator>
+
+      <pubDate>Mon, 19 Jun 2017 18:38:15 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/41007#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/41007#comment:2/1497897495878002</guid>
+      <description>&lt;i&gt;Status&lt;/i&gt;, &lt;i&gt;Owner&lt;/i&gt;, &lt;i&gt;Version&lt;/i&gt;, &lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Good catch.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #40960 (Widgets: The Text widget should respect the “Disable the visual editor ...) updated</title>
+      
+        <dc:creator>westonruter</dc:creator>
+
+      <pubDate>Mon, 19 Jun 2017 18:33:30 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/40960#comment:9</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/40960#comment:9/1497897210512993</guid>
+      <description>&lt;p&gt;
+Replying to &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/40960#comment:8" title="Comment 8"&gt;j893&lt;/a&gt;:
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+Additionally, Wordpress is long overdue for a "Code" widget that is specifically for placing raw code
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+An HTML Code widget is actually now in &lt;code&gt;trunk&lt;/code&gt;. See &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/40907" title="#40907: feature request: Introduce widget dedicated for HTML code (closed: fixed)"&gt;#40907&lt;/a&gt;. We're evaluating options for releasing it as part of 4.8.1.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #40960 (Widgets: The Text widget should respect the “Disable the visual editor ...) updated</title>
+      
+        <dc:creator>j893</dc:creator>
+
+      <pubDate>Mon, 19 Jun 2017 18:09:11 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/40960#comment:8</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/40960#comment:8/1497895751311063</guid>
+      <description>&lt;p&gt;
+Additionally, Wordpress is long overdue for a "Code" widget that is specifically for placing raw code (shortcodes, javascript, SVG, HTML, etc.).  This is what people &lt;em&gt;would&lt;/em&gt; have been using if it had been available, and then now the addition of the visual editor to the text widget would not be breaking anything, and would have been the welcome addition it was hoped to be...
+&lt;/p&gt;
+&lt;p&gt;
+But for now, please have it default to the "Text" tab at least, and not the visual editor, and not convert anything without asking! (or some similar fix, a reversion, etc.)  This change caused an ongoing crisis on dozens of my sites as users went and edited a widget like they usually do, but then had all the code-containing widgets insta-break on them.
+&lt;/p&gt;
+&lt;p&gt;
+Sure one can use:
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;remove_filter('widget_text_content', 'wpautop');
+remove_filter('widget_text_content', 'wptexturize');
+remove_filter('widget_text_content', 'capital_P_dangit');
+remove_filter('widget_text_content', 'convert_smilies');
+&lt;/pre&gt;&lt;p&gt;
+but that doesn't help keep any code from being mangled when changing over to the visual editor and back to text (and it always defaults to "Visual" now).
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #32567 (Cookies not being deleted.) updated</title>
+      
+        <dc:creator>lkraav</dc:creator>
+
+      <pubDate>Mon, 19 Jun 2017 18:01:13 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/32567#comment:8</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/32567#comment:8/1497895273949441</guid>
+      <description>&lt;p&gt;
+@johnbillion I'm fairly certain we have a regression with &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/40580" title="Users: Clear the user settings cookies when clearing auth cookies.
+ ..."&gt;[40580]&lt;/a&gt;. iThemes Security Pro is now infinite looping when auth cookie becomes expired.
+&lt;/p&gt;
+&lt;p&gt;
+Specifically, their &lt;code&gt;core/modules/hide-backend/class-itsec-hide-backend.php&lt;/code&gt; module does this:
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;add_action( 'auth_cookie_expired', array( $this, 'auth_cookie_expired' ) );
+&lt;/pre&gt;&lt;p&gt;
+and then
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;/**
+         * Lets the module know that this is a reauthorization
+         *
+         * @since 4.1
+         *
+         * @return void
+         */
+        public function auth_cookie_expired() {
+                $this-&amp;gt;auth_cookie_expired = true;
+                wp_clear_auth_cookie();
+        }
+&lt;/pre&gt;&lt;p&gt;
+I'm fairly certain that you calling &lt;code&gt;get_current_user_id()&lt;/code&gt; inside &lt;code&gt;wp_clear_auth_cookie()&lt;/code&gt; &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/40580" title="Users: Clear the user settings cookies when clearing auth cookies.
+ ..."&gt;[40580]&lt;/a&gt; triggers a cookie loop. Reverting this patch immediately restores correct operation.
+&lt;/p&gt;
+&lt;p&gt;
+Your thoughts? I vote re-open and investigate.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #41083 (IP with port number triggers warnings in WP_Community_Events) updated</title>
+      
+        <dc:creator>iandunn</dc:creator>
+
+      <pubDate>Mon, 19 Jun 2017 17:34:36 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/41083#comment:4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/41083#comment:4/1497893676559257</guid>
+      <description>&lt;p&gt;
+I worked on this a bit the other day too, &lt;a class="attachment" href="http://core.trac.wordpress.org/attachment/ticket/41083/41083.1.diff" title="Attachment '41083.1.diff' in Ticket #41083"&gt;41083.1.diff&lt;/a&gt;&lt;a class="trac-rawlink" href="http://core.trac.wordpress.org/raw-attachment/ticket/41083/41083.1.diff" title="Download"&gt;​&lt;/a&gt; is as far as I got. It needs some more work, though, and I'm not entirely confident that it's the best approach, either. &lt;a class="attachment" href="http://core.trac.wordpress.org/attachment/ticket/41083/41083.0.diff" title="Attachment '41083.0.diff' in Ticket #41083"&gt;41083.0.diff&lt;/a&gt;&lt;a class="trac-rawlink" href="http://core.trac.wordpress.org/raw-attachment/ticket/41083/41083.0.diff" title="Download"&gt;​&lt;/a&gt; might be a better approach, but I haven't had time to take a close look.
+&lt;/p&gt;
+&lt;p&gt;
+&lt;a class="attachment" href="http://core.trac.wordpress.org/attachment/ticket/41083/41083.1.diff" title="Attachment '41083.1.diff' in Ticket #41083"&gt;41083.1.diff&lt;/a&gt;&lt;a class="trac-rawlink" href="http://core.trac.wordpress.org/raw-attachment/ticket/41083/41083.1.diff" title="Download"&gt;​&lt;/a&gt; adds a few unit tests, but I think there might be a logic error in the loop, since one of the failing tests seems to be getting a completely different IP back. I haven't tested it on IIS servers, or those without the filter extension installed.
+&lt;/p&gt;
+&lt;p&gt;
+I used &lt;code&gt;filter_var&lt;/code&gt; in &lt;code&gt;get_unsafe_client_ip()&lt;/code&gt;, because it felt too fragile to rely on regex, &lt;code&gt;strpos&lt;/code&gt;, etc, especially if when trying to use a single statement for both IPv4 and IPv6 addresses. &lt;code&gt;filter_var&lt;/code&gt; is the most robust way to differentiate between the two.
+&lt;/p&gt;
+&lt;p&gt;
+The filter extension is disabled on a fraction of servers, though, so the function just returns &lt;code&gt;false&lt;/code&gt; in those cases, which prevents IP geolocation. We could instead opt to avoid the anonymization if the extension is disabled, but if we're going to anonymize results, then it seems better to be consistent about it, especially when the determining factors are outside the user's control. Related &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/40974" title="#40974: defect (bug): Updated text widget do not save text (when using paste) (closed: fixed)"&gt;#40974&lt;/a&gt;.
+&lt;/p&gt;
+&lt;p&gt;
+On the other hand, though, we could just remove the IP anonymization entirely, since CDN requests already expose the user's IP to w.org, see &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/40871" title="#40871: enhancement: Remove IP Address Anonymization From WP_Community_Events (closed: maybelater)"&gt;#40871&lt;/a&gt; and &lt;a class="ext-link" href="https://wordpress.slack.com/archives/C02RQBWTW/p1496167727833251"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://wordpress.slack.com/archives/C02RQBWTW/p1496167727833251&lt;/a&gt;. If this turns out to be a bigger headache than it initially appears, then that might be the simplest and most maintenance-friendly option.
+&lt;/p&gt;
+&lt;p&gt;
+We'd probably still need to strip the port off, though, so that we're sending valid input to the API.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #15955 (move_uploaded_file mangles non-ascii characters on Windows platforms) updated</title>
+      
+        <dc:creator>alexvorn2</dc:creator>
+
+      <pubDate>Mon, 19 Jun 2017 17:14:54 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/15955#comment:50</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/15955#comment:50/1497892494621543</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+I tested with Cyrillic filename, uploading an image and it seems working, nice!
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>41083.1.diff attached to Ticket #41083</title>
+      
+        <dc:creator>iandunn</dc:creator>
+
+      <pubDate>Mon, 19 Jun 2017 16:57:20 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/41083/41083.1.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/41083/41083.1.diff/1497891440332577</guid>
+      <description>&lt;p&gt;
+Alternate approach with tests - not finished
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #18997 (Adding wp_unschedule_hook function) updated</title>
+      
+        <dc:creator>chriscct7</dc:creator>
+
+      <pubDate>Mon, 19 Jun 2017 16:22:38 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/18997#comment:30</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/18997#comment:30/1497889358187272</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt;, &lt;i&gt;Status&lt;/i&gt;, &lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #36772 (Widget from deactivated plugin still has its position in a sidebar) updated</title>
+      
+        <dc:creator>westonruter</dc:creator>
+
+      <pubDate>Mon, 19 Jun 2017 16:19:11 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/36772#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/36772#comment:3/1497889151432768</guid>
+      <description>&lt;p&gt;
+@welcher see also how this was implemented for widgets in the Customizer: &lt;a class="ext-link" href="https://github.com/WordPress/wordpress-develop/blob/4.8.0/src/wp-includes/class-wp-customize-widgets.php#L1369-L1387"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://github.com/WordPress/wordpress-develop/blob/4.8.0/src/wp-includes/class-wp-customize-widgets.php#L1369-L1387&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #36772 (Widget from deactivated plugin still has its position in a sidebar) updated</title>
+      
+        <dc:creator>welcher</dc:creator>
+
+      <pubDate>Mon, 19 Jun 2017 15:59:14 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/36772#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/36772#comment:2/1497887954175952</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Looks like unit tests are failing on my patch. Will address and update.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #39594 (Multisite Upgrade Network - cURL Attempting Port 443 on HTTP) updated</title>
+      
+        <dc:creator>nik1aa5</dc:creator>
+
+      <pubDate>Mon, 19 Jun 2017 15:37:18 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/39594#comment:4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/39594#comment:4/1497886638813719</guid>
+      <description>&lt;p&gt;
+Sorry for thread bumping. Is there any progress on this?
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>35925.4.patch attached to Ticket #35925</title>
+      
+        <dc:creator>enrico.sorcinelli</dc:creator>
+
+      <pubDate>Mon, 19 Jun 2017 15:35:39 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/35925/35925.4.patch</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/35925/35925.4.patch/1497886539324004</guid>
+      <description>&lt;p&gt;
+Updated to the current trunk.
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #32816 (No or inadequate Custom Link URL validation) updated</title>
+      
+        <dc:creator>netweb</dc:creator>
+
+      <pubDate>Mon, 19 Jun 2017 15:23:00 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/32816#comment:24</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/32816#comment:24/1497885780933027</guid>
+      <description>&lt;i&gt;Status&lt;/i&gt;, &lt;i&gt;Owner&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+This ticket has a patch, setting the owner to that of the person who added the &lt;code&gt;good-first-bug&lt;/code&gt; keyword, this ticket update causes the ticket to be removed from the "&lt;em&gt;Unclaimed"&lt;/em&gt; section of the &lt;a href="https://core.trac.wordpress.org/report/44"&gt;Good First Bug Trac Report 44&lt;/a&gt;.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #21603 (Add ability to delete multiple menu items) updated</title>
+      
+        <dc:creator>welcher</dc:creator>
+
+      <pubDate>Mon, 19 Jun 2017 15:21:01 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/21603#comment:8</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/21603#comment:8/1497885661720283</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>remove menu item button.png attached to Ticket #21603</title>
+      
+        <dc:creator>welcher</dc:creator>
+
+      <pubDate>Mon, 19 Jun 2017 15:20:35 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/21603/remove%20menu%20item%20button.png</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/21603/remove%20menu%20item%20button.png/1497885635477229</guid>
+      <description>&lt;p&gt;
+Screenshot of new button
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #38796 (Customize media control button labels should automatically reflect the ...) updated</title>
+      
+        <dc:creator>netweb</dc:creator>
+
+      <pubDate>Mon, 19 Jun 2017 15:19:59 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/38796#comment:15</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/38796#comment:15/1497885599141309</guid>
+      <description>&lt;i&gt;Owner&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+This ticket has a patch, setting the owner to that of the person who added the &lt;code&gt;good-first-bug&lt;/code&gt; keyword, this ticket update causes the ticket to be removed from the "&lt;em&gt;Unclaimed"&lt;/em&gt; section of the &lt;a href="https://core.trac.wordpress.org/report/44"&gt;Good First Bug Trac Report 44&lt;/a&gt;.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>36772.diff attached to Ticket #36772</title>
+      
+        <dc:creator>welcher</dc:creator>
+
+      <pubDate>Mon, 19 Jun 2017 14:52:39 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/36772/36772.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/36772/36772.diff/1497883959173014</guid>
+      <description>&lt;p&gt;
+Initial Patch
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #36772 (Widget from deactivated plugin still has its position in a sidebar) updated</title>
+      
+        <dc:creator>welcher</dc:creator>
+
+      <pubDate>Mon, 19 Jun 2017 14:52:05 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/36772#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/36772#comment:1/1497883925864783</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+&lt;code&gt;sidebars_widgets&lt;/code&gt; stores an array of sidebar ID's which is another array with the widget instance id for each widget assigned to that sidebar id.
+&lt;/p&gt;
+&lt;p&gt;
+To my knowledge, there is no simple way to retrieve a list of registered &lt;code&gt;id_base&lt;/code&gt;'s so I've added a new array to the widget factory that tracks the &lt;code&gt;id_base&lt;/code&gt; for each registered widget class. Using that and the &lt;code&gt;sidebars_widgets&lt;/code&gt; filter, we are able to remove any instances of unregistered widgets.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #41094 (Deprecated version not specfied for debug_fopen() et al.) updated</title>
+      
+        <dc:creator>netweb</dc:creator>
+
+      <pubDate>Mon, 19 Jun 2017 14:29:44 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/41094#comment:4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/41094#comment:4/1497882584445357</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt;, &lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Looks good to me, thanks @milindmore22
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #40732 (Update links in docs to HTTPS when available) updated</title>
+      
+        <dc:creator>johnpgreen</dc:creator>
+
+      <pubDate>Mon, 19 Jun 2017 13:53:36 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/40732#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/40732#comment:2/1497880416029319</guid>
+      <description>&lt;i&gt;Version&lt;/i&gt;, &lt;i&gt;Summary&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Updated patch.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>40732.2.patch attached to Ticket #40732</title>
+      
+        <dc:creator>johnpgreen</dc:creator>
+
+      <pubDate>Mon, 19 Jun 2017 13:53:04 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/40732/40732.2.patch</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/40732/40732.2.patch/1497880384455731</guid>
+      <description>&lt;p&gt;
+Updated patch
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #41097 (Incorrect parsing of Forwarded header generates warnings) updated</title>
+      
+        <dc:creator>tomdxw</dc:creator>
+
+      <pubDate>Mon, 19 Jun 2017 13:36:20 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/41097#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/41097#comment:1/1497879380569001</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>ignore-forwarded-header.patch attached to Ticket #41097</title>
+      
+        <dc:creator>tomdxw</dc:creator>
+
+      <pubDate>Mon, 19 Jun 2017 13:35:38 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/41097/ignore-forwarded-header.patch</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/41097/ignore-forwarded-header.patch/1497879338546002</guid>
+      <description>&lt;p&gt;
+Remove HTTP_FORWARDED from list of headers to be parsed
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #41097 (Incorrect parsing of Forwarded header generates warnings) created</title>
+      
+        <dc:creator>tomdxw</dc:creator>
+
+      <pubDate>Mon, 19 Jun 2017 13:35:02 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/41097</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/41097/1497879302958510</guid>
+      <description>&lt;p&gt;
+WordPress 4.8 adds a function &lt;code&gt;WP_Community_Events::get_unsafe_client_ip()&lt;/code&gt; which attempts to get the user's IP address from a set of headers (the code: &lt;a class="ext-link" href="https://github.com/WordPress/WordPress/blob/92175dbd33b51c47089f4c50853987e688b6291b/wp-admin/includes/class-wp-community-events.php#L238-L278"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://github.com/WordPress/WordPress/blob/92175dbd33b51c47089f4c50853987e688b6291b/wp-admin/includes/class-wp-community-events.php#L238-L278&lt;/a&gt; ).
+&lt;/p&gt;
+&lt;p&gt;
+It looks at the following headers:
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;		// In order of preference, with the best ones for this purpose first.
+		$address_headers = array(
+			'HTTP_CLIENT_IP',
+			'HTTP_X_FORWARDED_FOR',
+			'HTTP_X_FORWARDED',
+			'HTTP_X_CLUSTER_CLIENT_IP',
+			'HTTP_FORWARDED_FOR',
+			'HTTP_FORWARDED',
+			'REMOTE_ADDR',
+		);
+&lt;/pre&gt;&lt;p&gt;
+It treats them all as comma-delimited lists of IP addresses which is incorrect. This is because the &lt;code&gt;Forwarded&lt;/code&gt; header as defined in RFC 7239 ( &lt;a class="ext-link" href="https://tools.ietf.org/html/rfc7239"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://tools.ietf.org/html/rfc7239&lt;/a&gt; ) looks like this:
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;   Examples:
+       Forwarded: for="_gazonk"
+       Forwarded: For="[2001:db8:cafe::17]:4711"
+       Forwarded: for=192.0.2.60;proto=http;by=203.0.113.43
+       Forwarded: for=192.0.2.43, for=198.51.100.17
+&lt;/pre&gt;&lt;p&gt;
+Steps to reproduce the problem:
+&lt;/p&gt;
+&lt;ol&gt;&lt;li&gt;Install a browser extension that allows setting arbitrary headers (I'm using ModHeader: &lt;a class="ext-link" href="https://chrome.google.com/webstore/detail/modheader/idgpnmonknjnojddfkpgkljpfnnfcklj"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://chrome.google.com/webstore/detail/modheader/idgpnmonknjnojddfkpgkljpfnnfcklj&lt;/a&gt; )
+&lt;/li&gt;&lt;li&gt;Use the browser extension to set a realistic &lt;code&gt;Forwarded&lt;/code&gt; header such as: &lt;code&gt;Forwarded: for=2001:db8::1, by=2001:db8::2&lt;/code&gt;
+&lt;/li&gt;&lt;li&gt;Visit &lt;code&gt;/wp-admin/&lt;/code&gt;
+&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;
+The following warnings will appear in your logs:
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;PHP Warning:  inet_pton(): Unrecognized address for=2001:db8::1 in /var/www/html/wp-admin/includes/class-wp-community-events.php on line 268
+PHP Warning:  inet_pton(): Unrecognized address for=2001:db8::1 in /var/www/html/wp-admin/includes/class-wp-community-events.php on line 274
+PHP Warning:  A non-numeric value encountered in /var/www/html/wp-admin/includes/class-wp-community-events.php on line 274
+PHP Warning:  inet_ntop(): Invalid in_addr value in /var/www/html/wp-admin/includes/class-wp-community-events.php on line 274
+&lt;/pre&gt;</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #15955 (move_uploaded_file mangles non-ascii characters on Windows platforms) updated</title>
+      
+        <dc:creator>timon33</dc:creator>
+
+      <pubDate>Mon, 19 Jun 2017 13:23:43 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/15955#comment:49</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/15955#comment:49/1497878623907316</guid>
+      <description>&lt;p&gt;
+Replying to &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/15955#comment:48" title="Comment 48"&gt;alexvorn2&lt;/a&gt;:
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+Replying to &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/15955#comment:47" title="Comment 47"&gt;Clorith&lt;/a&gt;:
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+Please note that just because it is fixed in PHP 7.1, WordPress currently supports PHP back to 5.2. PHP 7.1 installs are only at about 1.7% (at this time) of all WordPress installs, so closing this out as resolved because of that is not an option.
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+So what is the solution then?
+&lt;/p&gt;
+&lt;p&gt;
+The problem is in Windows only with old php version, so the developers that use Windows should update their php version on their local web-server.
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+This was a PHP bug under Windows in the first place.
+The bug is fixed, so ...
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #41071 (Twenty Seventeen: Font Creates a Single Point of Failure) updated</title>
+      
+        <dc:creator>jhabdas</dc:creator>
+
+      <pubDate>Mon, 19 Jun 2017 12:23:13 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/41071#comment:4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/41071#comment:4/1497874993426249</guid>
+      <description>&lt;p&gt;
+This image captures the 17 seconds I spent waiting for WordPress page content to appear a result of a Web Font SPOF:
+&lt;/p&gt;
+&lt;p&gt;
+&lt;a style="padding:0; border:none" href="https://user-images.githubusercontent.com/440298/27284820-ddbd2192-552c-11e7-9078-daf8899ae64e.png"&gt;&lt;img src="https://user-images.githubusercontent.com/440298/27284820-ddbd2192-552c-11e7-9078-daf8899ae64e.png" alt="https://user-images.githubusercontent.com/440298/27284820-ddbd2192-552c-11e7-9078-daf8899ae64e.png" crossorigin="anonymous" title="https://user-images.githubusercontent.com/440298/27284820-ddbd2192-552c-11e7-9078-daf8899ae64e.png" /&gt;&lt;/a&gt;
+&lt;/p&gt;
+&lt;p&gt;
+This is of course not the Twenty Seventeen theme. But the effect is the same.
+&lt;/p&gt;
+&lt;p&gt;
+And though a DNS prefetch may help reduce the DNS lookup time it does not remove the SPOF introduced. Upon a cursory check it appears Twenty Seventeen does not currently perform DNS prefetching.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #41096 (Add missing @param and @return descriptions in /wp-includes/taxonomy.php) updated</title>
+      
+        <dc:creator>keesiemeijer</dc:creator>
+
+      <pubDate>Mon, 19 Jun 2017 12:08:54 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/41096#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/41096#comment:1/1497874134146494</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>41096.patch attached to Ticket #41096</title>
+      
+        <dc:creator>keesiemeijer</dc:creator>
+
+      <pubDate>Mon, 19 Jun 2017 12:07:29 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/41096/41096.patch</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/41096/41096.patch/1497874049333668</guid>
+      <description>&lt;p&gt;
+Add missing DocBlock descriptions
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #40082 (Pretty links for users when searching) updated</title>
+      
+        <dc:creator>Cybr</dc:creator>
+
+      <pubDate>Mon, 19 Jun 2017 12:06:18 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/40082#comment:9</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/40082#comment:9/1497873978066951</guid>
+      <description>&lt;p&gt;
+Analytics plugins can simply expand their script when users are reaching search pages (Option 2):
+&lt;a class="ext-link" href="https://support.google.com/analytics/answer/1012264?hl=en#Post"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://support.google.com/analytics/answer/1012264?hl=en#Post&lt;/a&gt;
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+&lt;strong&gt;Option 2:&lt;/strong&gt; Customize the tracking code on your results page to dynamically specify a virtual page path that includes the query keywords. The tracking code on the results page would look something like:
+&lt;/p&gt;
+&lt;p&gt;
+&lt;code&gt;analytics.js: ga('send', 'pageview', '/search_results.php?q=keyword');&lt;/code&gt;
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+In WordPress' case:
+&lt;/p&gt;
+&lt;p&gt;
+&lt;code&gt;analytics.js: ga('send', 'pageview', '/search/keyword/?s=keyword');&lt;/code&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #41096 (Add missing @param and @return descriptions in /wp-includes/taxonomy.php) created</title>
+      
+        <dc:creator>keesiemeijer</dc:creator>
+
+      <pubDate>Mon, 19 Jun 2017 12:04:34 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/41096</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/41096/1497873874081215</guid>
+      <description>&lt;p&gt;
+The following patch adds missing &lt;code&gt;@param&lt;/code&gt; and &lt;code&gt;@return&lt;/code&gt; DocBlock descriptions for the following functions
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;has_term_meta
+&lt;/li&gt;&lt;li&gt;wp_delete_category
+&lt;/li&gt;&lt;li&gt;wp_term_is_shared
+&lt;/li&gt;&lt;/ul&gt;</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #41083 (IP with port number triggers warnings in WP_Community_Events) updated</title>
+      
+        <dc:creator>jsonm</dc:creator>
+
+      <pubDate>Mon, 19 Jun 2017 10:06:25 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/41083#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/41083#comment:3/1497866785819592</guid>
+      <description>&lt;p&gt;
+My patch won't work with ipv6 addresses actually, I'll need to rework it.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #197 (Problem posting from a desktop client) updated</title>
+      
+        <dc:creator>slackbot</dc:creator>
+
+      <pubDate>Mon, 19 Jun 2017 09:37:06 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/197#comment:8</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/197#comment:8/1497865026952837</guid>
+      <description>&lt;p&gt;
+&lt;em&gt;This ticket was mentioned in &lt;a class="ext-link" href="https://make.wordpress.org/chat/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;Slack&lt;/a&gt; in #design-dashicons by folletto. &lt;a class="ext-link" href="https://wordpress.slack.com/archives/design-dashicons/p1497865025180631"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;View the logs&lt;/a&gt;.&lt;/em&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #41094 (Deprecated version not specfied for debug_fopen() et al.) updated</title>
+      
+        <dc:creator>milindmore22</dc:creator>
+
+      <pubDate>Mon, 19 Jun 2017 09:28:27 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/41094#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/41094#comment:3/1497864507329297</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>41094.diff attached to Ticket #41094</title>
+      
+        <dc:creator>milindmore22</dc:creator>
+
+      <pubDate>Mon, 19 Jun 2017 09:25:41 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/41094/41094.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/41094/41094.diff/1497864341245425</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #41087 (Customizer: Deleting a Widget does not remove instance in options) updated</title>
+      
+        <dc:creator>obenland</dc:creator>
+
+      <pubDate>Mon, 19 Jun 2017 09:24:30 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/41087#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/41087#comment:2/1497864270617551</guid>
+      <description>&lt;i&gt;Version&lt;/i&gt;, &lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #16838 (Excluding Akismet from Future WordPress Releases / Plugin Directory) updated</title>
+      
+        <dc:creator>davidnaviaweb</dc:creator>
+
+      <pubDate>Mon, 19 Jun 2017 09:06:36 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/16838#comment:44</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/16838#comment:44/1497863196533039</guid>
+      <description>&lt;p&gt;
+I agree with @fernandot, @expertoswp and @bogdanpreda as well as @sc0ttkclark and @jkudish. Akismet should be removed from the WP core since it is a paid service, and no one has that privilege, besides it involves legal issues.
+&lt;/p&gt;
+&lt;p&gt;
+It is simple, WordPress.org is free and Akismet is not. If we follow that path, why not to bundle any other paid plugins? As @Presskopp said, &lt;em&gt;Which would be the criteria for bundle plugins into the core?&lt;/em&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #41021 (Text widget does not show Title field or TinyMCE editor) updated</title>
+      
+        <dc:creator>aholstrya</dc:creator>
+
+      <pubDate>Mon, 19 Jun 2017 08:10:02 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/41021#comment:15</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/41021#comment:15/1497859802902022</guid>
+      <description>&lt;p&gt;
+Replying to &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/41021#comment:14" title="Comment 14"&gt;westonruter&lt;/a&gt;:
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;blockquote&gt;
+&lt;p&gt;
+@aholstrya I don't see you in WordPress Slack. Please email me at &lt;code&gt;trac-wp-core-41021@xwp.co&lt;/code&gt;.
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+@westonruter : OK it's done
+&lt;/p&gt;
+&lt;/blockquote&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #15955 (move_uploaded_file mangles non-ascii characters on Windows platforms) updated</title>
+      
+        <dc:creator>alexvorn2</dc:creator>
+
+      <pubDate>Mon, 19 Jun 2017 08:05:34 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/15955#comment:48</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/15955#comment:48/1497859534691865</guid>
+      <description>&lt;p&gt;
+Replying to &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/15955#comment:47" title="Comment 47"&gt;Clorith&lt;/a&gt;:
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+Please note that just because it is fixed in PHP 7.1, WordPress currently supports PHP back to 5.2. PHP 7.1 installs are only at about 1.7% (at this time) of all WordPress installs, so closing this out as resolved because of that is not an option.
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+So what is the solution then?
+&lt;/p&gt;
+&lt;p&gt;
+The problem is in Windows only with old php version, so the developers that use Windows should update their php version on their local web-server.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #41057 (Update PHP codebase per WordPress PHP Coding Standards) updated</title>
+      
+        <dc:creator>markjaquith</dc:creator>
+
+      <pubDate>Mon, 19 Jun 2017 07:07:26 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/41057#comment:29</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/41057#comment:29/1497856046455340</guid>
+      <description>&lt;p&gt;
+Replying to &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/41057#comment:25" title="Comment 25"&gt;pento&lt;/a&gt;:
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+It won't be backported at all. If we backport it to the 4.8 branch, then 4.8.1 will be a huge minor release, with a significantly increased failure rate.
+&lt;/p&gt;
+&lt;p&gt;
+Unfortunately, that does mean that most patches from now on will need to be rewritten to go further back than 4.8. After 4.9 is released, that will only be security patches.
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+Since the update zips include files with any changes, we can just run this specifically on the files that will be modified by a security backport. That way the backport is much more likely to apply cleanly.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #41094 (Deprecated version not specfied for debug_fopen() et al.) updated</title>
+      
+        <dc:creator>swissspidy</dc:creator>
+
+      <pubDate>Mon, 19 Jun 2017 06:52:32 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/41094#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/41094#comment:2/1497855152179278</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #41095 (wp_schedule_single_event should support any callable) closed</title>
+      
+        <dc:creator>dd32</dc:creator>
+
+      <pubDate>Mon, 19 Jun 2017 06:32:47 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/41095#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/41095#comment:2/1497853967148458</guid>
+      <description>invalid: &lt;p&gt;
+This is a remarkably common misconception of how the CRON system actually works, but this is supported already.
+&lt;/p&gt;
+&lt;p&gt;
+&lt;code&gt;wp_schedule_single_event()&lt;/code&gt; does not accept a callable at all, it accept an action name. Often the hook specified is the same as the function being called, which doesn't help people realise what's actually being specified.
+&lt;/p&gt;
+&lt;p&gt;
+&lt;code&gt;wp_schedule_single_event( time() + 3600, 'my_plugin_func' );&lt;/code&gt; does not work, it doesn't do anything without an additional &lt;code&gt;add_action()&lt;/code&gt;.
+&lt;/p&gt;
+&lt;p&gt;
+It's used like this:
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;wp_schedule_single_event( time() + 3600, 'my_plugin_function_hook_name', array( $arg1, $arg2, $arg3) );
+add_action( 'my_plugin_function_hook_name', function( $arg1, $arg2, $arg3 ) {
+    // I'm running in a CRON request!
+}, 10, 3 );
+&lt;/pre&gt;</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Ticket #40082 (Pretty links for users when searching) updated</title>
+      
+        <dc:creator>henry.wright</dc:creator>
+
+      <pubDate>Mon, 19 Jun 2017 06:06:33 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/40082#comment:8</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/40082#comment:8/1497852393797143</guid>
+      <description>&lt;p&gt;
+I hadn't considered that. Whilst I think pretty URLs would be nice to have, I agree we can't break most people's site tracking.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #40950 (wp_terms_checklist() does not pass $post_id to current_user_can()) updated</title>
+      
+        <dc:creator>anigel</dc:creator>
+
+      <pubDate>Mon, 19 Jun 2017 05:59:17 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/40950#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/40950#comment:2/1497851957069688</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #38073 (Deprecate and replace wp_reset_vars()) updated</title>
+      
+        <dc:creator>jfabot</dc:creator>
+
+      <pubDate>Mon, 19 Jun 2017 05:21:43 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/38073#comment:14</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/38073#comment:14/1497849703148657</guid>
+      <description>&lt;p&gt;
+That was indeed the thing I was thinking about.
+&lt;/p&gt;
+&lt;p&gt;
+Replying to &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/38073#comment:12" title="Comment 12"&gt;weijland&lt;/a&gt;:
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+Since all wp_reset_vars does is (re)assigning the value of a POST or GET request to a variable if it exists, isn't it an idea to write a new function which does exactly the same, but without the use of globals? Something like this:
+&lt;/p&gt;
+&lt;div class="wiki-code"&gt;&lt;div class="code"&gt;&lt;pre&gt;&lt;span class="x"&gt;$action = wp_assign_request_var( 'action' );
+&lt;/span&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="wiki-code"&gt;&lt;div class="code"&gt;&lt;pre&gt;&lt;span class="x"&gt;function wp_assign_request_var( $var ) {
+   if ( empty( $_POST[ $var ] ) ) {
+        if ( empty( $_GET[ $var ] ) ) {
+             return '';
+        } else {
+             return $_GET[ $var ];
+        }
+   } else {
+        return $_POST[ $var ];
+   }
+}
+&lt;/span&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;p&gt;
+I figure that to fix this issue, a new function is needed, otherwise you have to apply the same fix to every file that makes use of wp_reset_vars(), which isn't DRY of course. I suggest placing the new function in wp-admin/includes/misc.php, since that is the place where the original function is located.
+&lt;/p&gt;
+&lt;/blockquote&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #15955 (move_uploaded_file mangles non-ascii characters on Windows platforms) updated</title>
+      
+        <dc:creator>Clorith</dc:creator>
+
+      <pubDate>Mon, 19 Jun 2017 04:15:10 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/15955#comment:47</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/15955#comment:47/1497845710616331</guid>
+      <description>&lt;p&gt;
+Please note that just because it is fixed in PHP 7.1, WordPress currently supports PHP back to 5.2. PHP 7.1 installs are only at about 1.7% (at this time) of all WordPress installs, so closing this out as resolved because of that is not an option.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #41073 (Introduce linting for code editor) updated</title>
+      
+        <dc:creator>ahortin</dc:creator>
+
+      <pubDate>Mon, 19 Jun 2017 03:19:12 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/41073#comment:5</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/41073#comment:5/1497842352927365</guid>
+      <description>&lt;p&gt;
+@swissspidy Thanks for the clarification :-)
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #38624 (Allow starter content to apply after a site has already been set up ...) updated</title>
+      
+        <dc:creator>westonruter</dc:creator>
+
+      <pubDate>Mon, 19 Jun 2017 03:10:12 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/38624#comment:16</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/38624#comment:16/1497841812467025</guid>
+      <description>&lt;p&gt;
+@suganya1993 that's a good suggestion, but without &lt;a class="new ticket" href="http://core.trac.wordpress.org/ticket/38227" title="#38227: task (blessed): Term Status API (new)"&gt;#38227&lt;/a&gt; it would be required to actually insert live terms into the database even prior to publishing.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #41081 (Improve Custom Menu widget, show notification if menu is empty or no ...) updated</title>
+      
+        <dc:creator>welcher</dc:creator>
+
+      <pubDate>Mon, 19 Jun 2017 02:27:36 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/41081#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/41081#comment:1/1497839256179418</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt;, &lt;i&gt;Focuses&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+@alexvorn2 thanks for reporting!
+&lt;/p&gt;
+&lt;p&gt;
+If you're meaning that the widget should output the message to visitors of the site, I don't think that is the best user experience. The author will still have to view the site to see that there is an issue with the widget so we're not much further ahead.
+&lt;/p&gt;
+&lt;p&gt;
+It's pretty clear in the widget admin when a menu is not selected but there is no indication whether the menu selected is empty. It might be a good idea to change the &lt;code&gt;wp_get_nav_menus()&lt;/code&gt; call in the &lt;code&gt;form()&lt;/code&gt; method of the widget to exclude empty menus with &lt;code&gt;'hide_empty' =&amp;gt; true&lt;/code&gt;. This will exclude any empty menus from the list so that they cannot be selected.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #41088 (4.8 audio widget isn't working correctly) updated</title>
+      
+        <dc:creator>westonruter</dc:creator>
+
+      <pubDate>Mon, 19 Jun 2017 02:14:29 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/41088#comment:6</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/41088#comment:6/1497838469297177</guid>
+      <description>&lt;i&gt;Component&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+OK, so then the issue is not specifically regarding the audio widget but rather media in general.
+&lt;/p&gt;
+&lt;p&gt;
+Regarding using an FTP URL for referencing an MP3, this is not going to be supported by browsers. I understand that both Chrome and Firefox are removing support for using FTP URLs for embedded resources.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #41095 (wp_schedule_single_event should support any callable) updated</title>
+      
+        <dc:creator>westonruter</dc:creator>
+
+      <pubDate>Mon, 19 Jun 2017 02:09:37 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/41095#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/41095#comment:1/1497838177346853</guid>
+      <description>&lt;i&gt;Component&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #41095 (wp_schedule_single_event should support any callable) created</title>
+      
+        <dc:creator>dan.rossiter</dc:creator>
+
+      <pubDate>Mon, 19 Jun 2017 01:18:25 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/41095</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/41095/1497835105331068</guid>
+      <description>&lt;p&gt;
+Hooking/filtering in WP core generally supports any callable variable, but wp_schedule_single_event only supports strings. I can see how instance methods wouldn't make sense here, but the static class methods in the array notation still make sense and should be supported.
+&lt;/p&gt;
+&lt;p&gt;
+Since the minimum PHP version for WP is earlier than support for namespaces, static class methods are often used to keep methods from cluttering the global method space. Preventing this use case here seems arbitrary and seems like an easy fix.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #41088 (4.8 audio widget isn't working correctly) updated</title>
+      
+        <dc:creator>stridentconservative</dc:creator>
+
+      <pubDate>Mon, 19 Jun 2017 01:16:46 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/41088#comment:5</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/41088#comment:5/1497835006330146</guid>
+      <description>&lt;p&gt;
+Replying to &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/41088#comment:4" title="Comment 4"&gt;westonruter&lt;/a&gt;:
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+@stridentconservative are you able to upload it from the media library in the admin? It should actually indicate the max upload size in the upload form.
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+No. I'm not. Admin states that the file can be up to 64 MB. My files are only 3.6 MB.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #41088 (4.8 audio widget isn't working correctly) updated</title>
+      
+        <dc:creator>westonruter</dc:creator>
+
+      <pubDate>Mon, 19 Jun 2017 00:47:53 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/41088#comment:4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/41088#comment:4/1497833273199005</guid>
+      <description>&lt;p&gt;
+@stridentconservative are you able to upload it from the media library in the admin? It should actually indicate the max upload size in the upload form.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #41021 (Text widget does not show Title field or TinyMCE editor) updated</title>
+      
+        <dc:creator>westonruter</dc:creator>
+
+      <pubDate>Mon, 19 Jun 2017 00:47:00 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/41021#comment:14</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/41021#comment:14/1497833220927476</guid>
+      <description>&lt;p&gt;
+@aholstrya I don't see you in WordPress Slack. Please email me at &lt;code&gt;trac-wp-core-41021@xwp.co&lt;/code&gt;.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item>
+   </channel>
+</rss>

@@ -1,0 +1,1134 @@
+<?xml version="1.0"?>
+<rss xmlns:dc="http://purl.org/dc/elements/1.1/" version="2.0">
+  <channel>
+    <title>WordPress Trac</title>
+    <link>http://core.trac.wordpress.org/timeline</link>
+    <description>Trac Timeline</description>
+    <language>en-US</language>
+    <generator>Trac 1.2.2</generator>
+    <image>
+      <title>WordPress Trac</title>
+      <url>http://core.trac.wordpress.org/chrome/site/your_project_logo.png</url>
+      <link>http://core.trac.wordpress.org/timeline</link>
+    </image>
+    <item>
+      <title>Ticket #37923 (Introduce shared wp_blogmeta database table for multisite installation) updated</title>
+      
+        <dc:creator>spacedmonkey</dc:creator>
+
+      <pubDate>Sun, 14 Jan 2018 19:14:02 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/37923#comment:78</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/37923#comment:78/1515957242995307</guid>
+      <description>&lt;p&gt;
+In &lt;a href="https://core.trac.wordpress.org/attachment/ticket/37923/37923.16.diff"&gt;37923.16.diff&lt;/a&gt; these are the key changes.
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;Removed checks to see if site meta exists. When a new test suite is run, then site meta will be installed and always will be there.
+&lt;/li&gt;&lt;li&gt;Added &lt;code&gt;test_is_site_meta_supported_filtered&lt;/code&gt; test.
+&lt;/li&gt;&lt;li&gt;Added a doing it wrong message is you call *_site_meta and the table isn't installed.
+&lt;/li&gt;&lt;li&gt;Added &lt;code&gt;$update_meta_cache&lt;/code&gt; param to &lt;code&gt;update_site_cache&lt;/code&gt;
+&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;
+@jeremyfelt I have reviewed the tested and compared them to existing unit tests for other object types. I think these tests hold up pretty well. We are not testing meta queries as not supporting this right now. Otherwise most of these are very simple wrappers for the meta functions. Any testing on caching for meta, should be done upsteam in the meta functions tests.
+&lt;/p&gt;
+&lt;p&gt;
+As for &lt;code&gt;@todo use clean_blog_cache here&lt;/code&gt; this is related to when site meta query (&lt;a class="reopened ticket" href="http://core.trac.wordpress.org/ticket/40229" title="#40229: enhancement: Add meta_query to wp_site_query (reopened)"&gt;#40229&lt;/a&gt;) + granular caching for site query (&lt;a class="assigned ticket" href="http://core.trac.wordpress.org/ticket/42252" title="#42252: enhancement: Use more granular caching for common queries in `WP_Site_Query` (assigned)"&gt;#42252&lt;/a&gt;) go into core.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>37923.16.diff attached to Ticket #37923</title>
+      
+        <dc:creator>spacedmonkey</dc:creator>
+
+      <pubDate>Sun, 14 Jan 2018 18:56:55 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/37923/37923.16.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/37923/37923.16.diff/1515956215929359</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #43084 (dashboard confuses published posts count with all posts) updated</title>
+      
+        <dc:creator>birgire</dc:creator>
+
+      <pubDate>Sun, 14 Jan 2018 18:31:57 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43084#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43084#comment:2/1515954717713985</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt;, &lt;i&gt;Focuses&lt;/i&gt;, &lt;i&gt;Version&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+@awardpress Welcome to WordPress core trac.
+&lt;/p&gt;
+&lt;p&gt;
+This seems like a valid concern, but let's see what others have to say about this.
+&lt;/p&gt;
+&lt;p&gt;
+Here's the &lt;a href="https://core.trac.wordpress.org/browser/tags/4.9.1/src/wp-admin/includes/dashboard.php#L248"&gt;4.9.1 source&lt;/a&gt; of the relevant function: &lt;code&gt;wp_dashboard_right_now()&lt;/code&gt;, introduced in &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/9265" title="Right Now modules. Very rough, needs styling."&gt;[9265]&lt;/a&gt;.
+&lt;/p&gt;
+&lt;p&gt;
+The screenshot &lt;a class="attachment" href="http://core.trac.wordpress.org/attachment/ticket/43084/at-a-glance-in-dashboard.JPG" title="Attachment 'at-a-glance-in-dashboard.JPG' in Ticket #43084"&gt;at-a-glance-in-dashboard.JPG&lt;/a&gt;&lt;a class="trac-rawlink" href="http://core.trac.wordpress.org/raw-attachment/ticket/43084/at-a-glance-in-dashboard.JPG" title="Download"&gt;​&lt;/a&gt; above shows that it contains info on pages and comments as well.
+&lt;/p&gt;
+&lt;p&gt;
+It also displays the number of &lt;em&gt;published&lt;/em&gt; pages with:
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;$text = _n( '%s Page', '%s Pages', $num_posts-&amp;gt;publish );
+&lt;/pre&gt;&lt;p&gt;
+and links to &lt;code&gt;edit.php?post_type=page&lt;/code&gt; but not &lt;code&gt;edit.php?post_status=publish&amp;amp;post_type=page&lt;/code&gt;.
+&lt;/p&gt;
+&lt;p&gt;
+Similarly the number of &lt;em&gt;approved&lt;/em&gt; comments is displayed with:
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;$text = sprintf( _n( '%s Comment', '%s Comments', $num_comm-&amp;gt;approved ), number_format_i18n( $num_comm-&amp;gt;approved ) );
+&lt;/pre&gt;&lt;p&gt;
+and it links to &lt;code&gt;edit-comments.php&lt;/code&gt; but not to &lt;code&gt;edit-comments.php?comment_status=approved&lt;/code&gt;.
+&lt;/p&gt;
+&lt;p&gt;
+On the other hand the number of &lt;em&gt;moderated&lt;/em&gt; comments links to &lt;code&gt;edit-comments.php?comment_status=moderated&lt;/code&gt;.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>at-a-glance-in-dashboard.JPG attached to Ticket #43084</title>
+      
+        <dc:creator>birgire</dc:creator>
+
+      <pubDate>Sun, 14 Jan 2018 18:28:18 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/43084/at-a-glance-in-dashboard.JPG</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/43084/at-a-glance-in-dashboard.JPG/1515954498498042</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #43088 (The media modal main background should be white) updated</title>
+      
+        <dc:creator>afercia</dc:creator>
+
+      <pubDate>Sun, 14 Jan 2018 18:22:48 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43088#comment:4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43088#comment:4/1515954168477333</guid>
+      <description>&lt;p&gt;
+&lt;a class="attachment" href="http://core.trac.wordpress.org/attachment/ticket/43088/43088.3.diff" title="Attachment '43088.3.diff' in Ticket #43088"&gt;43088.3.diff&lt;/a&gt;&lt;a class="trac-rawlink" href="http://core.trac.wordpress.org/raw-attachment/ticket/43088/43088.3.diff" title="Download"&gt;​&lt;/a&gt; tries a simpler approach to keep the gray background for &lt;em&gt;all&lt;/em&gt; the widget placeholders and restore the white background in the media modal. Also, removes a trailing space.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>43088.3.diff attached to Ticket #43088</title>
+      
+        <dc:creator>afercia</dc:creator>
+
+      <pubDate>Sun, 14 Jan 2018 18:21:10 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/43088/43088.3.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/43088/43088.3.diff/1515954070629137</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #43088 (The media modal main background should be white) updated</title>
+      
+        <dc:creator>chetan200891</dc:creator>
+
+      <pubDate>Sun, 14 Jan 2018 18:11:17 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43088#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43088#comment:3/1515953477906443</guid>
+      <description>&lt;p&gt;
+@afercia Hahaha.. Yes.. But your patch is more better!
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #43088 (The media modal main background should be white) updated</title>
+      
+        <dc:creator>afercia</dc:creator>
+
+      <pubDate>Sun, 14 Jan 2018 18:10:18 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43088#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43088#comment:2/1515953418359205</guid>
+      <description>&lt;p&gt;
+@chetan200891 thanks! You beat me by 9 seconds, lol.
+&lt;/p&gt;
+&lt;p&gt;
+&lt;a style="padding:0; border:none" href="https://cldup.com/OLpqJRjp8G.png"&gt;&lt;img src="https://cldup.com/OLpqJRjp8G.png" alt="https://cldup.com/OLpqJRjp8G.png" crossorigin="anonymous" title="https://cldup.com/OLpqJRjp8G.png" /&gt;&lt;/a&gt;
+&lt;/p&gt;
+&lt;p&gt;
+However, the other backgrounds should stay gray (they're the "No image selected" placeholder in the widgets, see &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/42101" title="#42101: defect (bug): Gallery widget: remove background (closed: fixed)"&gt;#42101&lt;/a&gt;).
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #43088 (The media modal main background should be white) updated</title>
+      
+        <dc:creator>chetan200891</dc:creator>
+
+      <pubDate>Sun, 14 Jan 2018 18:06:21 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43088#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43088#comment:1/1515953181165580</guid>
+      <description>&lt;p&gt;
+Created patch &lt;a href="https://core.trac.wordpress.org/attachment/ticket/43088/43088.diff"&gt;43088.diff&lt;/a&gt; to make media modal background white. It looks good to me!
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>43088.2.diff attached to Ticket #43088</title>
+      
+        <dc:creator>afercia</dc:creator>
+
+      <pubDate>Sun, 14 Jan 2018 18:04:32 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/43088/43088.2.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/43088/43088.2.diff/1515953072162437</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>43088.diff attached to Ticket #43088</title>
+      
+        <dc:creator>chetan200891</dc:creator>
+
+      <pubDate>Sun, 14 Jan 2018 18:04:22 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/43088/43088.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/43088/43088.diff/1515953062661646</guid>
+      <description>&lt;p&gt;
+Created patch to make media modal main background white.
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #43088 (The media modal main background should be white) created</title>
+      
+        <dc:creator>afercia</dc:creator>
+
+      <pubDate>Sun, 14 Jan 2018 17:44:50 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43088</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43088/1515951890804873</guid>
+      <description>&lt;p&gt;
+In the media modal, the background of the content (the left part in the screenshots) used to be white:
+&lt;/p&gt;
+&lt;p&gt;
+&lt;a style="padding:0; border:none" href="https://cldup.com/D7CyqwdxSV.png"&gt;&lt;img src="https://cldup.com/D7CyqwdxSV.png" alt="https://cldup.com/D7CyqwdxSV.png" crossorigin="anonymous" title="https://cldup.com/D7CyqwdxSV.png" /&gt;&lt;/a&gt;
+&lt;/p&gt;
+&lt;p&gt;
+now is gray:
+&lt;/p&gt;
+&lt;p&gt;
+&lt;a style="padding:0; border:none" href="https://cldup.com/QtoUKpuUur.png"&gt;&lt;img src="https://cldup.com/QtoUKpuUur.png" alt="https://cldup.com/QtoUKpuUur.png" crossorigin="anonymous" title="https://cldup.com/QtoUKpuUur.png" /&gt;&lt;/a&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Introduced in &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/41833" title="Gallery Widget: Remove grey background behind gallery, and align ..."&gt;[41833]&lt;/a&gt;.
+&lt;/p&gt;
+&lt;p&gt;
+When working on the admin stylesheets, low qualified selectors like &lt;code&gt;.attachment-media-view&lt;/code&gt; tend to apply to several screens and should always be double checked.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Tickets #42435,​43086 batch updated</title>
+      
+        <dc:creator>Presskopp</dc:creator>
+
+      <pubDate>Sun, 14 Jan 2018 17:15:30 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/query?id=42435%2C43086</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/query?id=42435%2C43086/1515950130385440</guid>
+      <description>duplicate: &lt;p&gt;
+Duplicate of &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/42435" title="#42435: defect (bug): RSS Error: WP HTTP Error: cURL error 28: timed out before SSL handshake (closed: worksforme)"&gt;#42435&lt;/a&gt;.
+&lt;/p&gt;
+</description>
+      <category>batchmodify</category>
+    </item><item>
+      <title>Tickets #38759,​40468 batch updated</title>
+      
+        <dc:creator>afercia</dc:creator>
+
+      <pubDate>Sun, 14 Jan 2018 16:38:47 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/query?id=38759%2C40468</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/query?id=38759%2C40468/1515947927639447</guid>
+      <description>fixed: &lt;p&gt;
+In &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/42444" title="Accessibility: Media: Improve the usage of a few label elements in the ..."&gt;42444&lt;/a&gt;:
+&lt;/p&gt;
+&lt;div class="message"&gt;&lt;p&gt;
+Accessibility: Media: Improve the usage of a few label elements in the media templates.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Label elements should only be used for labelable elements.&lt;br /&gt;
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;&lt;code&gt;Uploaded By&lt;/code&gt; and &lt;code&gt;Uploaded To&lt;/code&gt; aren't form controls and shouldn't be associated with labels
+&lt;/li&gt;&lt;li&gt;changes the labels for media source, alternate sources, poster image, and tracks to solve a layout issue and explicitly associate the labels to their form fields (previously, the labels were wrapping also the Remove buttons)
+&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;
+Props Presskopp, afercia.&lt;br /&gt;
+Fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/38759" title="#38759: defect (bug): Accessibility glitch when editing an embedded video (closed: fixed)"&gt;#38759&lt;/a&gt;, &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/40468" title="#40468: defect (bug): Accessibility glitch when viewing/editing Attachment Details (closed: fixed)"&gt;#40468&lt;/a&gt;.&lt;br /&gt;
+&lt;/p&gt;
+&lt;/div&gt;</description>
+      <category>batchmodify</category>
+    </item><item>
+      <title>Changeset [42444]: Accessibility: Media: Improve the usage of a few label elements in the ...</title>
+      
+        <dc:creator>afercia</dc:creator>
+
+      <pubDate>Sun, 14 Jan 2018 16:38:47 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/42444</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/42444/1515947927128256</guid>
+      <description>&lt;p&gt;
+Accessibility: Media: Improve the usage of a few label elements in the media templates.
+&lt;/p&gt;
+&lt;p&gt;
+Label elements should only be used for labelable elements.
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;&lt;code&gt;Uploaded By&lt;/code&gt; and &lt;code&gt;Uploaded To&lt;/code&gt; aren't form controls and shouldn't be associated with labels
+&lt;/li&gt;&lt;li&gt;changes the labels for media source, alternate sources, poster image, and tracks to solve a layout issue and explicitly associate the labels to their form fields (previously, the labels were wrapping also the Remove buttons)
+&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;
+Props Presskopp, afercia.
+Fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/38759" title="#38759: defect (bug): Accessibility glitch when editing an embedded video (closed: fixed)"&gt;#38759&lt;/a&gt;, &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/40468" title="#40468: defect (bug): Accessibility glitch when viewing/editing Attachment Details (closed: fixed)"&gt;#40468&lt;/a&gt;.
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Ticket #40468 (Accessibility glitch when viewing/editing Attachment Details) updated</title>
+      
+        <dc:creator>afercia</dc:creator>
+
+      <pubDate>Sun, 14 Jan 2018 16:20:19 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/40468#comment:10</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/40468#comment:10/1515946819998634</guid>
+      <description>&lt;i&gt;Status&lt;/i&gt;, &lt;i&gt;Owner&lt;/i&gt;, &lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Will be fixed with the patch on &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/38759" title="#38759: defect (bug): Accessibility glitch when editing an embedded video (closed: fixed)"&gt;#38759&lt;/a&gt;.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #38759 (Accessibility glitch when editing an embedded video) updated</title>
+      
+        <dc:creator>afercia</dc:creator>
+
+      <pubDate>Sun, 14 Jan 2018 16:13:56 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/38759#comment:14</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/38759#comment:14/1515946436418316</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt;, &lt;i&gt;Owner&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Refreshed patch, includes also a few minor coding standards. Since we're at the beginning of the 5.0 release cycle, I'd propose to merge this now, as this is the best way to test it extensively.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>38759.2.diff attached to Ticket #38759</title>
+      
+        <dc:creator>afercia</dc:creator>
+
+      <pubDate>Sun, 14 Jan 2018 16:10:05 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/38759/38759.2.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/38759/38759.2.diff/1515946205710904</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #43084 (dashboard confuses published posts count with all posts) updated</title>
+      
+        <dc:creator>awardpress</dc:creator>
+
+      <pubDate>Sun, 14 Jan 2018 15:39:30 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43084#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43084#comment:1/1515944370658122</guid>
+      <description>&lt;p&gt;
+I'd like to add a little words about pushpin.
+I said that pushpin usually indicates sticky posts. I'd like to correct myself: pushpin usually indicates &lt;strong&gt;&lt;em&gt;pin&lt;/em&gt;&lt;/strong&gt;ned posts, therefore push&lt;strong&gt;&lt;em&gt;pin&lt;/em&gt;&lt;/strong&gt;. but in Wordpress, 'pinned' posts are called 'sticky'.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #42643 (FLV video format not playing) updated</title>
+      
+        <dc:creator>birgire</dc:creator>
+
+      <pubDate>Sun, 14 Jan 2018 15:06:40 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/42643#comment:24</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/42643#comment:24/1515942400622191</guid>
+      <description>&lt;p&gt;
+ps: I tested
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;$grunt jshint:core --file=src/wp-includes/js/mediaelement/wp-mediaelement.js
+Running "jshint:core" (jshint) task
+   src/wp-includes/js/mediaelement/wp-mediaelement.js
+     65 |                    return '&amp;lt;a href="' + node.src + '"&amp;gt;' + mejsL10n.strings["mejs.download-video"] + '&amp;lt;/a&amp;gt;';
+                                                                                                          ^ Strings must use singlequote.
+     65 |                    return '&amp;lt;a href="' + node.src + '"&amp;gt;' + mejsL10n.strings["mejs.download-video"] + '&amp;lt;/a&amp;gt;';
+                                                                    ^ 'mejsL10n' is not defined.
+&amp;gt;&amp;gt; 2 errors in 1 file
+Warning: Task "jshint:core" failed. Use --force to continue.
+Aborted due to warnings.
+&lt;/pre&gt;&lt;p&gt;
+so it seems to prefer strings within single quotes.
+&lt;/p&gt;
+&lt;p&gt;
+I'm not sure about the second error, since it works as a global on my install. But maybe it could be injected differently to silence jshint?
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #42643 (FLV video format not playing) updated</title>
+      
+        <dc:creator>birgire</dc:creator>
+
+      <pubDate>Sun, 14 Jan 2018 15:01:12 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/42643#comment:23</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/42643#comment:23/1515942072735480</guid>
+      <description>&lt;ol&gt;&lt;li&gt;ok I see, seems to be from this line: &lt;code&gt;e.ENABLE_ERROR &amp;amp;&amp;amp; (console.error ? console.error(i) : console.warn ? console.warn(i) : console.log(i))&lt;/code&gt;
+&lt;/li&gt;&lt;li&gt;yes it's probably better to use &lt;code&gt;indexOf()&lt;/code&gt; here - if  maybe other formats need to be handled in the future, then one could reconsider.
+&lt;/li&gt;&lt;li&gt;great
+&lt;/li&gt;&lt;li&gt;nice
+&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;
+I thought &lt;code&gt;mejs.download-video&lt;/code&gt; would be used elsewhere, but I couldn't find other use cases. So I guess it's a good thing to use it then ;-)
+&lt;/p&gt;
+&lt;p&gt;
+I'm not well versed in the &lt;a class="ext-link" href="https://make.wordpress.org/core/handbook/best-practices/coding-standards/javascript/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;javascript coding standard&lt;/a&gt;, so I wonder if either &lt;code&gt;mejsL10n.strings["mejs.download-video"]&lt;/code&gt; or &lt;code&gt;mejsL10n.strings['mejs.download-video']&lt;/code&gt; is preferred?
+&lt;/p&gt;
+&lt;p&gt;
+&lt;a class="attachment" href="http://core.trac.wordpress.org/attachment/ticket/42643/42643.4.patch" title="Attachment '42643.4.patch' in Ticket #42643"&gt;42643.4.patch&lt;/a&gt;&lt;a class="trac-rawlink" href="http://core.trac.wordpress.org/raw-attachment/ticket/42643/42643.4.patch" title="Download"&gt;​&lt;/a&gt; translates the string and looks otherwise good to me ;-)
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #43087 (Unicode emoji in $wpdb-&gt;insert) created</title>
+      
+        <dc:creator>loranrendel</dc:creator>
+
+      <pubDate>Sun, 14 Jan 2018 14:48:38 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43087</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43087/1515941318323813</guid>
+      <description>&lt;p&gt;
+When trying using &lt;code&gt;$wpdb-&amp;gt;insert&lt;/code&gt; with if containing unicode emoji 😉, the method returns false and no inserts happens.
+&lt;/p&gt;
+&lt;p&gt;
+It happens inside following core code in &lt;code&gt;_insert_replace_helper&lt;/code&gt;:
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;$data = $this-&amp;gt;process_fields( $table, $data, $format );
+if ( false === $data ) {
+	return false;
+}
+&lt;/pre&gt;</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Screenshot.png attached to Ticket #43086</title>
+      
+        <dc:creator>abdullahramzan</dc:creator>
+
+      <pubDate>Sun, 14 Jan 2018 14:17:06 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/43086/Screenshot.png</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/43086/Screenshot.png/1515939426833888</guid>
+      <description>&lt;p&gt;
+RSS Error in WordPress Events and News Widget
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #43086 (RSS Error: WP HTTP Error: cURL error 28: Operation timed out after ...) created</title>
+      
+        <dc:creator>abdullahramzan</dc:creator>
+
+      <pubDate>Sun, 14 Jan 2018 14:15:22 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43086</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43086/1515939322331074</guid>
+      <description>&lt;p&gt;
+In 5.0-alpha-42440 Dashboard Widget &lt;strong&gt;WordPress Events and News&lt;/strong&gt; shows
+RSS Error: WP HTTP Error: cURL error 28: Operation timed out after 10000 milliseconds with 22881 bytes received
+I also updated php.ini to "max_input_time = 1000" but still same problem.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #42722 (Plugins failed to load) updated</title>
+      
+        <dc:creator>azaozz</dc:creator>
+
+      <pubDate>Sun, 14 Jan 2018 13:42:38 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/42722#comment:14</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/42722#comment:14/1515937358024345</guid>
+      <description>&lt;p&gt;
+@peterwilsoncc yep, I got pretty much the same patch plus a bit more to fix the second part of &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/43012" title="#43012: defect (bug): Cannot Update Post in Firefox Due to Editor and TinyMCE JavaScript ... (closed: fixed)"&gt;#43012&lt;/a&gt;. The problem is that we will also have to update tinymce.min.js. We cannot rebuild TinyMCE 4.6.7 as it pulls scripts from other locations that are usually different/updated. We can try to patch and minify tinymce.js the same way we minify the rest of the core js but that yields different results. This should be "safe" to do however there is a (tiny) chance to introduce regressions and I'd be "nervous" to try it in a dot release. Seems the best option is to have a long-ish beta and try to get it tested extensively.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #37581 (text overflows, if it has no hyphens on media upload error notices) updated</title>
+      
+        <dc:creator>afercia</dc:creator>
+
+      <pubDate>Sun, 14 Jan 2018 11:55:50 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/37581#comment:5</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/37581#comment:5/1515930950540899</guid>
+      <description>&lt;i&gt;Summary&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Re-uploaded the original screenshot with a proper filename.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>break-word.png attached to Ticket #37581</title>
+      
+        <dc:creator>afercia</dc:creator>
+
+      <pubDate>Sun, 14 Jan 2018 11:54:38 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/37581/break-word.png</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/37581/break-word.png/1515930878730281</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #43085 (Metabox UI rough box shadow when in closed mode) created</title>
+      
+        <dc:creator>obiplabon</dc:creator>
+
+      <pubDate>Sun, 14 Jan 2018 10:30:23 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43085</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43085/1515925823603255</guid>
+      <description>&lt;p&gt;
+Please check the following two images and compare side by side. I've added a red mark for your convenience. The drop shadow or box shadow doesn't look neat and clean.
+&lt;/p&gt;
+&lt;p&gt;
+&lt;strong&gt;Before&lt;/strong&gt;
+&lt;a style="padding:0; border:none" href="https://i.imgur.com/Af5eB2e.png"&gt;&lt;img src="https://i.imgur.com/Af5eB2e.png" alt="https://i.imgur.com/Af5eB2e.png" crossorigin="anonymous" title="https://i.imgur.com/Af5eB2e.png" /&gt;&lt;/a&gt;
+&lt;/p&gt;
+&lt;p&gt;
+&lt;strong&gt;After&lt;/strong&gt;
+&lt;a style="padding:0; border:none" href="https://i.imgur.com/M1zoLfx.png"&gt;&lt;img src="https://i.imgur.com/M1zoLfx.png" alt="https://i.imgur.com/M1zoLfx.png" crossorigin="anonymous" title="https://i.imgur.com/M1zoLfx.png" /&gt;&lt;/a&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Changing the following css I've gotten better result.
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;.postbox .hndle, .stuffbox .hndle {
+    border-bottom: 1px solid #eee;
+    user-select: none;
+}
+// Changing the above styles to this
+.postbox:not(.closed) .hndle, .stuffbox:not(.closed) .hndle {
+    border-bottom: 1px solid #eee;
+    user-select: none;
+}
+&lt;/pre&gt;&lt;p&gt;
+Thanks
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #42722 (Plugins failed to load) updated</title>
+      
+        <dc:creator>peterwilsoncc</dc:creator>
+
+      <pubDate>Sat, 13 Jan 2018 23:49:13 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/42722#comment:13</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/42722#comment:13/1515887353045113</guid>
+      <description>&lt;p&gt;
+@azaozz
+&lt;/p&gt;
+&lt;p&gt;
+I've uploaded &lt;a class="attachment" href="http://core.trac.wordpress.org/attachment/ticket/42722/42722.diff" title="Attachment '42722.diff' in Ticket #42722"&gt;42722.diff&lt;/a&gt;&lt;a class="trac-rawlink" href="http://core.trac.wordpress.org/raw-attachment/ticket/42722/42722.diff" title="Download"&gt;​&lt;/a&gt; which I think covers the required fixes only for TinyMCE if you'd rather include only the fixes.
+&lt;/p&gt;
+&lt;p&gt;
+Unfortunately the TinyMCE &lt;a class="ext-link" href="https://github.com/tinymce/tinymce/commit/d1877933fa1e98430e5e9e1f78884be60766d2f0"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;commit referenced&lt;/a&gt; covers two unrelated changes so it's a little unclear as to which portion is the fix and which portion is the enhancement.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>42722.diff attached to Ticket #42722</title>
+      
+        <dc:creator>peterwilsoncc</dc:creator>
+
+      <pubDate>Sat, 13 Jan 2018 23:43:37 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/42722/42722.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/42722/42722.diff/1515887017464163</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Selection_005.png attached to Ticket #43084</title>
+      
+        <dc:creator>awardpress</dc:creator>
+
+      <pubDate>Sat, 13 Jan 2018 23:23:18 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/43084/Selection_005.png</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/43084/Selection_005.png/1515885798970604</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Selection_002.png attached to Ticket #43084</title>
+      
+        <dc:creator>awardpress</dc:creator>
+
+      <pubDate>Sat, 13 Jan 2018 23:23:05 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/43084/Selection_002.png</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/43084/Selection_002.png/1515885785107199</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #43084 (dashboard confuses published posts count with all posts) created</title>
+      
+        <dc:creator>awardpress</dc:creator>
+
+      <pubDate>Sat, 13 Jan 2018 23:22:05 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43084</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43084/1515885725363184</guid>
+      <description>&lt;p&gt;
+the following is a good first bug for new contributors, IMO!
+because it's very easy to fix
+&lt;a href="https://core.trac.wordpress.org/tickets/good-first-bugs"&gt;https://core.trac.wordpress.org/tickets/good-first-bugs&lt;/a&gt;
+&lt;/p&gt;
+&lt;p&gt;
+in dashboard, in "at a glance" section there's a misleading link:
+&lt;/p&gt;
+&lt;ol&gt;&lt;li&gt;its hyper reference uri leads to list of &lt;strong&gt;all existing&lt;/strong&gt; posts
+&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;
+/wp-admin/edit.php?post_type=post
+there are currently 26 posts in my blog
+&lt;/p&gt;
+&lt;ol start="2"&gt;&lt;li&gt;its label is "8 posts" where 8 -- is the number of &lt;strong&gt;currently published&lt;/strong&gt; posts
+&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;
+/wp-admin/edit.php?post_status=publish&amp;amp;post_type=post
+there are currently 8 published posts in my blog
+&lt;/p&gt;
+&lt;ol start="3"&gt;&lt;li&gt;its icon is the pushpin. and the pushpin usually means &lt;strong&gt;sticky&lt;/strong&gt; posts
+&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;
+/wp-admin/edit.php?post_type=post&amp;amp;show_sticky=1
+there are currently 1 sticky post in my blog
+&lt;/p&gt;
+&lt;p&gt;
+thus, as you can see, this link confuses "all posts (26)" with "published posts (8)" AND with "sticky posts (1)"
+I know, Wordpress uses pushpin icon to indicate any post, so, maybe, I'm wrong about sticky posts.
+But I'm definitely not mistaken in that you cannot label the link as "8 posts" and make it refer to the list of 26 posts -- it should be fixed.
+Either label should be "26 posts" or it should go to list of published posts.
+IMO, the latter choice (lead to published posts).
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #39859 (wp.media.view.Modal jumps when you open it) updated</title>
+      
+        <dc:creator>afercia</dc:creator>
+
+      <pubDate>Sat, 13 Jan 2018 19:12:10 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/39859#comment:18</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/39859#comment:18/1515870730052335</guid>
+      <description>&lt;p&gt;
+&lt;a class="attachment" href="http://core.trac.wordpress.org/attachment/ticket/39859/39859.2.diff" title="Attachment '39859.2.diff' in Ticket #39859"&gt;39859.2.diff&lt;/a&gt;&lt;a class="trac-rawlink" href="http://core.trac.wordpress.org/raw-attachment/ticket/39859/39859.2.diff" title="Download"&gt;​&lt;/a&gt; removes an unused &lt;code&gt;options&lt;/code&gt; to make JSHint happy.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>39859.2.diff attached to Ticket #39859</title>
+      
+        <dc:creator>afercia</dc:creator>
+
+      <pubDate>Sat, 13 Jan 2018 19:11:32 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/39859/39859.2.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/39859/39859.2.diff/1515870692065797</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #43082 (Add plugins search results: the plugin details modal opens in the ...) reopened</title>
+      
+        <dc:creator>afercia</dc:creator>
+
+      <pubDate>Sat, 13 Jan 2018 18:53:26 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43082#comment:4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43082#comment:4/1515869606272212</guid>
+      <description>&lt;p&gt;
+Reopening for 4.9.2 consideration.
+&lt;/p&gt;
+</description>
+      <category>reopenedticket</category>
+    </item><item>
+      <title>Ticket #43082 (Add plugins search results: the plugin details modal opens in the ...) closed</title>
+      
+        <dc:creator>afercia</dc:creator>
+
+      <pubDate>Sat, 13 Jan 2018 18:52:43 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43082#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43082#comment:3/1515869563442687</guid>
+      <description>fixed: &lt;p&gt;
+In &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/42443" title="Plugins: Fix the plugin details modal in the install plugin search tab ..."&gt;42443&lt;/a&gt;:
+&lt;/p&gt;
+&lt;div class="message"&gt;&lt;p&gt;
+Plugins: Fix the plugin details modal in the install plugin search tab after &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/41356" title="Administration: Thickbox: Fix conflicts with the Plugin details and ..."&gt;[41356]&lt;/a&gt;.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/43082" title="#43082: defect (bug): Add plugins search results: the plugin details modal opens in the ... (closed: fixed)"&gt;#43082&lt;/a&gt;&lt;br /&gt;
+&lt;/p&gt;
+&lt;/div&gt;</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Changeset [42443]: Plugins: Fix the plugin details modal in the install plugin search tab ...</title>
+      
+        <dc:creator>afercia</dc:creator>
+
+      <pubDate>Sat, 13 Jan 2018 18:52:42 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/42443</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/42443/1515869562953789</guid>
+      <description>&lt;p&gt;
+Plugins: Fix the plugin details modal in the install plugin search tab after &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/41356" title="Administration: Thickbox: Fix conflicts with the Plugin details and ..."&gt;[41356]&lt;/a&gt;.
+&lt;/p&gt;
+&lt;p&gt;
+Fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/43082" title="#43082: defect (bug): Add plugins search results: the plugin details modal opens in the ... (closed: fixed)"&gt;#43082&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Ticket #25336 (Links provided by wp_link_pages() should add rel=next and rel=prev) updated</title>
+      
+        <dc:creator>inetbizo</dc:creator>
+
+      <pubDate>Sat, 13 Jan 2018 18:08:39 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/25336#comment:7</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/25336#comment:7/1515866919154066</guid>
+      <description>&lt;p&gt;
+Replying to &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/25336#comment:2" title="Comment 2"&gt;joostdevalk&lt;/a&gt;:
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+Not necessarily good for SEO, as Google would want these as &lt;code&gt;&amp;lt;link&amp;gt;&lt;/code&gt; elements in the &lt;code&gt;&amp;lt;head&amp;gt;&lt;/code&gt; section, but good HTML practice nonetheless, also: I love this type of filter and would love that on each and every link generated by core :)
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+Would you agree POSH HTML5 would be
+&lt;/p&gt;
+&lt;div class="wiki-code"&gt;&lt;div class="code"&gt;&lt;pre&gt;&lt;span class="cp"&gt;&amp;lt;?php&lt;/span&gt;
+&lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="nx"&gt;aside&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="nx"&gt;nav&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;
+        &lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="nx"&gt;h1&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="nx"&gt;Some&lt;/span&gt; &lt;span class="nx"&gt;heading&lt;/span&gt; &lt;span class="nx"&gt;text&lt;/span&gt; &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="nx"&gt;nav&lt;/span&gt;&lt;span class="o"&gt;&amp;lt;/&lt;/span&gt;&lt;span class="nx"&gt;h1&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;
+        &lt;span class="nx"&gt;the&lt;/span&gt; &lt;span class="nx"&gt;links&lt;/span&gt; &lt;span class="nx"&gt;here&lt;/span&gt;
+    &lt;span class="o"&gt;&amp;lt;/&lt;/span&gt;&lt;span class="nx"&gt;nav&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;
+&lt;span class="o"&gt;&amp;lt;/&lt;/span&gt;&lt;span class="nx"&gt;aside&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;
+&lt;span class="o"&gt;...&lt;/span&gt;
+&lt;span class="o"&gt;&amp;lt;/&lt;/span&gt;&lt;span class="nx"&gt;article&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #43082 (Add plugins search results: the plugin details modal opens in the ...) updated</title>
+      
+        <dc:creator>afercia</dc:creator>
+
+      <pubDate>Sat, 13 Jan 2018 17:38:21 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43082#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43082#comment:2/1515865101959360</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt;, &lt;i&gt;Status&lt;/i&gt;, &lt;i&gt;Owner&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>43082.diff attached to Ticket #43082</title>
+      
+        <dc:creator>afercia</dc:creator>
+
+      <pubDate>Sat, 13 Jan 2018 17:38:04 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/43082/43082.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/43082/43082.diff/1515865084720111</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #43082 (Add plugins search results: the plugin details modal opens in the ...) updated</title>
+      
+        <dc:creator>afercia</dc:creator>
+
+      <pubDate>Sat, 13 Jan 2018 17:33:41 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43082#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43082#comment:1/1515864821424655</guid>
+      <description>&lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Seems to me this is a consequence of &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/41356" title="Administration: Thickbox: Fix conflicts with the Plugin details and ..."&gt;[41356]&lt;/a&gt;. The "custom modal" (which basically is some JS and CSS overriding) now kicks in only for modals with a &lt;code&gt;plugin-details-modal&lt;/code&gt; CSS class, which in turn gets added only when clicking on the "More Details" link.
+Worth noting &lt;a href="https://core.trac.wordpress.org/browser/trunk/src/wp-admin/js/plugin-install.js?rev=42403#L150"&gt;the click event attached to the More Details link&lt;/a&gt; hasn't really ever worked in the Search results because the AJAX search rebuilds the HTML. Instead of attaching the event directly on the links, the event needs to be delegated.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #42643 (FLV video format not playing) updated</title>
+      
+        <dc:creator>Clorith</dc:creator>
+
+      <pubDate>Sat, 13 Jan 2018 17:24:07 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/42643#comment:22</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/42643#comment:22/1515864247973820</guid>
+      <description>&lt;p&gt;
+@birgire the notices you are seeing from Transmux are unfortunately what I was referencing in &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/42643#comment:14" title="Comment 14"&gt;comment:14&lt;/a&gt; which there's no way to pass logging-parameters for. They are just notices, and thus do not prevent further JavaScript from running as intended, but there's nothing we can do about these without a patch upstream (&lt;a class="ext-link" href="https://github.com/mediaelement/mediaelement/issues/2480"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;I've created an issue for it&lt;/a&gt;).
+&lt;/p&gt;
+&lt;p&gt;
+For your 2nd question, I've always heard that &lt;code&gt;indexOf&lt;/code&gt; is better performance wise than using &lt;code&gt;match&lt;/code&gt;, so unless more regex is needed for checking, it's better to keep this approach.
+&lt;/p&gt;
+&lt;p&gt;
+You are quite right about the translatable portion though, let's restore the previous behavior and use the &lt;code&gt;mejsL10n.strings["mejs.download-video"]&lt;/code&gt; string, that'll cut out point 4 completely, but is a direct restoration of the previous behavior, so I like that better.
+&lt;/p&gt;
+&lt;p&gt;
+I've made the string changes in &lt;a class="attachment" href="http://core.trac.wordpress.org/attachment/ticket/42643/42643.4.patch" title="Attachment '42643.4.patch' in Ticket #42643"&gt;42643.4.patch&lt;/a&gt;&lt;a class="trac-rawlink" href="http://core.trac.wordpress.org/raw-attachment/ticket/42643/42643.4.patch" title="Download"&gt;​&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>42643.4.patch attached to Ticket #42643</title>
+      
+        <dc:creator>Clorith</dc:creator>
+
+      <pubDate>Sat, 13 Jan 2018 17:20:26 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/42643/42643.4.patch</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/42643/42643.4.patch/1515864026380783</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #43083 (adding "Unlisted" type for post visibility) created</title>
+      
+        <dc:creator>tazotodua</dc:creator>
+
+      <pubDate>Sat, 13 Jan 2018 16:29:17 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43083</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43083/1515860957429188</guid>
+      <description>&lt;p&gt;
+I think there is a good reason that WP natively supported "unlisted" posts, in addition to PUBLIC, DRAFT and PRIVATE.
+&lt;/p&gt;
+&lt;p&gt;
+Why not WP add that feature?
+&lt;/p&gt;
+&lt;p&gt;
+btw, Private is not same as "unlisted".
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #42604 (Problem: alignment of image with caption) reopened</title>
+      
+        <dc:creator>slilley</dc:creator>
+
+      <pubDate>Sat, 13 Jan 2018 16:02:44 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/42604#comment:8</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/42604#comment:8/1515859364156379</guid>
+      <description>&lt;p&gt;
+I still see the same problem on my end.  Not fixed yet.
+&lt;/p&gt;
+</description>
+      <category>reopenedticket</category>
+    </item><item>
+      <title>Ticket #43082 (Add plugins search results: the plugin details modal opens in the ...) created</title>
+      
+        <dc:creator>afercia</dc:creator>
+
+      <pubDate>Sat, 13 Jan 2018 15:56:28 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43082</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43082/1515858988005339</guid>
+      <description>&lt;p&gt;
+To reproduce:
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;go in Plugins &amp;gt; Add New
+&lt;/li&gt;&lt;li&gt;open a plugin details modal, for example from the "Featured" tab, click on the BuddyPress "More details" link
+&lt;/li&gt;&lt;li&gt;the modal opens in the custom WordPress modal:
+&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;
+&lt;a style="padding:0; border:none" href="https://cldup.com/0c9aYWMwlg.jpg"&gt;&lt;img src="https://cldup.com/0c9aYWMwlg.jpg" alt="https://cldup.com/0c9aYWMwlg.jpg" crossorigin="anonymous" title="https://cldup.com/0c9aYWMwlg.jpg" /&gt;&lt;/a&gt;
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;now go in the Search tab and search for "buddypress"
+&lt;/li&gt;&lt;li&gt;click on the BuddyPress "More details" link
+&lt;/li&gt;&lt;li&gt;the modal opens in the default thickbox modal:
+&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;
+&lt;a style="padding:0; border:none" href="https://cldup.com/E-KqeYJjtY.jpg"&gt;&lt;img src="https://cldup.com/E-KqeYJjtY.jpg" alt="https://cldup.com/E-KqeYJjtY.jpg" crossorigin="anonymous" title="https://cldup.com/E-KqeYJjtY.jpg" /&gt;&lt;/a&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Worth noting the default thickbox modal doesn't handle well some accessibility requirements, for example tabbing is not constrained within the modal and Escape to close the modal works only in the modal top toolbar.
+&lt;/p&gt;
+&lt;p&gt;
+Seems to me this worked correctly in 4.8 and was introduced at some point in 4.9.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #40040 (Run wpautop on author bio) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Sat, 13 Jan 2018 15:27:05 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/40040#comment:26</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/40040#comment:26/1515857225786713</guid>
+      <description>&lt;i&gt;Resolution&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Reverted in &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/42441" title="Formatting: Do not run formatting and texturization on author bios.
+ ..."&gt;[42441]&lt;/a&gt; due to backward compatibility concerns.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #42349 (Things get deleted when editing anchor text on lins) updated</title>
+      
+        <dc:creator>azaozz</dc:creator>
+
+      <pubDate>Sat, 13 Jan 2018 14:49:44 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/42349#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/42349#comment:1/1515854984295995</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Can't reproduce this, editing a link's text works properly. Pressing delete/backspace on the last letter removes the link.
+&lt;/p&gt;
+&lt;p&gt;
+Can you provide some more info please:
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;What version of WordPress.
+&lt;/li&gt;&lt;li&gt;What browser are you using.
+&lt;/li&gt;&lt;li&gt;Try this in a private window in the browser (to run without any browser add-ons/extensions).
+&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;
+If still the same, try it with all WordPress plugins disabled and a default theme. If still happens, are there any errors in the browser console?
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #42685 (Complex javascript code breaks &lt;pre&gt; tags and Connection to server) closed</title>
+      
+        <dc:creator>azaozz</dc:creator>
+
+      <pubDate>Sat, 13 Jan 2018 14:40:34 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/42685#comment:8</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/42685#comment:8/1515854434422361</guid>
+      <description>worksforme: &lt;p&gt;
+Also tested this and don't see any problems posting the example on both a test install and a "real" site. Another test you can try is to post the example in a comment. Comments are processed slightly differently than posts when saving, it may show if this is "content filtering" related.
+&lt;/p&gt;
+&lt;p&gt;
+Closing as worksforme for now, feel free to reopen with more details that would help to reproduce the error.
+&lt;/p&gt;
+</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Ticket #42716 (When using the wp_editor_settings filter and setting tinymce to false, ...) closed</title>
+      
+        <dc:creator>azaozz</dc:creator>
+
+      <pubDate>Sat, 13 Jan 2018 14:26:04 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/42716#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/42716#comment:1/1515853564420780</guid>
+      <description>worksforme: &lt;p&gt;
+Can't reproduce this in the main editor on the Add/Edit Post screen. Adding the example code stops TinyMCE from loading but the word count works well in the textarea.
+&lt;/p&gt;
+&lt;p&gt;
+The function in post.js is for showing the count on that screen, if it's used at another location, it will need something similar.
+&lt;/p&gt;
+&lt;p&gt;
+Closing as worksforme for now, feel free to reopen with more details of what is broken and where.
+&lt;/p&gt;
+</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Ticket #43012 (Cannot Update Post in Firefox Due to Editor and TinyMCE JavaScript ...) closed</title>
+      
+        <dc:creator>azaozz</dc:creator>
+
+      <pubDate>Sat, 13 Jan 2018 11:27:54 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43012#comment:9</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43012#comment:9/1515842874681962</guid>
+      <description>fixed: &lt;p&gt;
+In &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/42442" title="Merged revision 42430 from trunk:
+Editor: ensure there is a selection ..."&gt;42442&lt;/a&gt;:
+&lt;/p&gt;
+&lt;div class="message"&gt;&lt;p&gt;
+Merged revision 42430 from trunk:&lt;br /&gt;
+Editor: ensure there is a selection before getting the caret position. Fixes a bug in Firefox when there is no selection for a hidden element.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Props johnschulz, azaozz.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/43012" title="#43012: defect (bug): Cannot Update Post in Firefox Due to Editor and TinyMCE JavaScript ... (closed: fixed)"&gt;#43012&lt;/a&gt; for 4.9.2.&lt;br /&gt;
+&lt;/p&gt;
+&lt;/div&gt;</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Changeset [42442]: Merged revision 42430 from trunk: Editor: ensure there is a selection ...</title>
+      
+        <dc:creator>azaozz</dc:creator>
+
+      <pubDate>Sat, 13 Jan 2018 11:27:54 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/42442</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/42442/1515842874214146</guid>
+      <description>&lt;p&gt;
+Merged revision 42430 from trunk:
+Editor: ensure there is a selection before getting the caret position. Fixes a bug in Firefox when there is no selection for a hidden element.
+&lt;/p&gt;
+&lt;p&gt;
+Props johnschulz, azaozz.
+&lt;/p&gt;
+&lt;p&gt;
+Fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/43012" title="#43012: defect (bug): Cannot Update Post in Firefox Due to Editor and TinyMCE JavaScript ... (closed: fixed)"&gt;#43012&lt;/a&gt; for 4.9.2.
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Ticket #42766 (Issue in update password From admin side and login ith same password) updated</title>
+      
+        <dc:creator>oolleegg55</dc:creator>
+
+      <pubDate>Sat, 13 Jan 2018 11:04:53 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/42766#comment:10</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/42766#comment:10/1515841493784589</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+@adamsilverstein I added a patch containing unit test.
+I am confused a little with file 42766.patch. It contains code which doesn't regard this ticket in my opinion. I didn't use the file 42766.patch for new file 42766.3.diff.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #42643 (FLV video format not playing) updated</title>
+      
+        <dc:creator>birgire</dc:creator>
+
+      <pubDate>Sat, 13 Jan 2018 11:03:55 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/42643#comment:21</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/42643#comment:21/1515841435696969</guid>
+      <description>&lt;p&gt;
+Hi @Clorith, I tested the patch in &lt;a class="attachment" href="http://core.trac.wordpress.org/attachment/ticket/42643/42643.3.patch" title="Attachment '42643.3.patch' in Ticket #42643"&gt;42643.3.patch&lt;/a&gt;&lt;a class="trac-rawlink" href="http://core.trac.wordpress.org/raw-attachment/ticket/42643/42643.3.patch" title="Download"&gt;​&lt;/a&gt; with &lt;a class="attachment" href="http://core.trac.wordpress.org/attachment/ticket/42643/small.flv" title="Attachment 'small.flv' in Ticket #42643"&gt;small.flv&lt;/a&gt;&lt;a class="trac-rawlink" href="http://core.trac.wordpress.org/raw-attachment/ticket/42643/small.flv" title="Download"&gt;​&lt;/a&gt; and here are few notes:
+&lt;/p&gt;
+&lt;ol&gt;&lt;li&gt;I get 139 js errors: &lt;code&gt;flv.min.js:6 [TransmuxingController] &amp;gt; DemuxException: type = CodecUnsupported, info = Flv: Unsupported codec in video frame: 2&lt;/code&gt;, no matter if the patch &lt;a class="attachment" href="http://core.trac.wordpress.org/attachment/ticket/42643/42643.3.patch" title="Attachment '42643.3.patch' in Ticket #42643"&gt;42643.3.patch&lt;/a&gt;&lt;a class="trac-rawlink" href="http://core.trac.wordpress.org/raw-attachment/ticket/42643/42643.3.patch" title="Download"&gt;​&lt;/a&gt; is applied or not. Maybe it's just my test install?
+&lt;/li&gt;&lt;li&gt;Would it be possible to use e.g. &lt;code&gt;media.rendererName.match( /(flv|flash)/i )&lt;/code&gt; (returns null or array) instead of multiple &lt;code&gt;indexOf()&lt;/code&gt; like: &lt;code&gt;-1 !== media.rendererName.indexOf( 'flash' ) || -1 !== media.rendererName.indexOf( 'flv' )&lt;/code&gt; ?
+&lt;/li&gt;&lt;li&gt;Shouldn't we have the &lt;em&gt;Download&lt;/em&gt; string translatable? So in my language (Icelandic) I would see e.g.&lt;code&gt;&amp;lt;a href="http://test.localhost/wp-content/uploads/2018/01/small.flv?_=1"&amp;gt;Sækja small.flv?_=1&amp;lt;/a&amp;gt;&lt;/code&gt;. Maybe one could even reuse the &lt;code&gt;'mejs.download-video'&lt;/code&gt; string from &lt;code&gt;mejsL10n&lt;/code&gt; in &lt;code&gt;/wp-includes/script-loader.php&lt;/code&gt; ?
+&lt;/li&gt;&lt;li&gt;Should we remove the &lt;code&gt;?_=1&lt;/code&gt; in the link text, e.g. &lt;code&gt;&amp;lt;a href="http://test.localhost/wp-content/uploads/2018/01/small.flv?_=1"&amp;gt;Download small.flv&amp;lt;/a&amp;gt;&lt;/code&gt;, since the extra &lt;code&gt;?_=1&lt;/code&gt; might be confusing to the user and since the downloaded file is also without it: &lt;code&gt;small.flv&lt;/code&gt;?
+&lt;/li&gt;&lt;/ol&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>42766.3.diff attached to Ticket #42766</title>
+      
+        <dc:creator>oolleegg55</dc:creator>
+
+      <pubDate>Sat, 13 Jan 2018 10:54:58 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/42766/42766.3.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/42766/42766.3.diff/1515840898333149</guid>
+      <description>&lt;p&gt;
+Add unit test
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>42991-home-link-in-customizer-search.png attached to Ticket #42991</title>
+      
+        <dc:creator>audrasjb</dc:creator>
+
+      <pubDate>Sat, 13 Jan 2018 09:50:20 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/42991/42991-home-link-in-customizer-search.png</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/42991/42991-home-link-in-customizer-search.png/1515837020990266</guid>
+      <description>&lt;p&gt;
+Result
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #42991 (Customizer: Search Menu item not working on Custom Link) updated</title>
+      
+        <dc:creator>audrasjb</dc:creator>
+
+      <pubDate>Sat, 13 Jan 2018 09:49:50 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/42991#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/42991#comment:3/1515836990503025</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Hi @monikarao @melchoyce
+&lt;/p&gt;
+&lt;p&gt;
+I made a patch for this ticket. It works well.
+Here is a screenshot of the result.
+&lt;/p&gt;
+&lt;p&gt;
+Cheers,
+Jb
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>42991.diff attached to Ticket #42991</title>
+      
+        <dc:creator>audrasjb</dc:creator>
+
+      <pubDate>Sat, 13 Jan 2018 09:47:41 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/42991/42991.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/42991/42991.diff/1515836861699842</guid>
+      <description>&lt;p&gt;
+Add home custom link in customizer menu search
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #42578 (PHP functions inside &lt;p&gt; tags creates new &lt;p&gt; tag, breaking the parent ...) updated</title>
+      
+        <dc:creator>peterwilsoncc</dc:creator>
+
+      <pubDate>Sat, 13 Jan 2018 01:12:58 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/42578#comment:40</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/42578#comment:40/1515805978704774</guid>
+      <description>&lt;i&gt;Status&lt;/i&gt;, &lt;i&gt;Owner&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #42578 (PHP functions inside &lt;p&gt; tags creates new &lt;p&gt; tag, breaking the parent ...) reopened</title>
+      
+        <dc:creator>peterwilsoncc</dc:creator>
+
+      <pubDate>Sat, 13 Jan 2018 01:12:12 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/42578#comment:39</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/42578#comment:39/1515805932294849</guid>
+      <description>&lt;p&gt;
+Reopening for back-porting.
+&lt;/p&gt;
+</description>
+      <category>reopenedticket</category>
+    </item><item>
+      <title>Ticket #42578 (PHP functions inside &lt;p&gt; tags creates new &lt;p&gt; tag, breaking the parent ...) closed</title>
+      
+        <dc:creator>peterwilsoncc</dc:creator>
+
+      <pubDate>Sat, 13 Jan 2018 01:10:57 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/42578#comment:38</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/42578#comment:38/1515805857932177</guid>
+      <description>fixed: &lt;p&gt;
+In &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/42441" title="Formatting: Do not run formatting and texturization on author bios.
+ ..."&gt;42441&lt;/a&gt;:
+&lt;/p&gt;
+&lt;div class="message"&gt;&lt;p&gt;
+Formatting: Do not run formatting and texturization on author bios.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Removes the formatting and texturization added to author bios in &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/40040" title="#40040: enhancement: Run wpautop on author bio (closed: wontfix)"&gt;#40040&lt;/a&gt; due to back-compatibility concerns.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Reverts &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/41172" title="Formatting: Add formatting and texturization to author descriptions so ..."&gt;[41172]&lt;/a&gt;, &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/41173" title="Formatting: Update the author description tests since the formatting ..."&gt;[41173]&lt;/a&gt;.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Props 0x6f0, rabmalin for review.&lt;br /&gt;
+Fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/42578" title="#42578: defect (bug): PHP functions inside &amp;lt;p&amp;gt; tags creates new &amp;lt;p&amp;gt; tag, breaking the parent ... (closed: fixed)"&gt;#42578&lt;/a&gt;.&lt;br /&gt;
+&lt;/p&gt;
+&lt;/div&gt;</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Changeset [42441]: Formatting: Do not run formatting and texturization on author bios.  ...</title>
+      
+        <dc:creator>peterwilsoncc</dc:creator>
+
+      <pubDate>Sat, 13 Jan 2018 01:10:56 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/42441</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/42441/1515805856906283</guid>
+      <description>&lt;p&gt;
+Formatting: Do not run formatting and texturization on author bios.
+&lt;/p&gt;
+&lt;p&gt;
+Removes the formatting and texturization added to author bios in &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/40040" title="#40040: enhancement: Run wpautop on author bio (closed: wontfix)"&gt;#40040&lt;/a&gt; due to back-compatibility concerns.
+&lt;/p&gt;
+&lt;p&gt;
+Reverts &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/41172" title="Formatting: Add formatting and texturization to author descriptions so ..."&gt;[41172]&lt;/a&gt;, &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/41173" title="Formatting: Update the author description tests since the formatting ..."&gt;[41173]&lt;/a&gt;.
+&lt;/p&gt;
+&lt;p&gt;
+Props 0x6f0, rabmalin for review.
+Fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/42578" title="#42578: defect (bug): PHP functions inside &amp;lt;p&amp;gt; tags creates new &amp;lt;p&amp;gt; tag, breaking the parent ... (closed: fixed)"&gt;#42578&lt;/a&gt;.
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Ticket #43081 (Custom logo issue in Customizer) created</title>
+      
+        <dc:creator>Guido07111975</dc:creator>
+
+      <pubDate>Sat, 13 Jan 2018 00:05:30 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43081</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43081/1515801930575559</guid>
+      <description>&lt;p&gt;
+Hi,
+&lt;/p&gt;
+&lt;p&gt;
+Almost 2 years ago I've started a thread about an issue with the custom logo in customizer. Link: &lt;a class="ext-link" href="https://wordpress.org/support/topic/custom-logo-issue-in-customizer/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://wordpress.org/support/topic/custom-logo-issue-in-customizer/&lt;/a&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Until now it's not fixed.
+&lt;/p&gt;
+&lt;p&gt;
+In short, this doesn't behave as expected:
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;&amp;lt;?php if ( has_custom_logo() ) : ?&amp;gt;
+	&amp;lt;?php the_custom_logo(); ?&amp;gt;
+&amp;lt;?php else : ?&amp;gt;
+	&amp;lt;h1&amp;gt;Site Title&amp;lt;/h1&amp;gt;
+	&amp;lt;h2&amp;gt;Tagline&amp;lt;/h2&amp;gt;
+&amp;lt;?php endif; ?&amp;gt;
+&lt;/pre&gt;&lt;p&gt;
+Once a custom logo is set, and removed again in the same session, Site Title and Tagline aren't displayed. You need to close and re-visit the customizer, to make Site Title and Tagline visible again.
+&lt;/p&gt;
+&lt;p&gt;
+It seems the custom logo stays active, after removing the logo (image) in the same session.
+&lt;/p&gt;
+&lt;p&gt;
+Guido
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item>
+   </channel>
+</rss>

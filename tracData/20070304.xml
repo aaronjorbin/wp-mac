@@ -1,0 +1,779 @@
+<?xml version="1.0"?>
+<rss xmlns:dc="http://purl.org/dc/elements/1.1/" version="2.0">
+  <channel>
+    <title>WordPress Trac</title>
+    <link>http://core.trac.wordpress.org/timeline</link>
+    <description>Trac Timeline</description>
+    <language>en-US</language>
+    <generator>Trac 1.2.2</generator>
+    <image>
+      <title>WordPress Trac</title>
+      <url>http://core.trac.wordpress.org/chrome/site/your_project_logo.png</url>
+      <link>http://core.trac.wordpress.org/timeline</link>
+    </image>
+    <item>
+      <title>Ticket #3826 (TinyMCE misconfiguration causes erronous tag replacements) updated</title>
+      
+        <dc:creator>linusmartensson</dc:creator>
+
+      <pubDate>Sun, 04 Mar 2007 23:55:04 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/3826#comment:4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/3826#comment:4/1173052504000000</guid>
+      <description>&lt;i&gt;Summary&lt;/i&gt;, &lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+On second thought, I looked into this a bit over at &lt;a class="ext-link" href="http://wiki.moxiecode.com/index.php/TinyMCE:Configuration/valid_elements"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;http://wiki.moxiecode.com/index.php/TinyMCE:Configuration/valid_elements&lt;/a&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Turns out this is just a TinyMCE malconfiguration.
+&lt;/p&gt;
+&lt;p&gt;
+Here's the current code:
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;// Set up init variables
+$valid_elements = 'p/-div[*],-strong/-b[*],-em/-i[*],-font[*],-ul[*],-ol[*],-li[*],*[*]';
+$valid_elements = apply_filters('mce_valid_elements', $valid_elements);
+&lt;/pre&gt;&lt;p&gt;
+I'd recommend rewriting it to use negation rather than approval, seeing as *[*] is added at the end, which approves all elements anyhow. Not to mention the text editor would allow illegal statements in any case as long as the visual editor is disabled.
+&lt;/p&gt;
+&lt;p&gt;
+tiny_mce_config.php:
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;$valid_elements = '*[*]';
+$valid_elements = apply_filters('mce_valid_elements', $valid_elements);
+$invalid elements = apply_filters('mce_invalid_elements', '');
+&lt;/pre&gt;&lt;p&gt;
+Then you'd add this line to the init section:
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;invalid_elements : "&amp;lt;?php echo $invalid_elements; ?&amp;gt;",
+&lt;/pre&gt;&lt;p&gt;
+Now you could just add basic filters to set up the valid / invalid elements without strange configurations confusing users.
+&lt;/p&gt;
+&lt;p&gt;
+Linus
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #3826 (TinyMCE misconfiguration causes erronous tag replacements) updated</title>
+      
+        <dc:creator>linusmartensson</dc:creator>
+
+      <pubDate>Sun, 04 Mar 2007 23:33:09 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/3826#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/3826#comment:3/1173051189000000</guid>
+      <description>&lt;i&gt;Summary&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+There's more problems related to this.
+I used &amp;lt;embed&amp;gt; to include a flash from youtube on a page in the text editor whilst testing things. The &amp;lt;embed&amp;gt; was replaced with &amp;lt;ibed&amp;gt;, &amp;lt;em&amp;gt; is a tag somewhat equivalent to &amp;lt;i&amp;gt;, but less use. In any case the replacement is outright stupid. I would strongly consider finding a replacement for TinyMCE until they work out dumb bugs like this.
+&lt;/p&gt;
+&lt;p&gt;
+Linus
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>class-IXR.php attached to Ticket #3906</title>
+      
+        <dc:creator>momo360modena</dc:creator>
+
+      <pubDate>Sun, 04 Mar 2007 23:01:11 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/3906/class-IXR.php</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/3906/class-IXR.php/1173049271000000</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #3906 (Windows Live Writer can't upload image) created</title>
+      
+        <dc:creator>momo360modena</dc:creator>
+
+      <pubDate>Sun, 04 Mar 2007 22:59:53 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/3906</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/3906/1173049193000000</guid>
+      <description>&lt;p&gt;
+Now :
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;        $this-&amp;gt;message = preg_replace('/&amp;lt;\?xml(.*)?\?'.'&amp;gt;/', '', $this-&amp;gt;message);
+        if (trim($this-&amp;gt;message) == '') {
+            return false;
+        }
+        $this-&amp;gt;_parser = xml_parser_create();
+&lt;/pre&gt;&lt;p&gt;
+Fix :
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;$rx = '/&amp;lt;?xml.*encoding=[\'"](.*?)[\'"].*?&amp;gt;/m';
+  if ( preg_match($rx, $this-&amp;gt;message, $m) ) {
+  $encoding = strtoupper($m[1]);
+}
+else {
+  $encoding = 'UTF-8';
+}
+$this-&amp;gt;_parser = xml_parser_create($encoding);
+&lt;/pre&gt;&lt;p&gt;
+Source :
+&lt;a class="ext-link" href="http://blog.kingtch.com/2007/02/01/55/upload-image-with-windows-live-writer-2.html"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;http://blog.kingtch.com/2007/02/01/55/upload-image-with-windows-live-writer-2.html&lt;/a&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Verify on 2 hosts PHP 5.2
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #3882 (An error commented in forums: tinyMCE not defined) updated</title>
+      
+        <dc:creator>alexrabe</dc:creator>
+
+      <pubDate>Sun, 04 Mar 2007 20:47:38 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/3882#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/3882#comment:3/1173041258000000</guid>
+      <description>&lt;p&gt;
+Replying to &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/3882#comment:1" title="Comment 1"&gt;foolswisdom&lt;/a&gt;:
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+Is there links you can provide for background information about the problem?
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+I had a similar problem with some users of my plugins, the reason is based also on the realpath problem and a TinyMCE failure :
+&lt;/p&gt;
+&lt;p&gt;
+a.) If you add a external plugin to TinyMCE the &lt;code&gt;($_GET['plugins'])&lt;/code&gt; contains a empty field at the end : (inlinepopups, autosave, spellchecker, paste, wordpress,). Note the "&lt;strong&gt;,&lt;/strong&gt;" at the end.
+&lt;/p&gt;
+&lt;p&gt;
+FYI : A external plugin is added with a hyphen
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;array_push($plugins, '-mypluginname');
+&lt;/pre&gt;&lt;p&gt;
+b) The OpenBSD contain a bug as explained in &lt;a class="ext-link" href="http://php.net/realpath"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;http://php.net/realpath&lt;/a&gt; : &lt;strong&gt;On BSD systems realpath doesn't fail if only the last path component doesn't exist, while other systems will return FALSE.&lt;/strong&gt;
+&lt;/p&gt;
+&lt;p&gt;
+So it happend that
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;TinyMCE_echo(file_get_contents($pluginFile));
+&lt;/pre&gt;&lt;p&gt;
+is executed and look for a empty $pluginFile and return so a error, which halted TinyMCE
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #3905 (add/edit links gives script error) updated</title>
+      
+        <dc:creator>kfinchsigmate</dc:creator>
+
+      <pubDate>Sun, 04 Mar 2007 19:54:37 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/3905#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/3905#comment:2/1173038077000000</guid>
+      <description>&lt;p&gt;
+mysteriously repaired itself.
+&lt;/p&gt;
+&lt;p&gt;
+nevermind.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #3905 (add/edit links gives script error) updated</title>
+      
+        <dc:creator>kfinchsigmate</dc:creator>
+
+      <pubDate>Sun, 04 Mar 2007 19:52:01 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/3905#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/3905#comment:1/1173037921000000</guid>
+      <description>&lt;i&gt;Summary&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Bugtracker report: (I'm using browser: Firefox 2.0.0.2)
+&lt;/p&gt;
+&lt;p&gt;
+this.frame.tinyMCEPopup.restoreSelection is not a function
+&lt;/p&gt;
+&lt;p&gt;
+close()tiny_mce_gzip.php (line 1082)
+[Break on this error] this.frame&lt;a class="missing wiki"&gt;tinyMCEPopup?&lt;/a&gt;.restoreSelection();
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>bugreport.jpg attached to Ticket #3905</title>
+      
+        <dc:creator>kfinchsigmate</dc:creator>
+
+      <pubDate>Sun, 04 Mar 2007 19:47:20 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/3905/bugreport.jpg</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/3905/bugreport.jpg/1173037640000000</guid>
+      <description>&lt;p&gt;
+screenshot of what i'm talking about.
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #3905 (add/edit links gives script error) created</title>
+      
+        <dc:creator>kfinchsigmate</dc:creator>
+
+      <pubDate>Sun, 04 Mar 2007 19:46:53 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/3905</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/3905/1173037613000000</guid>
+      <description>&lt;p&gt;
+Attempting to add links in the WYSIWYG editor opens the dialog box, but the "cancel" and "submit" buttons aren't visible.  I can tab down to them, but pressing them does not submit the link to add the html nor does it close the box.  Using the 'code' mode, I can add links using the link button with no problems.
+&lt;/p&gt;
+&lt;p&gt;
+See attached screenshot.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #3904 (WP 1.5.x bookmarklet causing edit-form.php fatal error when invoked ...) created</title>
+      
+        <dc:creator>padams</dc:creator>
+
+      <pubDate>Sun, 04 Mar 2007 19:20:45 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/3904</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/3904/1173036045000000</guid>
+      <description>&lt;p&gt;
+Seems that wp-admin/bookmarklet.php is
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;Fatal error: Call to undefined function: the_quicktags() in /path/wordpress/wp-admin/edit-form.php on line 35
+&lt;/pre&gt;&lt;p&gt;
+running 2.1.1. from SVN.
+&lt;/p&gt;
+&lt;p&gt;
+Caused by me not updating my bookmarklet link when i upgraded from 1.5.x to 2.1.1.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #3894 (Titles of drafts are displayed unfiltered) closed</title>
+      
+        <dc:creator>markjaquith</dc:creator>
+
+      <pubDate>Sun, 04 Mar 2007 18:48:21 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/3894#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/3894#comment:3/1173034101000000</guid>
+      <description>fixed: &lt;p&gt;
+(In &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/4966" title="Pass draft titles through the_title filter.  Props jhodgdon.  fixes #3894"&gt;[4966]&lt;/a&gt;) Pass draft titles through the_title filter.  Props jhodgdon.  fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/3894" title="#3894: defect (bug): Titles of drafts are displayed unfiltered (closed: fixed)"&gt;#3894&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Changeset [4966]: Pass draft titles through the_title filter.  Props jhodgdon.  fixes #3894</title>
+      
+        <dc:creator>markjaquith</dc:creator>
+
+      <pubDate>Sun, 04 Mar 2007 18:48:19 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/4966</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/4966/1173034099173690</guid>
+      <description>&lt;p&gt;
+Pass draft titles through the_title filter.  Props jhodgdon.  fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/3894" title="#3894: defect (bug): Titles of drafts are displayed unfiltered (closed: fixed)"&gt;#3894&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Ticket #3899 (Function user_trailingslashit breaks .html permalinks) updated</title>
+      
+        <dc:creator>markjaquith</dc:creator>
+
+      <pubDate>Sun, 04 Mar 2007 18:21:04 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/3899#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/3899#comment:3/1173032464000000</guid>
+      <description>&lt;p&gt;
+I've also seen people recommend it for mysterious SEO reasons.  Something about search engines knowing the difference between a dynamic and a static page (rubbish, that).
+&lt;/p&gt;
+&lt;p&gt;
+We could put a filter on the function, so that people with such structures who want trailing slashes on everything but individual permalinks can just install a plugin.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #3891 (Multiple errors when passing some query variables as an a array(Only ...) updated</title>
+      
+        <dc:creator>markjaquith</dc:creator>
+
+      <pubDate>Sun, 04 Mar 2007 18:16:26 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/3891#comment:9</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/3891#comment:9/1173032186000000</guid>
+      <description>&lt;p&gt;
+(In &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/4965" title="Cast query vars to strings.  fixes #3891"&gt;[4965]&lt;/a&gt;) Cast query vars to strings. fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/3891" title="#3891: defect (bug): Multiple errors when passing some query variables as an a array(Only ... (closed: fixed)"&gt;#3891&lt;/a&gt;
+&lt;/p&gt;
+&lt;p&gt;
+That fixes it for trunk.  I'll hold off on fixing it for 2.1.3 until it has been in trunk for a few days.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Changeset [4965]: Cast query vars to strings.  fixes #3891</title>
+      
+        <dc:creator>markjaquith</dc:creator>
+
+      <pubDate>Sun, 04 Mar 2007 18:08:33 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/4965</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/4965/1173031713633888</guid>
+      <description>&lt;p&gt;
+Cast query vars to strings.  fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/3891" title="#3891: defect (bug): Multiple errors when passing some query variables as an a array(Only ... (closed: fixed)"&gt;#3891&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Ticket #3894 (Titles of drafts are displayed unfiltered) updated</title>
+      
+        <dc:creator>jhodgdon</dc:creator>
+
+      <pubDate>Sun, 04 Mar 2007 16:26:26 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/3894#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/3894#comment:2/1173025586000000</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>edit.php.2.diff attached to Ticket #3894</title>
+      
+        <dc:creator>jhodgdon</dc:creator>
+
+      <pubDate>Sun, 04 Mar 2007 16:16:40 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/3894/edit.php.2.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/3894/edit.php.2.diff/1173025000000000</guid>
+      <description>&lt;p&gt;
+New patch with stripslashes inside (still works fine for purposes of fixing bug)
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #3903 (Admin header should use bloginfo rather than get_option for blog name) updated</title>
+      
+        <dc:creator>jhodgdon</dc:creator>
+
+      <pubDate>Sun, 04 Mar 2007 16:10:07 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/3903#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/3903#comment:1/1173024607000000</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>admin-header-php.diff attached to Ticket #3903</title>
+      
+        <dc:creator>jhodgdon</dc:creator>
+
+      <pubDate>Sun, 04 Mar 2007 16:09:41 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/3903/admin-header-php.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/3903/admin-header-php.diff/1173024581000000</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #3903 (Admin header should use bloginfo rather than get_option for blog name) created</title>
+      
+        <dc:creator>jhodgdon</dc:creator>
+
+      <pubDate>Sun, 04 Mar 2007 16:09:14 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/3903</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/3903/1173024554000000</guid>
+      <description>&lt;p&gt;
+When on the Admin pages of WordPress, admin_header.php puts the blog's name on the screen in big type at the top, by calling get_option('blogname'). This is a problem because it is not really possible to filter this text, to make it look reasonable, and some plugins might want/need to (e.g. Polyglot).
+&lt;/p&gt;
+&lt;p&gt;
+The reason you cannot filter get_option('blogname') is because the options put into the option-setting form from options_general.php (i.e. the General tab of the Options section of the Admin screens) are also derived from get_option. So if you define a filter for get_option_blogname, then that filter will also be used to filter what goes into the option-setting form. But the form needs to display unfiltered actual input so the user can see what is actually in the database.
+&lt;/p&gt;
+&lt;p&gt;
+The solution is to use bloginfo('name') in the admin header in place of get_option('blogname'), because bloginfo can definitely be filtered. Also the blog title displayed on the admin form is then more consistent with the standard used to display the blog's name in the default theme (and many other themes) in the blog header.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #2323 (Previous Link broken....) updated</title>
+      
+        <dc:creator>fwenzel</dc:creator>
+
+      <pubDate>Sun, 04 Mar 2007 07:16:31 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/2323#comment:4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/2323#comment:4/1172992591000000</guid>
+      <description>&lt;i&gt;Cc&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Actually, the option to choose days has been removed in WP 2.1 altogether, which quite presumably is not a fix to this issue but making it quite a bit worse ;)
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #3727 (WP-&gt;parse_request() won't replace $pathinfo when $req_uri contains any ...) updated</title>
+      
+        <dc:creator>majelbstoat</dc:creator>
+
+      <pubDate>Sun, 04 Mar 2007 03:47:48 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/3727#comment:11</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/3727#comment:11/1172980068000000</guid>
+      <description>&lt;p&gt;
+The recent addition of urldecode() also converts '+' to ' '.  This breaks plugins that have added custom permalink handling, that use '+' to separate arguments.  The specific case that broke for me is language appending in Gengo, which creates permalinks like site.com/en+de/ .  This gets decoded to site.com/en de/ which fails to match the regular expressions that have been set up.  I'm sure there must be other plugins out there which rely on this behaviour as well, as '+' is a very natural separator for specifying 'more than one'.
+&lt;/p&gt;
+&lt;p&gt;
+I would request that rawurldecode() be used instead, which is identical to urldecode(), except that it preserves '+'.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>3902.diff attached to Ticket #3902</title>
+      
+        <dc:creator>majelbstoat</dc:creator>
+
+      <pubDate>Sun, 04 Mar 2007 03:05:18 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/3902/3902.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/3902/3902.diff/1172977518000000</guid>
+      <description>&lt;p&gt;
+Don't test category_name for wp_title is we've already tested cat
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #3902 (wp_title shouldn't use category_name if cat is also specified,) created</title>
+      
+        <dc:creator>majelbstoat</dc:creator>
+
+      <pubDate>Sun, 04 Mar 2007 03:03:04 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/3902</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/3902/1172977384000000</guid>
+      <description>&lt;p&gt;
+A very simple patch.  In wp_title(), we test to see if a 'cat' is supplied, generating a title based on that.  The next block of code adds an unnecessary database call if 'category_name' is supplied, even if 'cat' was also supplied.  We should just ignore the second block of code if we've already determined the cat title from the 'cat' var.
+&lt;/p&gt;
+&lt;p&gt;
+The patch simply adds 'else' to the second block.  I can't think of any circumstances where this would be a problem.  If the category_name and cat vars didn't map to the same title anyway, there would be bigger problems.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #3898 (wp_list_bookmarks doesn't pass parameters to get_bookmarks) closed</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Sun, 04 Mar 2007 01:59:59 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/3898#comment:5</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/3898#comment:5/1172973599000000</guid>
+      <description>fixed: &lt;p&gt;
+(In &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/4964" title="Pass along all parameters to get_bookmarks(). Props Otto42. fixes #3898"&gt;[4964]&lt;/a&gt;) Pass along all parameters to get_bookmarks(). Props Otto42. fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/3898" title="#3898: defect (bug): wp_list_bookmarks doesn't pass parameters to get_bookmarks (closed: fixed)"&gt;#3898&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Changeset [4964]: Pass along all parameters to get_bookmarks(). Props Otto42. fixes #3898</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Sun, 04 Mar 2007 01:59:57 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/4964</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/4964/1172973597612629</guid>
+      <description>&lt;p&gt;
+Pass along all parameters to get_bookmarks(). Props Otto42. fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/3898" title="#3898: defect (bug): wp_list_bookmarks doesn't pass parameters to get_bookmarks (closed: fixed)"&gt;#3898&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Ticket #3899 (Function user_trailingslashit breaks .html permalinks) updated</title>
+      
+        <dc:creator>johnbillion</dc:creator>
+
+      <pubDate>Sat, 03 Mar 2007 20:15:43 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/3899#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/3899#comment:2/1172952943000000</guid>
+      <description>&lt;p&gt;
+I'm guessing lunabyte is using that permalink structure so as not to break old permalinks on a site which has switched over from using static HTML pages to using WordPress, am I right?
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #3824 (Transition the Admin Area over to using jQuery) updated</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Sat, 03 Mar 2007 19:59:55 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/3824#comment:16</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/3824#comment:16/1172951995000000</guid>
+      <description>&lt;i&gt;Cc&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #3824 (Transition the Admin Area over to using jQuery) updated</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Sat, 03 Mar 2007 17:56:18 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/3824#comment:15</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/3824#comment:15/1172944578000000</guid>
+      <description>&lt;p&gt;
+&lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/4963" title="Update to jQuery 1.1.2. #3824"&gt;[4963]&lt;/a&gt; updates to jQuery 1.1.2.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Changeset [4963]: Update to jQuery 1.1.2. #3824</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Sat, 03 Mar 2007 17:55:36 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/4963</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/4963/1172944536463966</guid>
+      <description>&lt;p&gt;
+Update to jQuery 1.1.2. &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/3824" title="#3824: task (blessed): Transition the Admin Area over to using jQuery (closed: fixed)"&gt;#3824&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Ticket #3900 (New keys for post2cat) updated</title>
+      
+        <dc:creator>foolswisdom</dc:creator>
+
+      <pubDate>Sat, 03 Mar 2007 17:11:04 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/3900#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/3900#comment:1/1172941864000000</guid>
+      <description>&lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Changeset [4962]: jQuery was moved to jquery subdir.  Remove redundant libs.</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Sat, 03 Mar 2007 17:01:26 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/4962</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/4962/1172941286000281</guid>
+      <description>&lt;p&gt;
+jQuery was moved to jquery subdir.  Remove redundant libs.
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Changeset [4961]: xmlrpc updates from Joseph Scott.</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Sat, 03 Mar 2007 16:56:46 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/4961</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/4961/1172941006920328</guid>
+      <description>&lt;p&gt;
+xmlrpc updates from Joseph Scott.
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Ticket #3891 (Multiple errors when passing some query variables as an a array(Only ...) updated</title>
+      
+        <dc:creator>g30rg3x</dc:creator>
+
+      <pubDate>Sat, 03 Mar 2007 15:39:27 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/3891#comment:8</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/3891#comment:8/1172936367000000</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+markjaquith: The bugs in wp_title() function, has more implications in the security but its no more related to this bug, i will open a new ticket for resolving that problem...&lt;br /&gt;Consider fixed this ticket...
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #3824 (Transition the Admin Area over to using jQuery) updated</title>
+      
+        <dc:creator>aercolino</dc:creator>
+
+      <pubDate>Sat, 03 Mar 2007 15:19:43 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/3824#comment:14</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/3824#comment:14/1172935183000000</guid>
+      <description>&lt;p&gt;
+The &lt;a class="ext-link" href="http://trac.wordpress.org/attachment/ticket/3824/dashboard-users-01.diff"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;patch&lt;/a&gt; works fine in IE7 and FF2, and is now based on trunk.
+Please try different browsers.
+&lt;/p&gt;
+&lt;p&gt;
+For testers: remember that in the &lt;strong&gt;Users / Authors &amp;amp; Users&lt;/strong&gt; page ajax (jQuery) is called only for adding users to non-empty roles. This is how it works in WordPress. So the first user with a given role will be processed without ajax, and any other with ajax.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>dashboard-users-01.diff attached to Ticket #3824</title>
+      
+        <dc:creator>aercolino</dc:creator>
+
+      <pubDate>Sat, 03 Mar 2007 15:07:32 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/3824/dashboard-users-01.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/3824/dashboard-users-01.diff/1172934452000000</guid>
+      <description>&lt;p&gt;
+replaces jQuery to Prototype in pages: Dashboard; Users / Authors &amp;amp; Users - (based on trunk)
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #3824 (Transition the Admin Area over to using jQuery) updated</title>
+      
+        <dc:creator>aercolino</dc:creator>
+
+      <pubDate>Sat, 03 Mar 2007 12:30:17 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/3824#comment:13</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/3824#comment:13/1172925017000000</guid>
+      <description>&lt;p&gt;
+The jQuery library in trunk is old (1.1.1).
+Could you please install version 1.1.2? (&lt;a class="ext-link" href="http://jquery.com/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;http://jquery.com/&lt;/a&gt;)
+&lt;/p&gt;
+&lt;p&gt;
+jQuery is distributed in compressed and uncompressed format. It would be great if you could install both (maybe with same filenames?), so that if I find issues, I can debug them. The uncompressd one could be erased at deployment time, I guess.
+&lt;/p&gt;
+&lt;p&gt;
+Thanks.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #3901 (Version Database updater displays to any user, not just administrators) updated</title>
+      
+        <dc:creator>Nazgul</dc:creator>
+
+      <pubDate>Sat, 03 Mar 2007 11:13:41 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/3901#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/3901#comment:3/1172920421000000</guid>
+      <description>&lt;p&gt;
+Can't we somehow leverage the wp-cron for this, because it already contains logic against contention (see &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/4509" title="Attempt at eliminating cron contention."&gt;[4509]&lt;/a&gt;)
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #3899 (Function user_trailingslashit breaks .html permalinks) updated</title>
+      
+        <dc:creator>markjaquith</dc:creator>
+
+      <pubDate>Sat, 03 Mar 2007 08:46:19 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/3899#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/3899#comment:1/1172911579000000</guid>
+      <description>&lt;p&gt;
+There's no way to determine that you want trailing slashes with that (strange, to say the least) permalink structure.  You definitely don't want them on your individual permalinks.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #3842 (Should make nofollow implementation cleaner and easier to remove) updated</title>
+      
+        <dc:creator>markjaquith</dc:creator>
+
+      <pubDate>Sat, 03 Mar 2007 08:39:30 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/3842#comment:10</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/3842#comment:10/1172911170000000</guid>
+      <description>&lt;p&gt;
+Well said, all around, Otto42.  Patches that make &lt;code&gt;nofollow&lt;/code&gt; implementation cleaner and easier to remove will be appreciated.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #3663 (ngettext dislikes formatted numbers) closed</title>
+      
+        <dc:creator>markjaquith</dc:creator>
+
+      <pubDate>Sat, 03 Mar 2007 08:34:14 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/3663#comment:7</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/3663#comment:7/1172910854000000</guid>
+      <description>fixed: &lt;p&gt;
+Bug was fixed in trunk only, so the fix won't show up in a release version until 2.2 is released in April.
+&lt;/p&gt;
+</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Ticket #3663 (ngettext dislikes formatted numbers) reopened</title>
+      
+        <dc:creator>dtc</dc:creator>
+
+      <pubDate>Sat, 03 Mar 2007 08:14:24 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/3663#comment:6</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/3663#comment:6/1172909664000000</guid>
+      <description>&lt;p&gt;
+Bug reintroduced in WP 2.1.2.
+&lt;/p&gt;
+</description>
+      <category>reopenedticket</category>
+    </item><item>
+      <title>Changeset [4960]: Tagging 2.1.2</title>
+      
+        <dc:creator>ryan</dc:creator>
+
+      <pubDate>Sat, 03 Mar 2007 07:23:59 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/4960</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/4960/1172906639163898</guid>
+      <description>&lt;p&gt;
+Tagging 2.1.2
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Ticket #2105 (Patch to add hAtom microformat support to Wordpress default template) updated</title>
+      
+        <dc:creator>beerf</dc:creator>
+
+      <pubDate>Sat, 03 Mar 2007 07:07:18 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/2105#comment:5</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/2105#comment:5/1172905638000000</guid>
+      <description>&lt;i&gt;Type&lt;/i&gt;, &lt;i&gt;Component&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+I documented a more "friendly" way in my blog. This just adds the needed classes without removing or breaking anything existing.
+&lt;/p&gt;
+&lt;p&gt;
+&lt;a class="ext-link" href="http://blog.no-panic.at/2006/11/16/hatom-and-wordpress/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;http://blog.no-panic.at/2006/11/16/hatom-and-wordpress/&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #3891 (Multiple errors when passing some query variables as an a array(Only ...) updated</title>
+      
+        <dc:creator>g30rg3x</dc:creator>
+
+      <pubDate>Sat, 03 Mar 2007 05:52:44 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/3891#comment:7</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/3891#comment:7/1172901164000000</guid>
+      <description>&lt;p&gt;
+Replying to &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/3891#comment:6" title="Comment 6"&gt;markjaquith&lt;/a&gt;:
+&lt;a class="ext-link" href="http://host/?m[]="&gt;&lt;span class="icon"&gt;​&lt;/span&gt;http://host/?m[]=&lt;/a&gt;
+and&lt;br /&gt;
+&lt;a class="ext-link" href="http://host/?year[]="&gt;&lt;span class="icon"&gt;​&lt;/span&gt;http://host/?year[]=&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #3901 (Version Database updater displays to any user, not just administrators) updated</title>
+      
+        <dc:creator>markjaquith</dc:creator>
+
+      <pubDate>Sat, 03 Mar 2007 05:52:01 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/3901#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/3901#comment:2/1172901121000000</guid>
+      <description>&lt;p&gt;
+Asking for a login won't guarantee non-simultaneous upgrades.  We'd need some sort of mutex scheme.
+&lt;/p&gt;
+&lt;p&gt;
+Seems an edge case, though... there's a limited window for simultaneous upgrades, and most upgrade functions should be safe to run more than once.  If they aren't, they should be rewritten.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #3891 (Multiple errors when passing some query variables as an a array(Only ...) updated</title>
+      
+        <dc:creator>markjaquith</dc:creator>
+
+      <pubDate>Sat, 03 Mar 2007 05:28:53 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/3891#comment:6</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/3891#comment:6/1172899733000000</guid>
+      <description>&lt;p&gt;
+g30rg3x,
+&lt;/p&gt;
+&lt;p&gt;
+What URL did you use to get &lt;code&gt;wp_title()&lt;/code&gt; to show "Arra" ?
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #3901 (Version Database updater displays to any user, not just administrators) updated</title>
+      
+        <dc:creator>JeremyVisser</dc:creator>
+
+      <pubDate>Sat, 03 Mar 2007 03:40:11 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/3901#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/3901#comment:1/1172893211000000</guid>
+      <description>&lt;i&gt;Priority&lt;/i&gt;, &lt;i&gt;Severity&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
++1. I have worried about this in the past, as well. Simple solution is to ask the user to log in first.
+&lt;/p&gt;
+&lt;p&gt;
+In fact, occasionally when I have come across someone's blog and I see some database errors being ejected into the sidebar, etc., I have gone into /wp-admin/ just to check to see if there's an update pending, and done it for them. &lt;code&gt;;)&lt;/code&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #3901 (Version Database updater displays to any user, not just administrators) created</title>
+      
+        <dc:creator>bradkovach</dc:creator>
+
+      <pubDate>Sat, 03 Mar 2007 02:32:25 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/3901</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/3901/1172889145000000</guid>
+      <description>&lt;p&gt;
+When an upgrade to WordPress has been performed, and wp-admin/ is visited, any visitor, not just logged in users, can initiate the update process.  Simultaneous upgrades could cause problems.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item>
+   </channel>
+</rss>

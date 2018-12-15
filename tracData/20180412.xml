@@ -1,0 +1,2869 @@
+<?xml version="1.0"?>
+<rss xmlns:dc="http://purl.org/dc/elements/1.1/" version="2.0">
+  <channel>
+    <title>WordPress Trac</title>
+    <link>http://core.trac.wordpress.org/timeline</link>
+    <description>Trac Timeline</description>
+    <language>en-US</language>
+    <generator>Trac 1.2.2</generator>
+    <image>
+      <title>WordPress Trac</title>
+      <url>http://core.trac.wordpress.org/chrome/site/your_project_logo.png</url>
+      <link>http://core.trac.wordpress.org/timeline</link>
+    </image>
+    <item>
+      <title>Ticket #43752 (ID, post_parent, menu_order on global $post object is a string in edit ...) updated</title>
+      
+        <dc:creator>javorszky</dc:creator>
+
+      <pubDate>Thu, 12 Apr 2018 23:35:57 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43752#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43752#comment:1/1523576157073961</guid>
+      <description>&lt;p&gt;
+Related WooCommerce issue on &lt;a class="ext-link" href="https://github.com/woocommerce/woocommerce/issues/19704"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://github.com/woocommerce/woocommerce/issues/19704&lt;/a&gt; (tldr: it being a string causes it to slow down due to WC expecting the prop to be an int)
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #43752 (ID, post_parent, menu_order on global $post object is a string in edit ...) created</title>
+      
+        <dc:creator>javorszky</dc:creator>
+
+      <pubDate>Thu, 12 Apr 2018 23:34:08 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43752</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43752/1523576048343192</guid>
+      <description>&lt;p&gt;
+When I'm on an edit post screen, the ID, post_parent, menu_order attributes on the global $post object are strings. I expect them to be integers.
+&lt;/p&gt;
+&lt;p&gt;
+To quickly check, put this in a plugin:
+&lt;/p&gt;
+&lt;div class="wiki-code"&gt;&lt;div class="code"&gt;&lt;pre&gt;&lt;span class="cp"&gt;&amp;lt;?php&lt;/span&gt;
+&lt;span class="nx"&gt;add_action&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="s1"&gt;'add_meta_boxes'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="k"&gt;function&lt;/span&gt;&lt;span class="p"&gt;(){&lt;/span&gt;
+        &lt;span class="nx"&gt;add_meta_box&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="s1"&gt;'foo'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;'bar'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="k"&gt;function&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="nv"&gt;$post&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+                &lt;span class="nb"&gt;var_dump&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;$post&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="na"&gt;ID&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+        &lt;span class="p"&gt;});&lt;/span&gt;
+&lt;span class="p"&gt;});&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;p&gt;
+Here's what's happening:
+&lt;/p&gt;
+&lt;ol&gt;&lt;li&gt;in wp-admin/post.php the edit case happens, and within that the post gets reloaded here: &lt;a class="ext-link" href="https://github.com/WordPress/WordPress/blob/4.9.5/wp-admin/post.php#L167"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://github.com/WordPress/WordPress/blob/4.9.5/wp-admin/post.php#L167&lt;/a&gt;
+&lt;/li&gt;&lt;li&gt;that function will run the post object through its own filter with filter edit here: &lt;a class="ext-link" href="https://github.com/WordPress/WordPress/blob/4.9.5/wp-includes/post.php#L552"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://github.com/WordPress/WordPress/blob/4.9.5/wp-includes/post.php#L552&lt;/a&gt;
+&lt;/li&gt;&lt;li&gt;because at the time $this-&amp;gt;filter = "raw", and the $filter is edit, that will run the object through sanitize_post here &lt;a class="ext-link" href="https://github.com/WordPress/WordPress/blob/4.9.5/wp-includes/class-wp-post.php#L354"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://github.com/WordPress/WordPress/blob/4.9.5/wp-includes/class-wp-post.php#L354&lt;/a&gt;
+&lt;/li&gt;&lt;li&gt;sanitize_post will, in turn, run all the fields through sanitize_post_field here: &lt;a class="ext-link" href="https://github.com/WordPress/WordPress/blob/4.9.5/wp-includes/post.php#L1940"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://github.com/WordPress/WordPress/blob/4.9.5/wp-includes/post.php#L1940&lt;/a&gt;
+&lt;/li&gt;&lt;li&gt;and even though we have 3 fields set as int (&lt;a class="ext-link" href="https://github.com/WordPress/WordPress/blob/4.9.5/wp-includes/post.php#L1973"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://github.com/WordPress/WordPress/blob/4.9.5/wp-includes/post.php#L1973&lt;/a&gt;), by the time we get to this part (&lt;a class="ext-link" href="https://github.com/WordPress/WordPress/blob/4.9.5/wp-includes/post.php#L2027-L2034"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://github.com/WordPress/WordPress/blob/4.9.5/wp-includes/post.php#L2027-L2034&lt;/a&gt;), those three will be ran through esc_attr
+&lt;/li&gt;&lt;li&gt;esc_attr will feed it through _wp_specialchars here &lt;a class="ext-link" href="https://github.com/WordPress/WordPress/blob/4.9.5/wp-includes/formatting.php#L3978"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://github.com/WordPress/WordPress/blob/4.9.5/wp-includes/formatting.php#L3978&lt;/a&gt;
+&lt;/li&gt;&lt;li&gt;which begins with $string = (string) $string; here &lt;a class="ext-link" href="https://github.com/WordPress/WordPress/blob/4.9.5/wp-includes/formatting.php#L912"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://github.com/WordPress/WordPress/blob/4.9.5/wp-includes/formatting.php#L912&lt;/a&gt;
+&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;
+The part that throws me off is that &lt;code&gt;sanitize_post_field&lt;/code&gt; declares these three properties to be integers at the beginning of the function, so I sort of expected them to come out as integers on the other end.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #43751 (REST API: Attachments controller should respect "Max upload file size" ...) created</title>
+      
+        <dc:creator>danielbachhuber</dc:creator>
+
+      <pubDate>Thu, 12 Apr 2018 23:26:17 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43751</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43751/1523575577901053</guid>
+      <description>&lt;p&gt;
+When the REST API is in use on WordPress multisite, the &lt;code&gt;WP_REST_Attachments_Controller&lt;/code&gt; should respect the "Max upload file size" and "Site upload space" site options.
+&lt;/p&gt;
+&lt;p&gt;
+If an uploaded file fails either check, then an error should be returned and WordPress shouldn't save the file.
+&lt;/p&gt;
+&lt;p&gt;
+Related &lt;a class="ext-link" href="https://github.com/WordPress/gutenberg/issues/6154"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://github.com/WordPress/gutenberg/issues/6154&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #43545 (Helper functions: Anonymizing data in a standardized way) closed</title>
+      
+        <dc:creator>azaozz</dc:creator>
+
+      <pubDate>Thu, 12 Apr 2018 21:19:25 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43545#comment:37</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43545#comment:37/1523567965623808</guid>
+      <description>fixed: &lt;p&gt;
+In &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/42971" title="Privacy: add helper function for anonymizing data in a standardized ..."&gt;42971&lt;/a&gt;:
+&lt;/p&gt;
+&lt;div class="message"&gt;&lt;p&gt;
+Privacy: add helper function for anonymizing data in a standardized way.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Props jesperher, allendav, iandunn, birgire, azaozz.&lt;br /&gt;
+Fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/43545" title="#43545: enhancement: Helper functions: Anonymizing data in a standardized way (closed: fixed)"&gt;#43545&lt;/a&gt;.&lt;br /&gt;
+&lt;/p&gt;
+&lt;/div&gt;</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Changeset [42971]: Privacy: add helper function for anonymizing data in a standardized ...</title>
+      
+        <dc:creator>azaozz</dc:creator>
+
+      <pubDate>Thu, 12 Apr 2018 21:19:24 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/42971</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/42971/1523567964598707</guid>
+      <description>&lt;p&gt;
+Privacy: add helper function for anonymizing data in a standardized way.
+&lt;/p&gt;
+&lt;p&gt;
+Props jesperher, allendav, iandunn, birgire, azaozz.
+Fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/43545" title="#43545: enhancement: Helper functions: Anonymizing data in a standardized way (closed: fixed)"&gt;#43545&lt;/a&gt;.
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Ticket #9757 (Allow Plugin/Theme updates from a uploaded .zip file.) updated</title>
+      
+        <dc:creator>bloggingthemes</dc:creator>
+
+      <pubDate>Thu, 12 Apr 2018 20:54:30 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/9757#comment:90</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/9757#comment:90/1523566470468439</guid>
+      <description>&lt;p&gt;
+I certainly hope this ticket will keep progressing. One of the biggest user experience one could hope for is to give them the method of updating an existing theme and/or plugin simply by re-uploading using the installer. Most users are scared of FTP (I don't blame them), but using a third party plugin is not ideal because who knows how long it will be kept up-to-date and supported.
+&lt;/p&gt;
+&lt;p&gt;
+This is definitely important to exist within the core and should have been there since the beginning. I get so many users say to me:
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;How come I can't update my theme using the installer?
+&lt;/li&gt;&lt;li&gt;How come I can update with 1-click themes and plugins I get from wordpress but not yours?
+&lt;/li&gt;&lt;li&gt;Or they use the installer and get that "already exists" message and get frustrated.
+&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;
+Overall, I hope this gains ground for an upcoming WordPress release because people need this.
+&lt;/p&gt;
+&lt;p&gt;
+I've been using Joomla for 10 years and they've always had this capability. It also doesn't matter what the zip file name is either because it looks at the file's xml info. In the case of WordPress, I would assume this would be a similar equivelent of the text-domain and version number of the theme or plugin. Ultimately, it shouldn't matter if the theme or plugin was installed from .org or elsewhere, the fact is that for a much better user experience, we need this.
+&lt;/p&gt;
+&lt;p&gt;
+Hopefully this makes it in an upcoming release.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #43545 (Helper functions: Anonymizing data in a standardized way) updated</title>
+      
+        <dc:creator>birgire</dc:creator>
+
+      <pubDate>Thu, 12 Apr 2018 20:21:05 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43545#comment:36</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43545#comment:36/1523564465973426</guid>
+      <description>&lt;p&gt;
+Thanks @iandunn, I wasn't aware of the &lt;code&gt;@uses&lt;/code&gt; being discouraged, I only consulted core here regarding that tag ;-)
+You're absolutely right about the try/catch not working for PHP warnings, it was the first thing that I tried and it somehow worked well with phpunit ;-)
+&lt;/p&gt;
+&lt;p&gt;
+&lt;a class="attachment" href="http://core.trac.wordpress.org/attachment/ticket/43545/43545.7.diff" title="Attachment '43545.7.diff' in Ticket #43545"&gt;43545.7.diff&lt;/a&gt;&lt;a class="trac-rawlink" href="http://core.trac.wordpress.org/raw-attachment/ticket/43545/43545.7.diff" title="Download"&gt;​&lt;/a&gt; should include all the four files and it removes the &lt;code&gt;@uses&lt;/code&gt;, try/catch and the &lt;em&gt;unrecognized address&lt;/em&gt; testcase.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #36455 (Call opcache_reset() after plug-in, theme or core update) updated</title>
+      
+        <dc:creator>GregLone</dc:creator>
+
+      <pubDate>Thu, 12 Apr 2018 20:18:36 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/36455#comment:43</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/36455#comment:43/1523564316279869</guid>
+      <description>&lt;p&gt;
+Uh, you're right.
+Yes I got one, but because I wrote my tests differently, and shouldn't.
+My apology :)
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>43545.7.diff attached to Ticket #43545</title>
+      
+        <dc:creator>birgire</dc:creator>
+
+      <pubDate>Thu, 12 Apr 2018 20:07:45 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/43545/43545.7.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/43545/43545.7.diff/1523563665838928</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #36455 (Call opcache_reset() after plug-in, theme or core update) updated</title>
+      
+        <dc:creator>benoitchantre</dc:creator>
+
+      <pubDate>Thu, 12 Apr 2018 20:05:44 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/36455#comment:42</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/36455#comment:42/1523563544974409</guid>
+      <description>&lt;p&gt;
+Replying to &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/36455#comment:41" title="Comment 41"&gt;GregLone&lt;/a&gt;:
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+Hi there,
+&lt;/p&gt;
+&lt;p&gt;
+You'll get a fatal error with php &amp;lt; 5.5 because of &lt;code&gt;empty()&lt;/code&gt;:
+&lt;/p&gt;
+&lt;div class="wiki-code"&gt;&lt;div class="code"&gt;&lt;pre&gt;&lt;span class="x"&gt;if ( ! empty( ini_get( 'opcache.restrict_api' ) ) &amp;amp;&amp;amp; strpos( __FILE__, ini_get( 'opcache.restrict_api' ) ) !== 0 ) {
+        return;
+}
+&lt;/span&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;p&gt;
+Should be:
+&lt;/p&gt;
+&lt;div class="wiki-code"&gt;&lt;div class="code"&gt;&lt;pre&gt;&lt;span class="x"&gt;$restrict_api = ini_get( 'opcache.restrict_api' );
+if ( $restrict_api &amp;amp;&amp;amp; strpos( __FILE__, $restrict_api ) !== 0 ) {
+        return;
+}
+&lt;/span&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;/blockquote&gt;
+&lt;p&gt;
+Before this test, there's a guard clause that check for the existence of opcache_reset() (since PHP 5.5).
+There should be no error with PHP &amp;lt; 5.5 because opcache_reset() doesn't exist in these versions and the function will return early.
+&lt;/p&gt;
+&lt;p&gt;
+Did you experiment a fatal error?
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #43750 (Establish a standard means of core reading privacy declarations from ...) updated</title>
+      
+        <dc:creator>TZ Media</dc:creator>
+
+      <pubDate>Thu, 12 Apr 2018 19:57:44 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43750#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43750#comment:2/1523563064566836</guid>
+      <description>&lt;p&gt;
+To repeat concerns from the discussion about this (can‘t remember by whom):
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;The privacy notice in the plugin description is more aimed at site admins wanting to use the plugin. But the privacy notice aimed at the end user of the site might have to be different, as it must conform to legal requirements.
+&lt;/li&gt;&lt;li&gt;The privacy notice aimed at the end user might have different requirements depending e.g. on the configuration of the plugin. So it would be better to have this privacy notice in code, so it can adapt to that, while the privacy statement in the readme is static.
+&lt;/li&gt;&lt;/ul&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #43750 (Establish a standard means of core reading privacy declarations from ...) updated</title>
+      
+        <dc:creator>casiepa</dc:creator>
+
+      <pubDate>Thu, 12 Apr 2018 19:12:21 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43750#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43750#comment:1/1523560341764105</guid>
+      <description>&lt;p&gt;
+Some first thoughts:
+&lt;/p&gt;
+&lt;p&gt;
+1) It could be readme.txt or readme.md
+&lt;/p&gt;
+&lt;p&gt;
+2) I suppose it could start as:
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;== Plugin Privacy Policy ==
+&lt;/pre&gt;&lt;p&gt;
+just like
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;== Changelog ==
+&lt;/pre&gt;&lt;p&gt;
+3) Below that standard paragraphs or is any further 'formatting' needed?
+&lt;/p&gt;
+&lt;p&gt;
+4) Versioning would be done by increasing the version of the plugin (?)
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #43009 (Create Video/Audio Playlist hooks not working as expected) updated</title>
+      
+        <dc:creator>birgire</dc:creator>
+
+      <pubDate>Thu, 12 Apr 2018 18:06:08 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43009#comment:8</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43009#comment:8/1523556368995457</guid>
+      <description>&lt;p&gt;
+I think your doc comment proposal looks good.
+&lt;/p&gt;
+&lt;p&gt;
+At least it looks like it's easier to explain the (persistent) behaviour rather than the (initially) behaviour ;-) because the user might wonder what happens after (initally) ;-)
+&lt;/p&gt;
+&lt;p&gt;
+I tried to see if it's possible to add some extra logic into the callback here:
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;this.listenTo( wp.media.model.Attachments.all, 'change:type', this.mediaTypeCounts );
+&lt;/pre&gt;&lt;p&gt;
+but it looks like it will not fire when audio/video is deleted. The &lt;code&gt;deleteAttachment&lt;/code&gt; event fires though.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #43637 (Add filters and ajax support for personal data erasure) updated</title>
+      
+        <dc:creator>Clorith</dc:creator>
+
+      <pubDate>Thu, 12 Apr 2018 17:42:39 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43637#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43637#comment:3/1523554959350743</guid>
+      <description>&lt;i&gt;Status&lt;/i&gt;, &lt;i&gt;Owner&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #43602 (Add to the privacy tools UX a means to erase personal data by username ...) updated</title>
+      
+        <dc:creator>Clorith</dc:creator>
+
+      <pubDate>Thu, 12 Apr 2018 17:42:25 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43602#comment:7</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43602#comment:7/1523554945931756</guid>
+      <description>&lt;i&gt;Status&lt;/i&gt;, &lt;i&gt;Owner&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #43551 (Add a means to package personal data into a file) updated</title>
+      
+        <dc:creator>Clorith</dc:creator>
+
+      <pubDate>Thu, 12 Apr 2018 17:42:12 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43551#comment:6</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43551#comment:6/1523554932722006</guid>
+      <description>&lt;i&gt;Status&lt;/i&gt;, &lt;i&gt;Owner&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #43546 (Add to the privacy tools UX a means to export personal data by ...) updated</title>
+      
+        <dc:creator>Clorith</dc:creator>
+
+      <pubDate>Thu, 12 Apr 2018 17:41:52 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43546#comment:11</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43546#comment:11/1523554912539580</guid>
+      <description>&lt;i&gt;Status&lt;/i&gt;, &lt;i&gt;Owner&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #43009 (Create Video/Audio Playlist hooks not working as expected) updated</title>
+      
+        <dc:creator>adamsilverstein</dc:creator>
+
+      <pubDate>Thu, 12 Apr 2018 17:39:19 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43009#comment:7</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43009#comment:7/1523554759051384</guid>
+      <description>&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+I noticed that if we delete the last audio/video then the create playlist menu items are not hidden.
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+Yea, the inconsistencies are a bit frustrating, in part because we've hijacked these $has_ variables with a setting that i think  really only applies on load. I'm going to dig in to see why that happens.
+&lt;/p&gt;
+&lt;p&gt;
+The docs should make it clear you can pass three things to the filter: true, false or null - each with different behaviors.
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;null: perform a query to see if media exists, initially show button if present
+&lt;/li&gt;&lt;li&gt;true (default): always show button (initially)
+&lt;/li&gt;&lt;li&gt;false: never show button (initially)
+&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;
+Thinking about this more, maybe we could consider changing how the filter works so that true and false actually persist beyond initial load, which is the core expectation that raised this ticket. This actually seems more useful unless I'm missing some use case.
+&lt;/p&gt;
+&lt;p&gt;
+The filter action would then become:
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;null: perform a query to see if media exists, initially show button if present
+&lt;/li&gt;&lt;li&gt;true (default): always show button (even if all items removed)
+&lt;/li&gt;&lt;li&gt;false: never show button (even if new items added)
+&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;
+What do you think?
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #43750 (Establish a standard means of core reading privacy declarations from ...) created</title>
+      
+        <dc:creator>allendav</dc:creator>
+
+      <pubDate>Thu, 12 Apr 2018 17:35:42 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43750</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43750/1523554542328403</guid>
+      <description>&lt;p&gt;
+To help administrators create and maintain their site's privacy policy, we not only need the privacy declarations for WordPress core (the software) but also need a means of getting privacy declarations from plugins. This ticket is about getting those privacy declarations from plugins. (See &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/43473" title="#43473: enhancement: Add default text for a privacy policy (closed: fixed)"&gt;#43473&lt;/a&gt; for core's declarations.)
+&lt;/p&gt;
+&lt;p&gt;
+The proposed way right now is for plugins to add their privacy declarations to their readme.txt somehow. This ticket needs to define how exactly to add those to readme.txt (e.g. what section, format).
+&lt;/p&gt;
+&lt;p&gt;
+This ticket also needs to result in the code that allows those privacy declarations to be surfaced in the privacy-policy-editing user interface proposed in &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/43435" title="#43435: enhancement: Add settings screen for creating a privacy policy (closed: fixed)"&gt;#43435&lt;/a&gt; (alongside the declarations from core itself from &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/43473" title="#43473: enhancement: Add default text for a privacy policy (closed: fixed)"&gt;#43473&lt;/a&gt;)
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #43545 (Helper functions: Anonymizing data in a standardized way) updated</title>
+      
+        <dc:creator>iandunn</dc:creator>
+
+      <pubDate>Thu, 12 Apr 2018 17:34:57 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43545#comment:35</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43545#comment:35/1523554497158557</guid>
+      <description>&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+No problems with new files in /tests. They are only problematic in /build for minor releases.
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+Doh, good point :)
+&lt;/p&gt;
+&lt;hr /&gt;
+&lt;p&gt;
+&lt;a class="attachment" href="http://core.trac.wordpress.org/attachment/ticket/43545/43545.6.diff" title="Attachment '43545.6.diff' in Ticket #43545"&gt;43545.6.diff&lt;/a&gt;&lt;a class="trac-rawlink" href="http://core.trac.wordpress.org/raw-attachment/ticket/43545/43545.6.diff" title="Download"&gt;​&lt;/a&gt; has lots of good tweaks. A few minor questions:
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;Should &lt;code&gt;@uses&lt;/code&gt; be added? It sounds like &lt;a class="ext-link" href="https://make.wordpress.org/core/handbook/best-practices/inline-documentation-standards/php/#phpdoc-tags"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;the standard discourages it now&lt;/a&gt;, and I personally feel like it adds a maintenance overhead without being particularly useful.
+&lt;/li&gt;&lt;li&gt;I don't think &lt;code&gt;inet_(ntop|pton)&lt;/code&gt; &lt;code&gt;throw&lt;/code&gt; any exceptions, so is there a benefit of using &lt;code&gt;try/catch&lt;/code&gt;?
+&lt;/li&gt;&lt;li&gt;It looks like the changes to &lt;code&gt;src/wp-admin/includes/class-wp-community-events.php&lt;/code&gt; and &lt;code&gt;tests/phpunit/tests/admin/includesCommunityEvents.php&lt;/code&gt; were left out.
+&lt;/li&gt;&lt;/ul&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #43009 (Create Video/Audio Playlist hooks not working as expected) updated</title>
+      
+        <dc:creator>birgire</dc:creator>
+
+      <pubDate>Thu, 12 Apr 2018 17:21:52 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43009#comment:6</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43009#comment:6/1523553712301652</guid>
+      <description>&lt;p&gt;
+@adamsilverstein I think I agree with you.
+&lt;/p&gt;
+&lt;p&gt;
+In versions before 4.8, the previous "Create Audio Playlist" link was displayed if the Media Library contained any audio, else it was hidden. Same for videos.
+&lt;/p&gt;
+&lt;p&gt;
+There we had:
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;'attachmentCounts' =&amp;gt; array(
+    'audio' =&amp;gt; ( $has_audio ) ? 1 : 0,
+    'video' =&amp;gt; ( $has_video ) ? 1 : 0
+),
+&lt;/pre&gt;&lt;p&gt;
+with &lt;code&gt;$has_audio&lt;/code&gt; and &lt;code&gt;$has_video&lt;/code&gt; from possible very heavy database queries.
+&lt;/p&gt;
+&lt;p&gt;
+So looking at ticket &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/31071" title="#31071: defect (bug): media / post_mime_type related queries are very slow on larger sites (closed: fixed)"&gt;#31071&lt;/a&gt; again, I think the intention there wasn't to change the original behavior of the "Create Audio/Videos Playlist" links, were it was hidden in the absence of audios/videos.
+&lt;/p&gt;
+&lt;p&gt;
+In hindsight I think the previous &lt;code&gt;$has_audio&lt;/code&gt; and &lt;code&gt;$has_video&lt;/code&gt; naming was more clear,
+compared to the changes in 4.8:
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;'attachmentCounts' =&amp;gt; array(
+	'audio' =&amp;gt; ( $show_audio_playlist ) ? 1 : 0,
+	'video' =&amp;gt; ( $show_video_playlist ) ? 1 : 0,
+),
+&lt;/pre&gt;&lt;p&gt;
+I noticed that if we delete the last audio/video then the create playlist menu items are not hidden.
+&lt;/p&gt;
+&lt;p&gt;
+Maybe there's a way to check &lt;code&gt;this.counts[ attr ].count &amp;lt; 1&lt;/code&gt; on audio/video delete and if so, hide the menu item with &lt;code&gt;this.menuItemVisibility( this.counts[ attr ].state, 'hide' );&lt;/code&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Would that be consistent with the display of the create playlist menu items, when the first audio/video are uploaded?
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #36455 (Call opcache_reset() after plug-in, theme or core update) updated</title>
+      
+        <dc:creator>GregLone</dc:creator>
+
+      <pubDate>Thu, 12 Apr 2018 17:08:02 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/36455#comment:41</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/36455#comment:41/1523552882555283</guid>
+      <description>&lt;p&gt;
+Hi there,
+&lt;/p&gt;
+&lt;p&gt;
+You'll get a fatal error with php &amp;lt; 5.5 because of &lt;code&gt;empty()&lt;/code&gt;:
+&lt;/p&gt;
+&lt;div class="wiki-code"&gt;&lt;div class="code"&gt;&lt;pre&gt;&lt;span class="x"&gt;if ( ! empty( ini_get( 'opcache.restrict_api' ) ) &amp;amp;&amp;amp; strpos( __FILE__, ini_get( 'opcache.restrict_api' ) ) !== 0 ) {
+        return;
+}
+&lt;/span&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;p&gt;
+Should be:
+&lt;/p&gt;
+&lt;div class="wiki-code"&gt;&lt;div class="code"&gt;&lt;pre&gt;&lt;span class="x"&gt;$restrict_api = ini_get( 'opcache.restrict_api' );
+if ( $restrict_api &amp;amp;&amp;amp; strpos( __FILE__, $restrict_api ) !== 0 ) {
+        return;
+}
+&lt;/span&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #40020 (Customizer fails to load in Safari due to X-Origin Header mismatch) updated</title>
+      
+        <dc:creator>westonruter</dc:creator>
+
+      <pubDate>Thu, 12 Apr 2018 16:49:28 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/40020#comment:11</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/40020#comment:11/1523551768553413</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt;, &lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Amazing research 🎉
+&lt;/p&gt;
+&lt;p&gt;
+@fullyint I'm pretty sure that the unit tests will need to be updated based on this change: &lt;a class="ext-link" href="https://github.com/WordPress/wordpress-develop/blob/ede824e/tests/phpunit/tests/customize/manager.php#L845-L858"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://github.com/WordPress/wordpress-develop/blob/ede824e/tests/phpunit/tests/customize/manager.php#L845-L858&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #43749 (Update zxcvbn to 4.4.2) updated</title>
+      
+        <dc:creator>desrosj</dc:creator>
+
+      <pubDate>Thu, 12 Apr 2018 16:49:07 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43749#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43749#comment:1/1523551747566600</guid>
+      <description>&lt;p&gt;
+Of note, this library should have the dictionary within passed through a rot13 for PG-ness.
+&lt;/p&gt;
+&lt;p&gt;
+&lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/31647" title="#31647: enhancement: zxcvbn.js is old (closed: fixed)"&gt;#31647&lt;/a&gt; has a patch against the library's master branch for performing this modification: &lt;a href="https://core.trac.wordpress.org/ticket/31647#comment:9"&gt;https://core.trac.wordpress.org/ticket/31647#comment:9&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #43749 (Update zxcvbn to 4.4.2) created</title>
+      
+        <dc:creator>desrosj</dc:creator>
+
+      <pubDate>Thu, 12 Apr 2018 16:32:33 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43749</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43749/1523550753574982</guid>
+      <description>&lt;p&gt;
+4.4.2 contains several bug fixes.
+&lt;/p&gt;
+&lt;p&gt;
+For a full list of changes, see &lt;a class="ext-link" href="https://github.com/dropbox/zxcvbn/compare/v4.4.1...v4.4.2"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://github.com/dropbox/zxcvbn/compare/v4.4.1...v4.4.2&lt;/a&gt;.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>43748.2.patch attached to Ticket #43748</title>
+      
+        <dc:creator>macbookandrew</dc:creator>
+
+      <pubDate>Thu, 12 Apr 2018 16:13:18 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/43748/43748.2.patch</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/43748/43748.2.patch/1523549598014764</guid>
+      <description>&lt;p&gt;
+fixed a typo
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>43748.1.patch attached to Ticket #43748</title>
+      
+        <dc:creator>macbookandrew</dc:creator>
+
+      <pubDate>Thu, 12 Apr 2018 16:12:24 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/43748/43748.1.patch</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/43748/43748.1.patch/1523549544690496</guid>
+      <description>&lt;p&gt;
+New actionr
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #43748 (Create new action edit_user_updated_user similar to edit_user_created_user) created</title>
+      
+        <dc:creator>macbookandrew</dc:creator>
+
+      <pubDate>Thu, 12 Apr 2018 16:11:30 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43748</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43748/1523549490420239</guid>
+      <description>&lt;p&gt;
+I would like to see a new action &lt;code&gt;edit_user_updated_user&lt;/code&gt; similar to the &lt;code&gt;edit_user_created_user&lt;/code&gt; action so I can run custom actions (i.e., updating an external API with the changed data).
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #43747 ($query set post__not_in not accepting inputs from variables correctly) closed</title>
+      
+        <dc:creator>swissspidy</dc:creator>
+
+      <pubDate>Thu, 12 Apr 2018 14:52:54 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43747#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43747#comment:1/1523544774914996</guid>
+      <description>invalid: &lt;p&gt;
+Hi there
+&lt;/p&gt;
+&lt;p&gt;
+The documentation for &lt;code&gt;post__not_in&lt;/code&gt; is pretty clear:
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+An array of post IDs not to retrieve. Note: a string of comma-separated IDs will NOT work.
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+&lt;code&gt;array(316,319,321)&lt;/code&gt; is an array of integers, which are post IDs.
+&lt;/p&gt;
+&lt;p&gt;
+In your example, &lt;code&gt;array($exclude_string)&lt;/code&gt; is the same as writing &lt;code&gt;array( '316,319,321' )&lt;/code&gt;. This is an array with one item, a string containing a comma-separated list of post IDs.
+&lt;/p&gt;
+&lt;p&gt;
+To make your code work, just use &lt;code&gt;$query-&amp;gt;set( 'post__not_in', array( implode( ',', $exclude_string ) ) );&lt;/code&gt;.
+&lt;/p&gt;
+</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Ticket #43747 ($query set post__not_in not accepting inputs from variables correctly) created</title>
+      
+        <dc:creator>Venutius</dc:creator>
+
+      <pubDate>Thu, 12 Apr 2018 14:36:38 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43747</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43747/1523543798134670</guid>
+      <description>&lt;p&gt;
+If I enter:
+&lt;/p&gt;
+&lt;p&gt;
+&lt;code&gt;$query-&amp;gt;set('post__not_in', array(316,319,321));&lt;/code&gt;
+&lt;/p&gt;
+&lt;p&gt;
+posts 316, 319 and 321 are excluded from the loop.
+&lt;/p&gt;
+&lt;p&gt;
+However, if I do:
+&lt;/p&gt;
+&lt;p&gt;
+&lt;code&gt;$exclude_string = '316,319,321';&lt;/code&gt;
+&lt;code&gt;$query-&amp;gt;set('post__not_in', array($exclude_string));&lt;/code&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Only post 316 is excluded. Can't see where I'd be doing something wrong here.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #43316 (REST API: Support autosaves) updated</title>
+      
+        <dc:creator>adamsilverstein</dc:creator>
+
+      <pubDate>Thu, 12 Apr 2018 14:25:05 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43316#comment:75</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43316#comment:75/1523543105729939</guid>
+      <description>&lt;p&gt;
+Some good points have been made here and its time to take stock of all the feedback and move forward! The lack of any autosave capability is a blocker for merging Gutenberg because without it autosaves are essentially broken.
+&lt;/p&gt;
+&lt;p&gt;
+My intuition and initial  idea was a separate Autosave controller. Still, I liked the idea of adding autosave capability to the revisions controller (as @rmccue suggested in 43316.13.diff) because of their technical similarity, or even adding to the posts controller with a flag as originally proposed in 43316.patch by @azaozz...
+&lt;/p&gt;
+&lt;p&gt;
+However from the client's perspective these actually seem like pretty different concepts. As @schlessera keeps pointing out, its the difference in the &lt;em&gt;concepts of autosave vs. revision vs post&lt;/em&gt; that suggests a separate autosave endpoint is appropriate. The fact that technically autosaves are very similar to revisions and even posts is an implementation detail that doesn't concern clients.
+&lt;/p&gt;
+&lt;p&gt;
+To those on this thread advocating alternate approaches, can you agree to moving ahead with a separate Autosaves controller (latest in 43316.12.diff​) and if not, what blocking concerns remain?
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #38228 (Add filter to default gallery shortcode output) updated</title>
+      
+        <dc:creator>desrosj</dc:creator>
+
+      <pubDate>Thu, 12 Apr 2018 14:05:03 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/38228#comment:5</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/38228#comment:5/1523541903523376</guid>
+      <description>&lt;i&gt;Focuses&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #33979 (Add filter for 'post_gallery_item') updated</title>
+      
+        <dc:creator>desrosj</dc:creator>
+
+      <pubDate>Thu, 12 Apr 2018 14:03:02 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/33979#comment:11</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/33979#comment:11/1523541782145183</guid>
+      <description>&lt;p&gt;
+Related: &lt;a class="new ticket" href="http://core.trac.wordpress.org/ticket/36270" title="#36270: enhancement: Allow filtering of the final HTML output of media related shortcodes (new)"&gt;#36270&lt;/a&gt;, &lt;a class="new ticket" href="http://core.trac.wordpress.org/ticket/38100" title="#38100: feature request: Gallery Caption Filter (new)"&gt;#38100&lt;/a&gt;, &lt;a class="reviewing ticket" href="http://core.trac.wordpress.org/ticket/33468" title="#33468: enhancement: Add image caption hook (reviewing)"&gt;#33468&lt;/a&gt;.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #43746 (Custom post type single post feed returns a 404 if has_archive is set ...) created</title>
+      
+        <dc:creator>henry.wright</dc:creator>
+
+      <pubDate>Thu, 12 Apr 2018 13:58:17 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43746</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43746/1523541497349305</guid>
+      <description>&lt;p&gt;
+When using &lt;code&gt;register_post_type()&lt;/code&gt;, the single post feed returns a 404 if &lt;code&gt;has_archive&lt;/code&gt; is set to false. This seems to happen regardless of the value of &lt;code&gt;feeds&lt;/code&gt; in the &lt;code&gt;rewrite&lt;/code&gt; array. For example:
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;register_post_type(
+    'example',
+    array(
+        'rewrite'     =&amp;gt; array( 'slug' =&amp;gt; 'my-custom-post-type', 'feeds' =&amp;gt; true ),
+        'has_archive' =&amp;gt; false
+    )
+);
+&lt;/pre&gt;&lt;pre class="wiki"&gt;$ curl -IL https://example.com/my-custom-post-type/some-text/feed/
+HTTP/1.1 404 Not Found
+&lt;/pre&gt;&lt;p&gt;
+I'd expect a feed for the post to be built if &lt;code&gt;feeds&lt;/code&gt; is set to &lt;code&gt;true&lt;/code&gt;.
+&lt;/p&gt;
+&lt;p&gt;
+Note I have flushed permalinks.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #43009 (Create Video/Audio Playlist hooks not working as expected) updated</title>
+      
+        <dc:creator>adamsilverstein</dc:creator>
+
+      <pubDate>Thu, 12 Apr 2018 13:13:25 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43009#comment:5</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43009#comment:5/1523538805194534</guid>
+      <description>&lt;p&gt;
+I agree, the doc block is misleading. We should probably update it to reflect the actual behavior. Do you think completely disabling these links is useful?
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #43009 (Create Video/Audio Playlist hooks not working as expected) updated</title>
+      
+        <dc:creator>birgire</dc:creator>
+
+      <pubDate>Thu, 12 Apr 2018 11:49:33 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43009#comment:4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43009#comment:4/1523533773169926</guid>
+      <description>&lt;p&gt;
+Thanks @adamsilverstein, I remember watching that ticket at the time but I never realized that this was the intended behavior of the filter ;-)
+&lt;/p&gt;
+&lt;p&gt;
+If this is the intended behavior, then adjusting the filter doc comments would help here.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #42814 (PHP 7.2 Warning: ...wp-includes/post-template.php on line 284) updated</title>
+      
+        <dc:creator>yashparmar71</dc:creator>
+
+      <pubDate>Thu, 12 Apr 2018 11:28:17 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/42814#comment:46</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/42814#comment:46/1523532497663461</guid>
+      <description>&lt;p&gt;
+Replying to &lt;a class="reopened ticket" href="http://core.trac.wordpress.org/ticket/42814" title="#42814: defect (bug): PHP 7.2 Warning: ...wp-includes/post-template.php on line 284 (reopened)"&gt;internetwerk&lt;/a&gt;:
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+Warning with PHP 7.2:
+&lt;/p&gt;
+&lt;p&gt;
+Warning: count(): Parameter must be an array or an object that implements Countable in /wp-includes/post-template.php on line 284
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+if get this error
+you must be try this it work very nice
+&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;
+while (have_posts()) {                                                the_post();
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+}
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #43745 ((Yet another ;-) Redirect loop with encoded query keys) created</title>
+      
+        <dc:creator>wrwrwr0</dc:creator>
+
+      <pubDate>Thu, 12 Apr 2018 11:11:34 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43745</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43745/1523531494115404</guid>
+      <description>&lt;p&gt;
+Some live examples:
+&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;
+&lt;a class="ext-link" href="https://news.microsoft.com/?%C2%A2"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://news.microsoft.com/?%C2%A2&lt;/a&gt; &lt;br /&gt;
+&lt;a class="ext-link" href="https://newsroom.fb.com/?%C2%A2"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://newsroom.fb.com/?%C2%A2&lt;/a&gt; &lt;br /&gt;
+&lt;a class="ext-link" href="https://www.thewaltdisneycompany.com/?%C2%A2"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://www.thewaltdisneycompany.com/?%C2%A2&lt;/a&gt;
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+(At the time of writing these show "page isn't redirecting properly" / "redirected you too many times" notice.)
+&lt;/p&gt;
+&lt;p&gt;
+To reproduce on a fresh install set some permalink structure and put a static page on front, for convenience:
+&lt;/p&gt;
+&lt;div class="wiki-code"&gt;&lt;div class="code"&gt;&lt;pre&gt;wp rewrite structure &lt;span class="s1"&gt;'/%year%/%monthnum%/%postname%/'&lt;/span&gt;
+wp option update show_on_front page
+wp option update page_on_front 2
+&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;p&gt;
+Observe a 301 with the location exactly matching the request:
+&lt;/p&gt;
+&lt;div class="wiki-code"&gt;&lt;div class="code"&gt;&lt;pre&gt;curl -I http://test.local/?%C2%A2
+&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;p&gt;
+(Query with any character in a key matching &lt;a href="https://core.trac.wordpress.org/browser/tags/4.9.5/src/wp-includes/pluggable.php#L1232"&gt;the first regex&lt;/a&gt; in
+wp_sanitize_redirect().)
+&lt;/p&gt;
+&lt;p&gt;
+&lt;a href="https://core.trac.wordpress.org/browser/tags/4.9.5/src/wp-includes/canonical.php#L42"&gt;redirect_canonical()&lt;/a&gt; is hooked by default to &lt;code&gt;template_redirect&lt;/code&gt;. Under some circumstances &lt;code&gt;$redirect_url&lt;/code&gt; can be set to more or less the same as &lt;code&gt;$requested_url&lt;/code&gt; in the somewhat lengthy "is 404" conditional. The code that readds additional query args, around &lt;a href="https://core.trac.wordpress.org/browser/tags/4.9.5/src/wp-includes/canonical.php#L360"&gt;line 360&lt;/a&gt; of the function, uses &lt;a href="https://core.trac.wordpress.org/browser/tags/4.9.5/src/wp-includes/formatting.php#L2475"&gt;rawurlencode_deep()&lt;/a&gt;, which leaves keys unencoded. In consequence, &lt;code&gt;$requested_url&lt;/code&gt; and &lt;code&gt;$redirect_url&lt;/code&gt; around &lt;a href="https://core.trac.wordpress.org/browser/tags/4.9.5/src/wp-includes/canonical.php#L490"&gt;line 490&lt;/a&gt; may differ only in query encoding. Further, &lt;code&gt;wp_sanitize_request()&lt;/code&gt;, applied after the chained redirects check, reencodes some multibyte characters.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #43545 (Helper functions: Anonymizing data in a standardized way) updated</title>
+      
+        <dc:creator>birgire</dc:creator>
+
+      <pubDate>Thu, 12 Apr 2018 11:05:47 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43545#comment:34</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43545#comment:34/1523531147818280</guid>
+      <description>&lt;p&gt;
+I was testing various IP address inputs, when I noticed that for e.g.:
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;$ip_addr = ':::';
+echo inet_pton( $ip_addr );
+&lt;/pre&gt;&lt;p&gt;
+gives a PHP warning:
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;Warning:  inet_pton(): Unrecognized address ::: in [...][...] on line 3
+&lt;/pre&gt;&lt;p&gt;
+We could handle it with e.g.:
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;try {
+	$ip_addr = inet_ntop( inet_pton( $ip_addr ) &amp;amp; inet_pton( $netmask ) );
+	if( false === $ip_addr ) {
+		return '::';
+	}
+} catch( Exception $error ) {
+	return '::';
+}
+&lt;/pre&gt;&lt;p&gt;
+where we also handle the possible &lt;code&gt;false&lt;/code&gt; output of &lt;code&gt;inet_ntop()&lt;/code&gt;.
+&lt;/p&gt;
+&lt;p&gt;
+I checked and these warnings will be removed in PHP 7.1+
+&lt;/p&gt;
+&lt;p&gt;
+&lt;a class="ext-link" href="https://github.com/php/php-src/pull/3200"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://github.com/php/php-src/pull/3200&lt;/a&gt;
+&lt;/p&gt;
+&lt;p&gt;
+The &lt;a class="attachment" href="http://core.trac.wordpress.org/attachment/ticket/43545/43545.6.diff" title="Attachment '43545.6.diff' in Ticket #43545"&gt;43545.6.diff&lt;/a&gt;&lt;a class="trac-rawlink" href="http://core.trac.wordpress.org/raw-attachment/ticket/43545/43545.6.diff" title="Download"&gt;​&lt;/a&gt; patch includes suggestions that:
+&lt;/p&gt;
+&lt;p&gt;
+&lt;strong&gt;tests part&lt;/strong&gt;:
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;Declares visibility and adds doc comments for
+&lt;ul&gt;&lt;li&gt;&lt;code&gt;test_anonymize_email()&lt;/code&gt;,
+&lt;/li&gt;&lt;li&gt;&lt;code&gt;test_anonymize_url()&lt;/code&gt;,
+&lt;/li&gt;&lt;li&gt;&lt;code&gt;test_anonymize_date()&lt;/code&gt;,
+&lt;/li&gt;&lt;li&gt;&lt;code&gt;test_anonymize_text()&lt;/code&gt;,
+&lt;/li&gt;&lt;li&gt;&lt;code&gt;test_anonymize_long_text()&lt;/code&gt;.
+&lt;/li&gt;&lt;/ul&gt;&lt;/li&gt;&lt;li&gt;Adds misisng full-stops to inline comments.
+&lt;/li&gt;&lt;li&gt;Adds doc parameters for &lt;code&gt;$raw_ip&lt;/code&gt; and &lt;code&gt;$expected_result&lt;/code&gt;.
+&lt;/li&gt;&lt;li&gt;Detailed &lt;code&gt;@return&lt;/code&gt; for &lt;code&gt;data_wp_privacy_anonymize_ip()&lt;/code&gt;.
+&lt;/li&gt;&lt;li&gt;Adds a file doc comment.
+&lt;/li&gt;&lt;li&gt;Adds short doc comment for the class.
+&lt;/li&gt;&lt;li&gt;Makes the tests explicit in &lt;code&gt;test_anonymize_text()&lt;/code&gt;, &lt;code&gt;test_anonymize_long_text()&lt;/code&gt;, i.e. use &lt;code&gt;assertEquals()&lt;/code&gt; instead of &lt;code&gt;assertNotEquals()&lt;/code&gt;.
+&lt;/li&gt;&lt;li&gt;Adds the invalid IP testcase: &lt;code&gt;::: -&amp;gt; ::&lt;/code&gt; that would give a PHP warning if unhandled.
+&lt;/li&gt;&lt;li&gt;Adds the invalid IP testcase: &lt;code&gt;null -&amp;gt; 0.0.0.0&lt;/code&gt;.
+&lt;/li&gt;&lt;li&gt;Adds the netmask testcase: &lt;code&gt;10.20.30.45/24 -&amp;gt; 10.20.30.0&lt;/code&gt;.
+&lt;/li&gt;&lt;li&gt;Adds a &lt;code&gt;markTestSkipped&lt;/code&gt; in &lt;code&gt;test_wp_privacy_anonymize_ip()&lt;/code&gt; if &lt;code&gt;inet_pton&lt;/code&gt; and &lt;code&gt;inet_pton&lt;/code&gt; are not available.
+Otherwise most of the IPv6 testcases, provided by &lt;code&gt;data_wp_privacy_anonymize_ip()&lt;/code&gt;, would fail.
+Another approach would be to adjust the testcases to to handle that.
+&lt;/li&gt;&lt;li&gt;Replaces: &lt;code&gt;Test that get_unsafe_client_ip() properly anonymizes all possible address formats.&lt;/code&gt; with: &lt;code&gt;Test that wp_privacy_anonymize_ip() properly anonymizes all possible IP address formats.&lt;/code&gt;
+&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;
+&lt;strong&gt;src part:&lt;/strong&gt;
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;Adds  &lt;code&gt;@uses inet_ntop and inet_pton if available, to handle IPv6 addresses.&lt;/code&gt;
+&lt;/li&gt;&lt;li&gt;Handle a possible PHP warning from &lt;code&gt;inet_pton&lt;/code&gt; and &lt;code&gt;inet_pton&lt;/code&gt; for an unrecognized address.
+&lt;/li&gt;&lt;li&gt;Handle a possible &lt;code&gt;false&lt;/code&gt; output of &lt;code&gt;inet_ntop()&lt;/code&gt;.
+&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;
+&lt;strong&gt;To consider:&lt;/strong&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Example:
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;echo wp_privacy_anonymize_data( 'ip', '...' );
+&lt;/pre&gt;&lt;p&gt;
+outputs: &lt;code&gt;'...0'&lt;/code&gt; instead of &lt;code&gt;0.0.0.0&lt;/code&gt;.
+&lt;/p&gt;
+&lt;p&gt;
+Another example is how out-of-range IPv4 should be handled:
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;echo wp_privacy_anonymize_data( 'ip', '999.999.999.999' );
+&lt;/pre&gt;&lt;p&gt;
+outputs: &lt;code&gt;'999.999.999.0'&lt;/code&gt; but should it be instead &lt;code&gt;0.0.0.0&lt;/code&gt; ?
+&lt;/p&gt;
+&lt;p&gt;
+One might aim for a stricter IPv4 validation in a future ticket or e.g. ticket &lt;a class="reviewing ticket" href="http://core.trac.wordpress.org/ticket/34538" title="#34538: enhancement: Improvement of the IPv4 address format check (reviewing)"&gt;#34538&lt;/a&gt; &lt;a href="https://core.trac.wordpress.org/ticket/34538"&gt;Improvement of the IPv4 address format check&lt;/a&gt; on &lt;code&gt;WP_Http::is_ip_address&lt;/code&gt;.
+&lt;/p&gt;
+&lt;p&gt;
+I wonder if there should be a general WP IP utility (possible future ticket) to avoid IP handling duplications in various parts of the core (e.g. db hosts, HTTP API, Rest, Multisite support of IPv6, ... ).
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>43545.6.diff attached to Ticket #43545</title>
+      
+        <dc:creator>birgire</dc:creator>
+
+      <pubDate>Thu, 12 Apr 2018 10:54:59 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/43545/43545.6.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/43545/43545.6.diff/1523530499396488</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #43744 (`WP_REST_Server::EDITABLE` should not contain POST) updated</title>
+      
+        <dc:creator>soulseekah</dc:creator>
+
+      <pubDate>Thu, 12 Apr 2018 10:15:04 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43744#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43744#comment:2/1523528104892049</guid>
+      <description>&lt;p&gt;
+Thanks for the rapid response. A POST request is expected to to create new resource, which I certainly don't want to give the impression of allowing. A POST to a collection is fine, we have &lt;code&gt;CREATABLE&lt;/code&gt; for that. But adding &lt;code&gt;::EDITABLE&lt;/code&gt; to a single item resource would add &lt;code&gt;POST&lt;/code&gt; implying that resources can also be created.
+&lt;/p&gt;
+&lt;p&gt;
+So I can't give my endpoint the &lt;code&gt;::EDITABLE&lt;/code&gt; flag, and instead have to write &lt;code&gt;array( 'PUT', 'PATCH' )&lt;/code&gt;, something annoyed me a bit and broke the flow. Trivial, and easily fixable, especially if they're converted to arrays, in core you would change all instances of &lt;code&gt;::EDITABLE&lt;/code&gt; to &lt;code&gt;::EDITABLE + ::CREATABLE&lt;/code&gt;.
+&lt;/p&gt;
+&lt;p&gt;
+Again, just being pedantic, the world doesn't have to stop because of this. And I may be mistaken regarding the POST, but here:
+&lt;/p&gt;
+&lt;p&gt;
+&lt;a class="ext-link" href="https://en.wikipedia.org/wiki/Representational_state_transfer#Relationship_between_URL_and_HTTP_methods"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://en.wikipedia.org/wiki/Representational_state_transfer#Relationship_between_URL_and_HTTP_methods&lt;/a&gt;
+&lt;/p&gt;
+&lt;p&gt;
+I guess a &lt;code&gt;POST&lt;/code&gt; request to a single Taxonomy item would be equivalent to creating a new Term inside that Taxonomy. But a &lt;code&gt;POST&lt;/code&gt; to a single Term wouldn't make sense, no? I understand that the three verbs for core endpoints are aliased, and okay, but if I don't want a POST to be available and working for robustness, documentation purposes I can't use &lt;code&gt;::EDITABLE&lt;/code&gt; in its  strict sense.
+&lt;/p&gt;
+&lt;p&gt;
+Hope this makes sense.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #43744 (`WP_REST_Server::EDITABLE` should not contain POST) updated</title>
+      
+        <dc:creator>swissspidy</dc:creator>
+
+      <pubDate>Thu, 12 Apr 2018 09:55:40 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43744#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43744#comment:1/1523526940754546</guid>
+      <description>&lt;p&gt;
+Why are you unable to use &lt;code&gt;WP_REST_Server::EDITABLE&lt;/code&gt; at all? Can you elaborate a bit? What's your use case.
+&lt;/p&gt;
+&lt;p&gt;
+For history: editable has meant POST + PUT + PATCH since the project started during GSoC 2013: &lt;a class="ext-link" href="https://gsoc.trac.wordpress.org/changeset/1964"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://gsoc.trac.wordpress.org/changeset/1964&lt;/a&gt;
+&lt;/p&gt;
+&lt;p&gt;
+As far as I understand it and how I've used REST principles in the past, is that a &lt;code&gt;POST&lt;/code&gt; to a collection means creating a resource, and &lt;code&gt;POST&lt;/code&gt; to a single resource is the same as using &lt;code&gt;PUT&lt;/code&gt;.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #43744 (`WP_REST_Server::EDITABLE` should not contain POST) created</title>
+      
+        <dc:creator>soulseekah</dc:creator>
+
+      <pubDate>Thu, 12 Apr 2018 09:29:00 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43744</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43744/1523525340395171</guid>
+      <description>&lt;p&gt;
+Editable != creatable. The POST method is used to create resources, not update them.
+&lt;/p&gt;
+&lt;p&gt;
+I am unable to use &lt;code&gt;WP_REST_Server::EDITABLE&lt;/code&gt; at all.
+&lt;/p&gt;
+&lt;p&gt;
+Also, can these be arrays? Would be cool to do &lt;code&gt;array_merge&lt;/code&gt;, &lt;code&gt;array_diff&lt;/code&gt; on these definitions.
+&lt;/p&gt;
+&lt;p&gt;
+Thoughts?
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #43743 (Terms list table should be full width when user cannot edit terms) updated</title>
+      
+        <dc:creator>swissspidy</dc:creator>
+
+      <pubDate>Thu, 12 Apr 2018 08:52:45 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43743#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43743#comment:3/1523523165590355</guid>
+      <description>&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+What scenario allows you to access this page but not add new terms? What role do you need to have/setup to test this?
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+This happens when you have the &lt;code&gt;manage_terms&lt;/code&gt; capability for that taxonomy but not &lt;code&gt;edit_terms&lt;/code&gt;.
+&lt;/p&gt;
+&lt;p&gt;
+In my case, the custom taxonomy was registered with caps like these:
+&lt;/p&gt;
+&lt;div class="wiki-code"&gt;&lt;div class="code"&gt;&lt;pre&gt;&lt;span class="x"&gt;'capabilities'          =&amp;gt; [
+        'manage_terms' =&amp;gt; 'manage_categories',
+        'edit_terms'   =&amp;gt; 'manage_business_areas',
+        'delete_terms' =&amp;gt; 'manage_business_areas',
+        'assign_terms' =&amp;gt; 'edit_posts',
+],
+&lt;/span&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;p&gt;
+Categories being a default taxonomy, I had the &lt;code&gt;manage_categories&lt;/code&gt; caps but since I haven't yet added the custom &lt;code&gt;manage_business_areas&lt;/code&gt; cap to my user / role, the demonstrated scenario happens.
+&lt;/p&gt;
+&lt;p&gt;
+You could easily test it by manually removing the &lt;code&gt;edit_categories&lt;/code&gt; capability using something like the Members plugin.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #43545 (Helper functions: Anonymizing data in a standardized way) updated</title>
+      
+        <dc:creator>azaozz</dc:creator>
+
+      <pubDate>Thu, 12 Apr 2018 08:09:34 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43545#comment:33</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43545#comment:33/1523520574121005</guid>
+      <description>&lt;p&gt;
+@iandunn thanks for the review and the fixes! 43545.5.diff looks good. Going to commit it later today if no other remarks.
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+...the Events Widget doesn't strictly need $ipv6_fallback mode, if using the un-anonymized IP is going to cause GDPR issues.
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+Was thinking about that too. For privacy we have to guarantee we return an anonymized IP, no matter what. Since we depend on the PHP version/environment to be able to do anonymization of IPv6 addresses, it's probably a good idea to be able to fall back gracefully. However removing that will make &lt;code&gt;wp_privacy_anonymize_ip()&lt;/code&gt; simpler to use... Kind of 50/50 there :)
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+If this gets bumped from &lt;code&gt;5.0&lt;/code&gt; to &lt;code&gt;4.9.x&lt;/code&gt;...
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+No problems with new files in /tests. They are only problematic in /build for minor releases.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #41191 (Create browse happy type notice for PHP versions) updated</title>
+      
+        <dc:creator>danieltj</dc:creator>
+
+      <pubDate>Thu, 12 Apr 2018 08:01:52 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/41191#comment:94</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/41191#comment:94/1523520112569067</guid>
+      <description>&lt;p&gt;
+Replying to &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/41191#comment:92" title="Comment 92"&gt;karmatosed&lt;/a&gt;:
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+As has been asked, I am going to give a design review of this. I am coming a little into this without knowing the history (so please consider this).
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;That is a lot of text and expecting people to read it is quite the ask. I think it should be collapsed by default or a lot less text.
+&lt;/li&gt;&lt;li&gt;That button (blue primary one) should not be full width. Make it fit the text please.
+&lt;/li&gt;&lt;li&gt;I am unsure this should be a red error, perhaps it's more of a warning?
+&lt;/li&gt;&lt;/ul&gt;&lt;/blockquote&gt;
+&lt;p&gt;
+Agree on these points here.
+&lt;/p&gt;
+&lt;p&gt;
+Button should be smaller (fit the text), the text reduced. I tried to reduce some of it in &lt;a class="attachment" href="http://core.trac.wordpress.org/attachment/ticket/41191/41191.11.diff" title="Attachment '41191.11.diff' in Ticket #41191"&gt;41191.11.diff&lt;/a&gt;&lt;a class="trac-rawlink" href="http://core.trac.wordpress.org/raw-attachment/ticket/41191/41191.11.diff" title="Download"&gt;​&lt;/a&gt; and the red should be changed to a orange (warning colour) as whilst it's not broken per se, &lt;strong&gt;PHP should be upgraded&lt;/strong&gt;.
+&lt;/p&gt;
+&lt;p&gt;
+I am against having this collapsed by default though. If we have it collapsed be default it won't have the effect that we're intending it to have. It should be right in front of you to see it clearly.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #43743 (Terms list table should be full width when user cannot edit terms) updated</title>
+      
+        <dc:creator>danieltj</dc:creator>
+
+      <pubDate>Thu, 12 Apr 2018 07:46:48 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43743#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43743#comment:2/1523519208494994</guid>
+      <description>&lt;p&gt;
+I'd suggest hiding the div completely (not using CSS) if it's empty so it's not present in the DOM as it doesn't need to exist on the page if empty. What scenario allows you to access this page but not add new terms? What role do you need to have/setup to test this?
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #43743 (Terms list table should be full width when user cannot edit terms) updated</title>
+      
+        <dc:creator>swissspidy</dc:creator>
+
+      <pubDate>Thu, 12 Apr 2018 07:41:11 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43743#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43743#comment:1/1523518871595553</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>list-table-float-none.png attached to Ticket #43743</title>
+      
+        <dc:creator>swissspidy</dc:creator>
+
+      <pubDate>Thu, 12 Apr 2018 07:32:31 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/43743/list-table-float-none.png</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/43743/list-table-float-none.png/1523518351383633</guid>
+      <description>&lt;p&gt;
+Proposed solution
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>list-table-float-right.png attached to Ticket #43743</title>
+      
+        <dc:creator>swissspidy</dc:creator>
+
+      <pubDate>Thu, 12 Apr 2018 07:32:22 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/43743/list-table-float-right.png</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/43743/list-table-float-right.png/1523518342685790</guid>
+      <description>&lt;p&gt;
+Status quo
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #43743 (Terms list table should be full width when user cannot edit terms) created</title>
+      
+        <dc:creator>swissspidy</dc:creator>
+
+      <pubDate>Thu, 12 Apr 2018 07:31:19 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43743</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43743/1523518279679121</guid>
+      <description>&lt;p&gt;
+The &lt;code&gt;edit-tags.php&lt;/code&gt; screen is split into two columns. On the left hand side is a form to create new terms, on the right hand side is the list of existing terms.
+&lt;/p&gt;
+&lt;p&gt;
+Now, the form is only visible if the user has the &lt;code&gt;edit_terms&lt;/code&gt; capability for the current taxonomy. If they don't, the left column is simply empty.
+&lt;/p&gt;
+&lt;p&gt;
+Instead of wasting this space, I'd suggest to make the list table take the full width of the screen instead of residing at the right side.
+&lt;/p&gt;
+&lt;p&gt;
+Unfortunately this can't be yet achieved using CSS alone because &lt;code&gt;#col-left&lt;/code&gt; isn't empty as it contains a &lt;code&gt;.col-wrap&lt;/code&gt; div.
+&lt;/p&gt;
+&lt;p&gt;
+If we'd move the &lt;code&gt;current_user_can( $tax-&amp;gt;cap-&amp;gt;edit_terms )&lt;/code&gt; check outside &lt;code&gt;.col-wrap&lt;/code&gt; or even &lt;code&gt;#col-left&lt;/code&gt;, we could use something like &lt;code&gt;#col-left:empty #col-right { float: none; width: 100% }&lt;/code&gt;
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #40020 (Customizer fails to load in Safari due to X-Origin Header mismatch) updated</title>
+      
+        <dc:creator>fullyint</dc:creator>
+
+      <pubDate>Thu, 12 Apr 2018 07:21:55 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/40020#comment:10</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/40020#comment:10/1523517715517660</guid>
+      <description>&lt;h2 id="Summary"&gt;Summary&lt;/h2&gt;
+&lt;p&gt;
+Currently, if the Customizer's embed gives an &lt;code&gt;ALLOW-FROM&lt;/code&gt; header, it must be same domain/origin due to &lt;a class="assigned ticket" href="http://core.trac.wordpress.org/ticket/39128" title="#39128: defect (bug): Customize: Preview fails to load when domain mapping in use ... (assigned)"&gt;#39128&lt;/a&gt; and any specified path has no effect (discussed below). Thus, switching to &lt;code&gt;SAMEORIGIN&lt;/code&gt; loses nothing. It achieves broader browser support (see added green boxes in table below).
+&lt;/p&gt;
+&lt;p&gt;
+The path should probably remain absent from &lt;code&gt;frame-ancestors&lt;/code&gt;, due to browsers' inconsistent treatment. If there is ever a day of cross-domain Customizer embeds, &lt;code&gt;frame-ancestors&lt;/code&gt; can accept multiple &lt;code&gt;source&lt;/code&gt;s.
+&lt;/p&gt;
+&lt;h2 id="PathinALLOW-FROM"&gt;Path in &lt;code&gt;ALLOW-FROM&lt;/code&gt;&lt;/h2&gt;
+&lt;p&gt;
+It would be appealing to add the &lt;code&gt;path/to/customize.php&lt;/code&gt; specificity to &lt;code&gt;ALLOW-FROM&lt;/code&gt; but as you suspected, the path appears to be ignored. I find &lt;code&gt;ALLOW-FROM&lt;/code&gt; discussed only as some other origin, like an opposite to &lt;code&gt;SAMEORIGIN&lt;/code&gt;, never with a path. Also see this note from the &lt;a class="ext-link" href="https://tools.ietf.org/html/rfc7034#section-2.1"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;X-Frame-Options spec&lt;/a&gt;:
+&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;
+The meaning of the term "serialized-origin" is given in &lt;a class="ext-link" href="https://tools.ietf.org/html/rfc6454#section-7.1"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;RFC6454&lt;/a&gt;... Any data beyond the domain address (i.e., any data after the "/" separator) is to be ignored."
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+Perhaps the path specificity never worked but the perceived loss is limited because &lt;code&gt;ALLOW-FROM&lt;/code&gt; would only apply to IE 11 and other older browser versions. Most modern browsers support &lt;a class="ext-link" href="https://w3c.github.io/webappsec-csp/2/#frame-ancestors-and-frame-options"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;frame-ancestors&lt;/a&gt;.
+&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;
+If a resource has both policies, the &lt;code&gt;frame-ancestors&lt;/code&gt; policy SHOULD be enforced and the &lt;code&gt;X-Frame-Options&lt;/code&gt; policy SHOULD be ignored.
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id="Pathinframe-ancestors"&gt;Path in &lt;code&gt;frame-ancestors&lt;/code&gt;&lt;/h2&gt;
+&lt;p&gt;
+My impression is that browsers' implementation of &lt;code&gt;frame-ancestors&lt;/code&gt; has not settled on the treatment of paths. In my tests (see table below), Firefox and Edge seem to ignore the path. So long as the origin is correct, all paths succeed, e.g.,
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;frame-ancestors https://example.com/nonexistent-path/
+&lt;/pre&gt;&lt;p&gt;
+On the other hand, it seems that &lt;em&gt;any&lt;/em&gt; path, even if correct, causes Chrome and Safari to block the embed.
+&lt;/p&gt;
+&lt;p&gt;
+The fact that Firefox ignores the path in &lt;code&gt;frame-ancestors&lt;/code&gt; (embed succeeds) but Chrome evaluates the path in some way (embed fails) may be an example of &lt;a class="ext-link" href="https://bugzilla.mozilla.org/show_bug.cgi?id=1367531#c11"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;this discussion at Firefox&lt;/a&gt; for how to implement &lt;code&gt;frame-ancestors&lt;/code&gt;.
+&lt;/p&gt;
+&lt;p&gt;
+It seems safest for &lt;code&gt;frame-ancestors&lt;/code&gt; to avoid paths until cross-browser treatment becomes more consistent.
+&lt;/p&gt;
+&lt;h2 id="Tests"&gt;Tests&lt;/h2&gt;
+&lt;p&gt;
+I did some informal manual testing related to &lt;code&gt;ALLOW-FROM&lt;/code&gt; and &lt;code&gt;frame-ancestors&lt;/code&gt;, their interaction, and the effect of adding a path to the &lt;code&gt;source&lt;/code&gt;:
+&lt;/p&gt;
+&lt;table class="wiki"&gt;
+&lt;tr&gt;&lt;td style="text-align: center"&gt;    &lt;/td&gt;&lt;th style="text-align: center"&gt;  &lt;strong&gt;IE&lt;/strong&gt;  &lt;/th&gt;&lt;th style="text-align: center"&gt;  &lt;strong&gt;Edge&lt;/strong&gt;  &lt;/th&gt;&lt;th style="text-align: center"&gt;  &lt;strong&gt;Firefox&lt;/strong&gt;  &lt;/th&gt;&lt;th style="text-align: center"&gt;  &lt;strong&gt;Chrome&lt;/strong&gt;  &lt;/th&gt;&lt;th style="text-align: center"&gt;  &lt;strong&gt;Safari&lt;/strong&gt;
+&lt;/th&gt;&lt;/tr&gt;&lt;tr&gt;&lt;th&gt; &lt;strong&gt;&lt;code&gt;ALLOW-FROM&lt;/code&gt; supported?&lt;/strong&gt; &lt;/th&gt;&lt;td style="text-align: center"&gt;  &lt;span style="color: white; background: #39b54a"&gt;_ Y _&lt;/span&gt;  &lt;/td&gt;&lt;td style="text-align: center"&gt;  &lt;span style="color: white; background: #39b54a"&gt;_ Y _&lt;/span&gt;  &lt;/td&gt;&lt;td style="text-align: center"&gt;  &lt;span style="color: white; background: #39b54a"&gt;_ Y _&lt;/span&gt;  &lt;/td&gt;&lt;td style="text-align: center"&gt;  &lt;span style="color: white; background: #c44230"&gt;_ N _&lt;/span&gt;  &lt;/td&gt;&lt;td style="text-align: center"&gt;  &lt;span style="color: white; background: #c44230"&gt;_ N _&lt;/span&gt;
+&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;th&gt; &lt;strong&gt;&lt;code&gt;SAMEORIGIN&lt;/code&gt; supported?&lt;/strong&gt; &lt;/th&gt;&lt;td style="text-align: center"&gt;  &lt;span style="color: white; background: #39b54a"&gt;_ Y _&lt;/span&gt;  &lt;/td&gt;&lt;td style="text-align: center"&gt;  &lt;span style="color: white; background: #39b54a"&gt;_ Y _&lt;/span&gt;  &lt;/td&gt;&lt;td style="text-align: center"&gt;  &lt;span style="color: white; background: #39b54a"&gt;_ Y _&lt;/span&gt;  &lt;/td&gt;&lt;td style="text-align: center"&gt;  &lt;span style="color: white; background: #39b54a"&gt;_ Y _&lt;/span&gt;  &lt;/td&gt;&lt;td style="text-align: center"&gt;  &lt;span style="color: white; background: #39b54a"&gt;_ Y _&lt;/span&gt;
+&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;th&gt; &lt;strong&gt;&lt;code&gt;frame-ancestors&lt;/code&gt; supported?&lt;/strong&gt; &lt;/th&gt;&lt;td style="text-align: center"&gt;  &lt;span style="color: white; background: #c44230"&gt;_ N _&lt;/span&gt;  &lt;/td&gt;&lt;td style="text-align: center"&gt;  &lt;span style="color: white; background: #39b54a"&gt;_ Y _&lt;/span&gt;  &lt;/td&gt;&lt;td style="text-align: center"&gt;  &lt;span style="color: white; background: #39b54a"&gt;_ Y _&lt;/span&gt;  &lt;/td&gt;&lt;td style="text-align: center"&gt;  &lt;span style="color: white; background: #39b54a"&gt;_ Y _&lt;/span&gt;  &lt;/td&gt;&lt;td style="text-align: center"&gt;  &lt;span style="color: white; background: #39b54a"&gt;_ Y _&lt;/span&gt;
+&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;th&gt; &lt;strong&gt;&lt;code&gt;frame-ancestors&lt;/code&gt; override &lt;code&gt;ALLOW-FROM&lt;/code&gt;?&lt;/strong&gt; &lt;/th&gt;&lt;td style="text-align: center"&gt;  n/a  &lt;/td&gt;&lt;td style="text-align: center"&gt;  &lt;span style="color: white; background: #39b54a"&gt;_ Y _&lt;/span&gt;  &lt;/td&gt;&lt;td style="text-align: center"&gt;  &lt;span style="color: white; background: #39b54a"&gt;_ Y _&lt;/span&gt;  &lt;/td&gt;&lt;td style="text-align: center"&gt;  &lt;span style="color: white; background: #39b54a"&gt;_ Y _&lt;/span&gt;  &lt;/td&gt;&lt;td style="text-align: center"&gt;  &lt;span style="color: white; background: #39b54a"&gt;_ Y _&lt;/span&gt;
+&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;th&gt; &lt;strong&gt;&lt;code&gt;ALLOW-FROM&lt;/code&gt; honors path?&lt;/strong&gt; &lt;/th&gt;&lt;td style="text-align: center"&gt;  &lt;span style="color: white; background: #c44230"&gt;_ N _&lt;/span&gt;  &lt;/td&gt;&lt;td style="text-align: center"&gt;  &lt;span style="color: white; background: #c44230"&gt;_ N _&lt;/span&gt;  &lt;/td&gt;&lt;td style="text-align: center"&gt;  &lt;span style="color: white; background: #c44230"&gt;_ N _&lt;/span&gt;  &lt;/td&gt;&lt;td style="text-align: center"&gt;  n/a  &lt;/td&gt;&lt;td style="text-align: center"&gt;  n/a
+&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;th&gt; &lt;strong&gt;when &lt;code&gt;frame-ancestors&lt;/code&gt;&lt;br /&gt;specifies a &lt;code&gt;source&lt;/code&gt; with a path&lt;/strong&gt; &lt;/th&gt;&lt;td style="text-align: center"&gt;  n/a  &lt;/td&gt;&lt;td style="text-align: center"&gt;  embed succeeds&lt;br /&gt;(path ignored)  &lt;/td&gt;&lt;td style="text-align: center"&gt;  embed succeeds&lt;br /&gt;(path ignored)  &lt;/td&gt;&lt;td style="text-align: center"&gt;  embed fails  &lt;/td&gt;&lt;td style="text-align: center"&gt;  embed fails
+&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;th&gt; &lt;strong&gt;browser version tested&lt;/strong&gt; &lt;/th&gt;&lt;td style="text-align: center"&gt;  11.371.16299.0  &lt;/td&gt;&lt;td style="text-align: center"&gt;  41.16299.371.0  &lt;/td&gt;&lt;td style="text-align: center"&gt;  65.0.3325.181  &lt;/td&gt;&lt;td style="text-align: center"&gt;  59.0.2  &lt;/td&gt;&lt;td style="text-align: center"&gt;  11605.1.33.1.3
+&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #43546 (Add to the privacy tools UX a means to export personal data by ...) updated</title>
+      
+        <dc:creator>TZ Media</dc:creator>
+
+      <pubDate>Thu, 12 Apr 2018 07:21:07 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43546#comment:10</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43546#comment:10/1523517667639498</guid>
+      <description>&lt;p&gt;
+Great work, @allendav!
+&lt;/p&gt;
+&lt;p&gt;
+I have a few thoughts regarding the possibility of adding additional output generators (as plugin), as we will need other (custom) output formats for some projects (e.g. XML output or a single PDF document instead of HTML.
+&lt;/p&gt;
+&lt;p&gt;
+From how I understand your code, we would need to be able to
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;Add additional action links to the items in the table, like "Download Personal Data as XML".
+&lt;/li&gt;&lt;li&gt;Be able to use the HTML generation without saving it to a file directly (to further process it and save it in a different file format like PDF).
+&lt;/li&gt;&lt;li&gt;Be able to easily add other output formats, by
+&lt;ul&gt;&lt;li&gt;either making as much of the functionality - like generation of $export_data or the ajax loop from xfn.js - reusable as separate functions,
+&lt;/li&gt;&lt;li&gt;or make the export generator aware of different output formats, like
+&lt;ul&gt;&lt;li&gt;register possible export format generators - including the one form core that generates HTML/ZIP - via a filter hook,
+&lt;/li&gt;&lt;li&gt;automate the generation of action links for each format to the items in the table,
+&lt;/li&gt;&lt;li&gt;send the desired output format as handler in the AJAX request loop that triggers the report generation,
+&lt;/li&gt;&lt;li&gt;and call the export generator that is registered for this handler to generate an output file (either a single file, or an archive)
+&lt;ul&gt;&lt;li&gt;Question here: Could we refactor the zip file generation into a helper function that is reusable for all export generators?
+&lt;/li&gt;&lt;/ul&gt;&lt;/li&gt;&lt;/ul&gt;&lt;/li&gt;&lt;/ul&gt;&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;
+I know that this would require deep changes, but would it be possible to include this possibility one way or the other? I'd prefer the last approach as it is the most flexible one for plugin authors, but I could live with other approaches as well.
+&lt;/p&gt;
+&lt;p&gt;
+Also I'd be willing to help implementing this if we can agree on an approach.
+&lt;/p&gt;
+&lt;p&gt;
+EDIT: Another idea would be the possibility to add additional files to the zip file, so the user could get the HTML, and I could add the same data as XML, or in other formats, as well.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #43742 (Add $_wp_admin_css_colors variable to front-end) created</title>
+      
+        <dc:creator>danieltj</dc:creator>
+
+      <pubDate>Thu, 12 Apr 2018 07:17:43 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43742</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43742/1523517463509806</guid>
+      <description>&lt;p&gt;
+I've developed a plugin that uses the admin colour scheme functionality.
+&lt;/p&gt;
+&lt;p&gt;
+When a colour scheme is registered (using &lt;code&gt;wp_admin_css_color&lt;/code&gt;), it's added to the &lt;code&gt;$_wp_admin_css_colors&lt;/code&gt; variable. This is only accessible within the dashboard though so if you try and use that variable on the front-end, it returns &lt;code&gt;null&lt;/code&gt; (doesn't exist).
+&lt;/p&gt;
+&lt;p&gt;
+Can this be made accessible on the front-end too?
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #13372 (Separate Image sizes for different post types) updated</title>
+      
+        <dc:creator>galbaras</dc:creator>
+
+      <pubDate>Thu, 12 Apr 2018 04:35:22 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/13372#comment:22</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/13372#comment:22/1523507722399874</guid>
+      <description>&lt;p&gt;
+It may be better to not use post types, but allow plugin and theme developers to manage things via hooks and extra parameters, with old-style calls defaulting to "everything/everywhere".
+&lt;/p&gt;
+&lt;p&gt;
+Images can have a new classification, which allows more than one selection. When uploaded, they can be designated "post image", "product image", etc.
+&lt;/p&gt;
+&lt;p&gt;
+add_image_size() can be extended to accept an array of pre_registered designations, via a new function, say add_image_designation(), which accepts a name and a title.
+&lt;/p&gt;
+&lt;p&gt;
+After an image is uploaded and classified, WordPress can generate the supposedly-correct thumbnails.
+&lt;/p&gt;
+&lt;p&gt;
+Similarly, after editing the classification of an image, WordPress can adjust the thumbnails, possibly without ever deleting files.
+&lt;/p&gt;
+&lt;p&gt;
+srcset handling can follow image classification.
+&lt;/p&gt;
+&lt;p&gt;
+It is the responsibility of the developer and the content creator to use the correct images, but WordPress can help by allowing image selection by designation when embedding with Add Media.
+&lt;/p&gt;
+&lt;p&gt;
+This can be made easier by linking content types with image designations, and then allowing only images matching the content type to be embedded.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #43454 (Add UI elements to make the user aware of image geo data) updated</title>
+      
+        <dc:creator>desrosj</dc:creator>
+
+      <pubDate>Thu, 12 Apr 2018 00:43:54 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43454#comment:10</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43454#comment:10/1523493834414965</guid>
+      <description>&lt;p&gt;
+@allendav We had decided to close this one alongside &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/9257" title="#9257: enhancement: EXIF GPS data (closed: maybelater)"&gt;#9257&lt;/a&gt; (which was deemed plugin territory for now). Without &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/9257" title="#9257: enhancement: EXIF GPS data (closed: maybelater)"&gt;#9257&lt;/a&gt;, Core would be unaware of any EXIF GPS data.
+&lt;/p&gt;
+&lt;p&gt;
+Are you advocating for a general notice in the media library? Or one that is displayed when an image is uploaded that actually contains EXIF GPS data? If the latter, we should reopen both tickets. Regardless of whether Core is aware of the EXIF GPS data, any image that is uploaded does potentially have that data since the original uploaded media file is not modified on upload.
+&lt;/p&gt;
+&lt;p&gt;
+Just want to make sure we reopen the correct tickets for visibility!
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>43741.diff attached to Ticket #43741</title>
+      
+        <dc:creator>Karzin</dc:creator>
+
+      <pubDate>Thu, 12 Apr 2018 00:43:52 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/43741/43741.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/43741/43741.diff/1523493832102525</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #43454 (Add UI elements to make the user aware of image geo data) updated</title>
+      
+        <dc:creator>allendav</dc:creator>
+
+      <pubDate>Thu, 12 Apr 2018 00:31:17 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43454#comment:9</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43454#comment:9/1523493077866746</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Since location data is personal data, and it is possible to correlate authors with the attachments they upload in the REST API, we at least need to warn administrators to include a warning in their site's privacy policy about EXIF GPS data in media.
+&lt;/p&gt;
+&lt;p&gt;
+Even better though, we could warn users in the Media Library uploader that the image they uploaded contains EXIF GPS and the risks therein.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #43741 (Improve media_sideload_image() image extensions detection) created</title>
+      
+        <dc:creator>Karzin</dc:creator>
+
+      <pubDate>Thu, 12 Apr 2018 00:30:44 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43741</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43741/1523493044330843</guid>
+      <description>&lt;p&gt;
+&lt;strong&gt;media_sideload_image()&lt;/strong&gt; applies a pattern to the URL trying to detect image extensions.
+&lt;/p&gt;
+&lt;p&gt;
+There are cases where Image URLs don't end on jpg, png or any other extensions.
+They can be simply a number or any other weird urls, but they are actually just fine
+&lt;a class="ext-link" href="https://crmall.generalshopping.com.br:8097/Api/store/image/bkxjNm5LU0RzQW5rdVNvUHZVSURkQT09"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://crmall.generalshopping.com.br:8097/Api/store/image/bkxjNm5LU0RzQW5rdVNvUHZVSURkQT09&lt;/a&gt;
+&lt;/p&gt;
+&lt;p&gt;
+So I think it would be a good idea trying to detect the image extensions on these cases, like this:
+&lt;/p&gt;
+&lt;div class="wiki-code"&gt;&lt;div class="code"&gt;&lt;pre&gt;&lt;span class="cp"&gt;&amp;lt;?php&lt;/span&gt;
+&lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="o"&gt;!&lt;/span&gt; &lt;span class="nv"&gt;$matches&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+        &lt;span class="nv"&gt;$image_type&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nb"&gt;exif_imagetype&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="nv"&gt;$file&lt;/span&gt; &lt;span class="p"&gt;);&lt;/span&gt;
+        &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="nv"&gt;$image_type&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+                &lt;span class="nv"&gt;$fileextension&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nb"&gt;image_type_to_extension&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="nv"&gt;$image_type&lt;/span&gt; &lt;span class="p"&gt;);&lt;/span&gt;
+                &lt;span class="nv"&gt;$matches&lt;/span&gt;       &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="k"&gt;array&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="nv"&gt;$fileextension&lt;/span&gt; &lt;span class="p"&gt;);&lt;/span&gt;
+        &lt;span class="p"&gt;}&lt;/span&gt; &lt;span class="k"&gt;else&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+                &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="k"&gt;new&lt;/span&gt; &lt;span class="nx"&gt;WP_Error&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="s1"&gt;'image_sideload_failed'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;__&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="s1"&gt;'Invalid image URL'&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;);&lt;/span&gt;
+        &lt;span class="p"&gt;}&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;p&gt;
+It's been working on my tests pretty nice.
+The only other thing I have to do in order to test such urls is turning reject_unsafe_urls to false, like this:
+&lt;/p&gt;
+&lt;div class="wiki-code"&gt;&lt;div class="code"&gt;&lt;pre&gt;&lt;span class="cp"&gt;&amp;lt;?php&lt;/span&gt;
+&lt;span class="nx"&gt;add_filter&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="s1"&gt;'http_request_args'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="k"&gt;function&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;$args&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="nv"&gt;$url&lt;/span&gt;&lt;span class="p"&gt;){&lt;/span&gt;
+    &lt;span class="nv"&gt;$args&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;'reject_unsafe_urls'&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="k"&gt;false&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="nv"&gt;$args&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="p"&gt;}),&lt;/span&gt;&lt;span class="mi"&gt;10&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="mi"&gt;2&lt;/span&gt; &lt;span class="p"&gt;);&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #43545 (Helper functions: Anonymizing data in a standardized way) updated</title>
+      
+        <dc:creator>iandunn</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 23:48:11 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43545#comment:32</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43545#comment:32/1523490491074866</guid>
+      <description>&lt;p&gt;
+If this gets &lt;a class="ext-link" href="https://wordpress.slack.com/archives/C02RQBWTW/p1523477712000126"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;bumped from `5.0` to `4.9.x`&lt;/a&gt;, then it'd probably be best to move the tests from &lt;code&gt;tests/functions/anonymization.php&lt;/code&gt; to &lt;code&gt;tests/functions.php&lt;/code&gt;, to avoid adding a new file in a point release.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #43545 (Helper functions: Anonymizing data in a standardized way) updated</title>
+      
+        <dc:creator>iandunn</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 23:35:55 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43545#comment:31</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43545#comment:31/1523489755388442</guid>
+      <description>&lt;p&gt;
+&lt;a class="attachment" href="http://core.trac.wordpress.org/attachment/ticket/43545/43545.4.diff" title="Attachment '43545.4.diff' in Ticket #43545"&gt;43545.4.diff&lt;/a&gt;&lt;a class="trac-rawlink" href="http://core.trac.wordpress.org/raw-attachment/ticket/43545/43545.4.diff" title="Download"&gt;​&lt;/a&gt; looks pretty good to me. I made a few minor changes in &lt;a class="attachment" href="http://core.trac.wordpress.org/attachment/ticket/43545/43545.5.diff" title="Attachment '43545.5.diff' in Ticket #43545"&gt;43545.5.diff&lt;/a&gt;&lt;a class="trac-rawlink" href="http://core.trac.wordpress.org/raw-attachment/ticket/43545/43545.5.diff" title="Download"&gt;​&lt;/a&gt;:
+&lt;/p&gt;
+&lt;h3 id="src:"&gt;&lt;code&gt;src&lt;/code&gt;:&lt;/h3&gt;
+&lt;ul&gt;&lt;li&gt;Move &lt;code&gt;$ip_prefix&lt;/code&gt; from &lt;code&gt;get_unsafe_client_ip()&lt;/code&gt; &lt;code&gt;wp_privacy_anonymize_ip()&lt;/code&gt; to preserve the default value (although the &lt;code&gt;NULL&lt;/code&gt; would probably get converted to &lt;code&gt;''&lt;/code&gt; anyway).
+&lt;/li&gt;&lt;li&gt;Minor cleanup (trailing spaces, full stops, etc).
+&lt;/li&gt;&lt;/ul&gt;&lt;h3 id="tests:"&gt;&lt;code&gt;tests&lt;/code&gt;:&lt;/h3&gt;
+&lt;ul&gt;&lt;li&gt;Moved the tests from &lt;code&gt;Test_WP_Community_Events::test_get_unsafe_client_ip_anonymization()&lt;/code&gt; to &lt;code&gt;Tests_Functions_Anonymization&lt;/code&gt;, so that they remain attached to the function they're testing.
+&lt;/li&gt;&lt;li&gt;Refactored &lt;code&gt;Test_WP_Community_Events::test_get_unsafe_client_ip()&lt;/code&gt; to only test the functionality left in &lt;code&gt;get_unsafe_client_ip()&lt;/code&gt;.
+&lt;/li&gt;&lt;li&gt;Swapped function params in unit test calls to &lt;code&gt;wp_privacy_anonymize_ip()&lt;/code&gt;, so that the tests pass.
+&lt;/li&gt;&lt;/ul&gt;&lt;hr /&gt;
+&lt;p&gt;
+It might be worth noting that the Events Widget doesn't strictly need &lt;code&gt;$ipv6_fallback&lt;/code&gt; mode, if using the un-anonymized IP is going to cause GDPR issues. If only anonymized IPs were sent to api.wordpress.org, then a small subset of users -- those running PHP &lt;code&gt;&amp;lt; 5.3&lt;/code&gt; on Windows -- would lose the functionality that automatically displays events based on geolocating the IP address. Instead, they'd have to manually enter their location.
+&lt;/p&gt;
+&lt;p&gt;
+Automatically detecting the location and showing local events is one of key features of the Events Widget, because the demographic it primarily targets are those users who aren't already aware of the WP community, and are therefore less likely to put in the effort to explore the dashboard widget and manually fetch the events. Having said that, though, removing that functionality could be an acceptable compromise.
+&lt;/p&gt;
+&lt;p&gt;
+If we do keep &lt;code&gt;$ipv6_fallback&lt;/code&gt; mode, then we should probably add some tests for it.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>43545.5.diff attached to Ticket #43545</title>
+      
+        <dc:creator>iandunn</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 23:34:27 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/43545/43545.5.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/43545/43545.5.diff/1523489667061222</guid>
+      <description>&lt;p&gt;
+Move &lt;code&gt;$ip_prefix&lt;/code&gt; and tests, minor cleanup. See &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/43545#comment:30" title="Comment 30"&gt;comment:30&lt;/a&gt;.
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #21072 (CRON often returns ambiguous values) updated</title>
+      
+        <dc:creator>peterwilsoncc</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 23:02:54 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/21072#comment:10</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/21072#comment:10/1523487774358264</guid>
+      <description>&lt;p&gt;
+Working on this on a &lt;a class="ext-link" href="https://github.com/peterwilsoncc/WordPress/pull/1"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;Github PR&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #43546 (Add to the privacy tools UX a means to export personal data by ...) updated</title>
+      
+        <dc:creator>allendav</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 23:01:23 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43546#comment:9</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43546#comment:9/1523487683244365</guid>
+      <description>&lt;p&gt;
+I just uploaded a rough work in progress that connects the "Download Data" action for a personal data export request all the way through to generating a ZIP file. The ZIP file includes an HTML report that surfaces personal data found in comments.
+&lt;/p&gt;
+&lt;p&gt;
+To test,
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;apply this patch
+&lt;/li&gt;&lt;li&gt;create a few comments with a given email address
+&lt;/li&gt;&lt;li&gt;go to Tools &amp;gt; Personal Data Export and create a new export request for that email address
+&lt;/li&gt;&lt;li&gt;confirm the request if desired (not required)
+&lt;/li&gt;&lt;li&gt;click on Download Data under the email address in the export table
+&lt;/li&gt;&lt;li&gt;you should receive a ZIP file, open it
+&lt;/li&gt;&lt;li&gt;behold the personal data found in comments
+&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;
+Besides generally cleaning it up, I also want to change the file generation to use the request CPT instead of options, but otherwise things won't change much. Feedback welcome.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>43546.2.diff attached to Ticket #43546</title>
+      
+        <dc:creator>allendav</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 22:57:45 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/43546/43546.2.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/43546/43546.2.diff/1523487465702589</guid>
+      <description>&lt;p&gt;
+Work in progress - personal data export to ZIP file
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>notice.png attached to Ticket #43620</title>
+      
+        <dc:creator>azaozz</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 22:40:51 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/43620/notice.png</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/43620/notice.png/1523486451705714</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>three.png attached to Ticket #43620</title>
+      
+        <dc:creator>azaozz</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 22:40:35 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/43620/three.png</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/43620/three.png/1523486435581965</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>two.png attached to Ticket #43620</title>
+      
+        <dc:creator>azaozz</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 22:40:25 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/43620/two.png</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/43620/two.png/1523486425703742</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>one.png attached to Ticket #43620</title>
+      
+        <dc:creator>azaozz</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 22:40:10 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/43620/one.png</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/43620/one.png/1523486410182896</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #43620 (Privacy Policy page design) updated</title>
+      
+        <dc:creator>azaozz</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 22:31:41 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43620#comment:16</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43620#comment:16/1523485901327619</guid>
+      <description>&lt;p&gt;
+In 43620.diff - first run of the Privacy Policy postbox:
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;Caches the current suggested text in post_meta. Then compares it after every plugin activation or deactivation. If there are changes, outputs a warning (for admins only) with a link to edit the privacy policy page.
+&lt;/li&gt;&lt;li&gt;Introduces &lt;code&gt;wp_add_privacy_policy_content( $plugin_name, $policy_text )&lt;/code&gt; for plugins to add suggested text for inclusion in the site's privacy policy.
+&lt;/li&gt;&lt;li&gt;Introduces &lt;code&gt;get_privacy_policy_url()&lt;/code&gt; to retrieve the URL to the privacy policy.
+&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;
+To highlight any changes the policy texts from plugins have three statuses:
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;Added (date).
+&lt;/li&gt;&lt;li&gt;Updated (date) green background.
+&lt;/li&gt;&lt;li&gt;Removed (date) red background.
+&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;
+These are added after a plugin that adds policy text is activated or deactivated and the text is compared with the cache. The statuses are removed after the policy page is saved/updated.
+&lt;/p&gt;
+&lt;p&gt;
+TODO:
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;Folding (somehow) of each policy text? With many plugins the text can get pretty long, and the scrolling may become annoying.
+&lt;/li&gt;&lt;li&gt;UI/behaviors review.
+&lt;/li&gt;&lt;/ul&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>43620.diff attached to Ticket #43620</title>
+      
+        <dc:creator>azaozz</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 22:13:32 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/43620/43620.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/43620/43620.diff/1523484812039924</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>43740.diff attached to Ticket #43740</title>
+      
+        <dc:creator>MikeSchinkel</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 21:34:13 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/43740/43740.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/43740/43740.diff/1523482453251958</guid>
+      <description>&lt;p&gt;
+Patch that would all method filters to WP_Post
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #43740 (Filter WP_Post methods (vs. removing final/'get_post' filter)) created</title>
+      
+        <dc:creator>MikeSchinkel</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 21:33:26 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43740</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43740/1523482406449752</guid>
+      <description>&lt;p&gt;
+There has been a lot of demand to remove &lt;code&gt;final&lt;/code&gt; from &lt;code&gt;WP_Post&lt;/code&gt; and to add a &lt;code&gt;get_post&lt;/code&gt; filter, for good reason.  There as also be a lot of pushback on those actions, also for very good reason.  Both sets of reasons can be found in ticket &lt;a class="reopened ticket" href="http://core.trac.wordpress.org/ticket/24672" title="#24672: enhancement: Remove final from WP_Post class (reopened)"&gt;#24672&lt;/a&gt; and &lt;a class="new ticket" href="http://core.trac.wordpress.org/ticket/12955" title="#12955: feature request: Add get_post filter (new)"&gt;#12955&lt;/a&gt;, respectively.
+&lt;/p&gt;
+&lt;p&gt;
+In a nutshell for, there are many valid use-cases where being able to extend &lt;code&gt;WP_Post&lt;/code&gt; would make for more robust and maintainable code. In the against case, removing &lt;code&gt;'final'&lt;/code&gt; could easily resolve in an explosion of incompatible child classes making plugin interoperability challenging, and backward compatibility almost impossible if code decided to evolve WP_Post in any way.  And the &lt;code&gt;'get_post'&lt;/code&gt; filter would be almost as bad as removing &lt;code&gt;final&lt;/code&gt;, and I am one who advocated for both for years.
+&lt;/p&gt;
+&lt;p&gt;
+However, we actually already have an extensibility mechanism that has shown the test of time and that is the use of filter hooks. Given a judicious use of filter hooks we could actually allow developers to extend &lt;code&gt;WP_Post&lt;/code&gt; in a compossible manner thus minimizing plugin integration problems and also safeguarding core's ability to add enhancements in the future.
+&lt;/p&gt;
+&lt;p&gt;
+The proposal is basically to add filter hooks in the methods of &lt;code&gt;WP_Post&lt;/code&gt;, and to add a &lt;code&gt;__set()&lt;/code&gt; and &lt;code&gt;__call()&lt;/code&gt; magic method as a companion to the existing &lt;code&gt;__get()&lt;/code&gt; magic method. Here are the filters I am proposing:
+&lt;/p&gt;
+&lt;table class="wiki"&gt;
+&lt;tr&gt;&lt;th style="text-align: right"&gt; Filter Hook&lt;/th&gt;&lt;th&gt;Method
+&lt;/th&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt; &lt;code&gt;'wp_post_supports_instance'&lt;/code&gt; &lt;/td&gt;&lt;td style="text-align: right"&gt;  &lt;code&gt;__construct()&lt;/code&gt;
+&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt; &lt;code&gt;'pre_wp_post__isset'&lt;/code&gt; &lt;/td&gt;&lt;td&gt;&lt;code&gt;__isset()&lt;/code&gt;
+&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt; &lt;code&gt;'wp_post__isset'&lt;/code&gt;  &lt;/td&gt;&lt;td style="text-align: left"&gt;&lt;code&gt;__isset()&lt;/code&gt;
+&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt; &lt;code&gt;'wp_post__call'&lt;/code&gt;  &lt;/td&gt;&lt;td&gt; &lt;code&gt;__call()&lt;/code&gt;
+&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt; &lt;code&gt;'wp_post__set'&lt;/code&gt;  &lt;/td&gt;&lt;td&gt; &lt;code&gt;__set()&lt;/code&gt;
+&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt; &lt;code&gt;'pre_wp_post__get'&lt;/code&gt;  &lt;/td&gt;&lt;td&gt; &lt;code&gt;__get()&lt;/code&gt;
+&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt; &lt;code&gt;'wp_post_filter'&lt;/code&gt;  &lt;/td&gt;&lt;td style="text-align: left"&gt;&lt;code&gt;filter()&lt;/code&gt;
+&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt; &lt;code&gt;'wp_post_to_array'&lt;/code&gt;  &lt;/td&gt;&lt;td&gt; &lt;code&gt;to_array()&lt;/code&gt;
+&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;p&gt;
+And then this action hook:
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;&lt;code&gt;'wp_post__construct'&lt;/code&gt; in &lt;code&gt;__construct()&lt;/code&gt;
+&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;
+I have attached a patch for &lt;code&gt;class-wp-post.php&lt;/code&gt; that would implement these hooks.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #33468 (Add image caption hook) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 21:02:06 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/33468#comment:7</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/33468#comment:7/1523480526887917</guid>
+      <description>&lt;i&gt;Status&lt;/i&gt;, &lt;i&gt;Owner&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #10653 (Update comment_author when display_name changes) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 21:01:52 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/10653#comment:21</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/10653#comment:21/1523480512831363</guid>
+      <description>&lt;i&gt;Status&lt;/i&gt;, &lt;i&gt;Owner&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #35501 (Dashboard page: incorrect work of "Activity" group box bottom counters) updated</title>
+      
+        <dc:creator>adamsilverstein</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 20:53:37 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/35501#comment:20</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/35501#comment:20/1523480017468391</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+&lt;a class="attachment" href="http://core.trac.wordpress.org/attachment/ticket/35501/35501.8.patch" title="Attachment '35501.8.patch' in Ticket #35501"&gt;35501.8.patch&lt;/a&gt;&lt;a class="trac-rawlink" href="http://core.trac.wordpress.org/raw-attachment/ticket/35501/35501.8.patch" title="Download"&gt;​&lt;/a&gt; slight fixup and refresh against trunk, needs more testing.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>35501.diff attached to Ticket #35501</title>
+      
+        <dc:creator>adamsilverstein</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 20:44:01 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/35501/35501.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/35501/35501.diff/1523479441916168</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #41316 (Introduce "Try Gutenberg" callout) updated</title>
+      
+        <dc:creator>azaozz</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 20:41:33 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/41316#comment:105</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/41316#comment:105/1523479293810213</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #43009 (Create Video/Audio Playlist hooks not working as expected) updated</title>
+      
+        <dc:creator>iforrest</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 20:14:25 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43009#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43009#comment:3/1523477665476432</guid>
+      <description>&lt;p&gt;
+I understand that this is how it's coded to work, but the filters have descriptions like "Allows showing or hiding the “Create Video Playlist” button in the media library." To me it seems like an incomplete feature.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #41316 (Introduce "Try Gutenberg" callout) updated</title>
+      
+        <dc:creator>brianhogg</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 19:43:00 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/41316#comment:104</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/41316#comment:104/1523475780539213</guid>
+      <description>&lt;p&gt;
+100% agree though would also add this to the list:
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;[&lt;a class="ext-link" href="https://github.com/WordPress/gutenberg/issues/179"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://github.com/WordPress/gutenberg/issues/179&lt;/a&gt; Simple text interactions
+&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;
+and others related to keyboard accessibility.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #43009 (Create Video/Audio Playlist hooks not working as expected) updated</title>
+      
+        <dc:creator>adamsilverstein</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 18:56:46 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43009#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43009#comment:2/1523473006286126</guid>
+      <description>&lt;p&gt;
+Hi @iforrest - thanks for the report, and thanks @birgire for the additional sleuthing.
+&lt;/p&gt;
+&lt;p&gt;
+I think this is actually the expected behavior of the filter, it only affects what happens on initial page load and is not designed to hide the button always, although I can see how the naming might indicate that. These filters were introduced in &lt;a href="https://core.trac.wordpress.org/ticket/31071"&gt;https://core.trac.wordpress.org/ticket/31071&lt;/a&gt; to enable developers to re-enable the (expensive) query for sound/video files when the page loads. By returning false, you are setting the button initial state to hidden, however once you change the media collection by uploading audio, the Create Audio Playlist option should appear.
+&lt;/p&gt;
+&lt;p&gt;
+See docs at &lt;a class="ext-link" href="https://developer.wordpress.org/reference/hooks/media_library_show_audio_playlist/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://developer.wordpress.org/reference/hooks/media_library_show_audio_playlist/&lt;/a&gt; &amp;amp; &lt;a class="ext-link" href="https://developer.wordpress.org/reference/hooks/media_library_show_video_playlist/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://developer.wordpress.org/reference/hooks/media_library_show_video_playlist/&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #43542 (Duplicate MIME-Version header) updated</title>
+      
+        <dc:creator>studyboi</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 18:50:59 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43542#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43542#comment:3/1523472659995802</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+To solve the problem of having the header be duplicated by having this function called twice, I added a fail-safe to prevent it.  It checks whether a header has been created yet before executing the code to add one.
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;// Set custom headers
+        if ( !empty( $headers ) ) {
+                foreach ( (array) $headers as $name =&amp;gt; $content ) {
+                        // Only add custom header if not one that will be added automatically
+                        // by wp-includes/class-phpmailer.php
+                        if (('MIME-Version' !== $name) &amp;amp;&amp;amp; ('X-Mailer' !== $name)){
+                                if (get_header($name) == ""){
+                                        $phpmailer-&amp;gt;addCustomHeader( sprintf( '%1$s: %2$s', $name, $content ) );
+                                }
+                        }
+                }
+&lt;/pre&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #43009 (Create Video/Audio Playlist hooks not working as expected) updated</title>
+      
+        <dc:creator>birgire</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 18:39:26 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43009#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43009#comment:1/1523471966581817</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt;, &lt;i&gt;Focuses&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+@iforrest thanks for the ticket and welcome to Trac.
+&lt;/p&gt;
+&lt;p&gt;
+That sounds like a bug.
+&lt;/p&gt;
+&lt;p&gt;
+The &lt;a class="attachment" href="http://core.trac.wordpress.org/attachment/ticket/43009/with_media_library_show_audio_playlist_filter_set_to_zero.gif" title="Attachment 'with_media_library_show_audio_playlist_filter_set_to_zero.gif' in Ticket #43009"&gt;with_media_library_show_audio_playlist_filter_set_to_zero.gif&lt;/a&gt;&lt;a class="trac-rawlink" href="http://core.trac.wordpress.org/raw-attachment/ticket/43009/with_media_library_show_audio_playlist_filter_set_to_zero.gif" title="Download"&gt;​&lt;/a&gt; screen-cast shows the issue, given the filtering:
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;add_filter( 'media_library_show_audio_playlist', '__return_false' );
+&lt;/pre&gt;&lt;p&gt;
+When a new audio file is uploaded, then the "Create Audio Playlist" link shows up, regardless of the above filtering.
+&lt;/p&gt;
+&lt;p&gt;
+The reason for this comes within the &lt;code&gt;bindHandlers&lt;/code&gt; function here:
+&lt;/p&gt;
+&lt;p&gt;
+&lt;a href="https://core.trac.wordpress.org/browser/tags/4.9.5/src/wp-includes/js/media-views.js#L3391"&gt;https://core.trac.wordpress.org/browser/tags/4.9.5/src/wp-includes/js/media-views.js#L3391&lt;/a&gt;
+&lt;/p&gt;
+&lt;p&gt;
+For example the audio/video playlist menu items are hidden/displayed via:
+&lt;/p&gt;
+&lt;p&gt;
+&lt;a href="https://core.trac.wordpress.org/browser/tags/4.9.5/src/wp-includes/js/media-views.js#L3452"&gt;https://core.trac.wordpress.org/browser/tags/4.9.5/src/wp-includes/js/media-views.js#L3452&lt;/a&gt;
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;	activate: function() {
+		// Hide menu items for states tied to particular media types if there are no items
+		_.each( this.counts, function( type ) {
+			if ( type.count &amp;lt; 1 ) {
+				this.menuItemVisibility( type.state, 'hide' );
+			}
+		}, this );
+	},
+	mediaTypeCounts: function( model, attr ) {
+		if ( typeof this.counts[ attr ] !== 'undefined' &amp;amp;&amp;amp; this.counts[ attr ].count &amp;lt; 1 ) {
+			this.counts[ attr ].count++;
+			this.menuItemVisibility( this.counts[ attr ].state, 'show' );
+		}
+	},
+&lt;/pre&gt;&lt;p&gt;
+where e.g. the count is updated via this event listener:
+&lt;/p&gt;
+&lt;p&gt;
+&lt;a href="https://core.trac.wordpress.org/browser/tags/4.9.5/src/wp-includes/js/media-views.js#L3403"&gt;https://core.trac.wordpress.org/browser/tags/4.9.5/src/wp-includes/js/media-views.js#L3403&lt;/a&gt;
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;if ( typeof checkCounts !== 'undefined' ) {
+	this.listenTo( wp.media.model.Attachments.all, 'change:type', this.mediaTypeCounts );
+}
+&lt;/pre&gt;&lt;p&gt;
+The &lt;code&gt;attachmentCounts&lt;/code&gt; settings comes from:
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;'attachmentCounts' =&amp;gt; array(
+	'audio' =&amp;gt; ( $show_audio_playlist ) ? 1 : 0,
+	'video' =&amp;gt; ( $show_video_playlist ) ? 1 : 0,
+),
+&lt;/pre&gt;&lt;p&gt;
+&lt;a href="https://core.trac.wordpress.org/browser/tags/4.9.5/src/wp-includes/media.php#L3451"&gt;https://core.trac.wordpress.org/browser/tags/4.9.5/src/wp-includes/media.php#L3451&lt;/a&gt;
+&lt;/p&gt;
+&lt;p&gt;
+This shows that there are two state-values possible for &lt;code&gt;audio&lt;/code&gt; and &lt;code&gt;video&lt;/code&gt; in &lt;code&gt;attachmentCounts&lt;/code&gt;, but we have possible 3 state-values from the filtering (e.g. audio):
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;$show_audio_playlist = apply_filters( 'media_library_show_audio_playlist', true );
+if ( null === $show_audio_playlist ) {
+	$show_audio_playlist = $wpdb-&amp;gt;get_var(...);
+}
+&lt;/pre&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #43473 (Add default text for a privacy policy) updated</title>
+      
+        <dc:creator>casiepa</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 18:34:37 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43473#comment:7</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43473#comment:7/1523471677856062</guid>
+      <description>&lt;p&gt;
+Embedded content: &lt;a class="ext-link" href="https://github.com/gdpr-compliance/info/blob/master/Privacy-policy-snippets.md#embedded-content"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://github.com/gdpr-compliance/info/blob/master/Privacy-policy-snippets.md#embedded-content&lt;/a&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Cookies: &lt;a class="ext-link" href="https://github.com/gdpr-compliance/info/blob/master/Cookies.md"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://github.com/gdpr-compliance/info/blob/master/Cookies.md&lt;/a&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Stored data: &lt;a class="ext-link" href="https://github.com/gdpr-compliance/info/blob/master/Synched-info.md"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://github.com/gdpr-compliance/info/blob/master/Synched-info.md&lt;/a&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Now how to put these together?
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>with_media_library_show_audio_playlist_filter_set_to_zero.gif attached to Ticket #43009</title>
+      
+        <dc:creator>birgire</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 18:16:37 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/43009/with_media_library_show_audio_playlist_filter_set_to_zero.gif</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/43009/with_media_library_show_audio_playlist_filter_set_to_zero.gif/1523470597556934</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #43736 (Audio continues to play in Media Modal after close) updated</title>
+      
+        <dc:creator>adamsilverstein</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 17:59:32 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43736#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43736#comment:2/1523469572834188</guid>
+      <description>&lt;p&gt;
+@bahia0019 Thanks for the bug report and proposed fix! I'll take a look.
+&lt;/p&gt;
+&lt;p&gt;
+Please note that you can now use git instead of svn when creating patches, perhaps that will make it easier for you? &lt;a class="ext-link" href="https://make.wordpress.org/meta/handbook/documentation/contributing-with-git/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://make.wordpress.org/meta/handbook/documentation/contributing-with-git/&lt;/a&gt;. Another alternative is using our grunt patch command: &lt;a class="ext-link" href="https://www.npmjs.com/package/grunt-patch-wordpress"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://www.npmjs.com/package/grunt-patch-wordpress&lt;/a&gt;.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #40020 (Customizer fails to load in Safari due to X-Origin Header mismatch) updated</title>
+      
+        <dc:creator>westonruter</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 17:41:30 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/40020#comment:9</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/40020#comment:9/1523468490850833</guid>
+      <description>&lt;p&gt;
+@fullyint your reasoning seems sound to me. Part of the reason for using &lt;code&gt;ALLOW-FROM&lt;/code&gt; was the idea that the iframe could be limited to be embedded from just &lt;code&gt;customize.php&lt;/code&gt;. But apparently that's not how &lt;code&gt;ALLOW-FROM&lt;/code&gt; works and this granular usage of allowing from specific URL paths isn't supported.
+&lt;/p&gt;
+&lt;p&gt;
+I'd like to get +1 from someone else who is more familiar with the security implications of these headers.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #43739 (Include 'viewable' attribute on Post Type resource for 'edit' context) updated</title>
+      
+        <dc:creator>danielbachhuber</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 16:15:47 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43739#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43739#comment:2/1523463347355298</guid>
+      <description>&lt;p&gt;
+&lt;code&gt;43739.1.2.diff&lt;/code&gt; is what we want. I missed the trailing period in the first patch.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>43739.1.2.diff attached to Ticket #43739</title>
+      
+        <dc:creator>danielbachhuber</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 16:14:49 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/43739/43739.1.2.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/43739/43739.1.2.diff/1523463289629056</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #43739 (Include 'viewable' attribute on Post Type resource for 'edit' context) updated</title>
+      
+        <dc:creator>danielbachhuber</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 16:10:46 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43739#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43739#comment:1/1523463046302676</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt;, &lt;i&gt;Status&lt;/i&gt;, &lt;i&gt;Owner&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>43739.1.diff attached to Ticket #43739</title>
+      
+        <dc:creator>danielbachhuber</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 16:10:14 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/43739/43739.1.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/43739/43739.1.diff/1523463014626551</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #43739 (Include 'viewable' attribute on Post Type resource for 'edit' context) created</title>
+      
+        <dc:creator>danielbachhuber</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 16:08:44 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43739</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43739/1523462924268368</guid>
+      <description>&lt;p&gt;
+We need to include a 'viewable' attribute on the Post Type resource in order for REST API clients to know whether they should display a 'Preview' button.
+&lt;/p&gt;
+&lt;p&gt;
+Previously: &lt;a class="ext-link" href="https://github.com/WordPress/gutenberg/issues/5749"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://github.com/WordPress/gutenberg/issues/5749&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #43328 (Add support for Web App Manifests) updated</title>
+      
+        <dc:creator>westonruter</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 14:38:39 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43328#comment:4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43328#comment:4/1523457519586480</guid>
+      <description>&lt;p&gt;
+In the Jetpack defaults &lt;a class="ext-link" href="https://github.com/Automattic/jetpack/blob/12648fad888d48e2647b1a2aa07e756035e6f2ee/modules/pwa/class.jetpack-pwa-manifest.php#L61"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;there is&lt;/a&gt;:
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;'short_name' =&amp;gt; substr( get_bloginfo( 'name' ), 0, 12 ),
+&lt;/pre&gt;&lt;p&gt;
+Where was the length of 12 determined? Truncating it like that could produce undesirable results. At least an ellipsis should be added, but otherwise maybe it would be better to default to the domain name (if not a subdirectory multisite install).
+&lt;/p&gt;
+&lt;p&gt;
+I think the &lt;code&gt;name&lt;/code&gt; and &lt;code&gt;shortname&lt;/code&gt; is also missing a good default configs for &lt;code&gt;lang&lt;/code&gt; and &lt;code&gt;dir&lt;/code&gt; which we can provide automatically.
+&lt;/p&gt;
+&lt;p&gt;
+Also, for &lt;code&gt;display&lt;/code&gt; perhaps the default of &lt;code&gt;browser&lt;/code&gt; is better than &lt;code&gt;standalone&lt;/code&gt;? Just thinking that if this is rolled out across all WordPress installs does it make sense for every WordPress site I add to my homescreen to be a different standalone app by default? I think that should maybe be opt-in via filter.
+&lt;/p&gt;
+&lt;p&gt;
+I think including &lt;code&gt;scope&lt;/code&gt; in addition to &lt;code&gt;start_url &lt;/code&gt; may be worthwhile.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #43481 (Add tabs and placeholders to privacy tools page in wp-admin) updated</title>
+      
+        <dc:creator>azaozz</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 13:51:33 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43481#comment:38</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43481#comment:38/1523454693063076</guid>
+      <description>&lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #43481 (Add tabs and placeholders to privacy tools page in wp-admin) updated</title>
+      
+        <dc:creator>azaozz</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 13:40:20 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43481#comment:37</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43481#comment:37/1523454020274329</guid>
+      <description>&lt;p&gt;
+Now that we have CPTs for the privacy requests, thinking we should store the actual requests in them too and stop using the options and user_meta tables. Posts are the most powerful "storage object" in WP and can organize and store data in many different ways: post_content, post_excerpt, post_content_filtered, etc. can all be used for... anything :)
+&lt;/p&gt;
+&lt;p&gt;
+On top of that there is "unlimited" post_meta that can be accessed by post_id or by meta_name. For example we can store unconfirmed requests in post meta and use something like &lt;code&gt;_wp_pending_privacy_request&lt;/code&gt; where value will be the hash. Then we will be able to query the post meta table and get an array with all keys with that name, and compare the hash.
+&lt;/p&gt;
+&lt;p&gt;
+Few other TODOs that we were discussing in Slack at some point:
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;Requests (new, pending, completed) should not be deletable. This is important for keeping audit log. The only exception may be be requests that haven't been confirmed by email, but then we can auto-delete them when the link in the email expires (and they become unusable).
+&lt;/li&gt;&lt;li&gt;Where to add actions and filters so plugins can easily extend this functionality.
+&lt;/li&gt;&lt;/ul&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #43738 (Make the personal data Export/Delete functionality available in ...) updated</title>
+      
+        <dc:creator>TZ Media</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 10:44:19 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43738#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43738#comment:1/1523443459163203</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #43738 (Make the personal data Export/Delete functionality available in ...) created</title>
+      
+        <dc:creator>TZ Media</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 10:30:27 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43738</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43738/1523442627459382</guid>
+      <description>&lt;p&gt;
+There are approaches where single sites in a network are not independent, but integral parts of one website, interdependent in some way, or should be handled together for other reasons.
+&lt;/p&gt;
+&lt;p&gt;
+Therefore a view for GDPR export and delete similar to the one in a single site would be needed to manage network-wide requests in addition to the site-wide requests that should still work as expected if the site is part of a network. This should gather the data from all sites in a network, and export them in one file.
+&lt;/p&gt;
+&lt;p&gt;
+Common use cases are:
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;Site utilizing network installs using plugins like Multilingual Press for different language versions of one site
+&lt;/li&gt;&lt;li&gt;Network installs where different sites in a multisite behave like one website to the end-user (same design, shared functionality, shared user base)
+&lt;/li&gt;&lt;/ul&gt;</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #43737 ("Updating..." text in wrong tense) updated</title>
+      
+        <dc:creator>swissspidy</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 09:13:49 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43737#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43737#comment:1/1523438029942153</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Hey there
+&lt;/p&gt;
+&lt;p&gt;
+Thanks for your report and welcome to Trac!
+&lt;/p&gt;
+&lt;p&gt;
+Which sidebar do you mean? On which screen are you seeing this? That table with combined theme and plugin updates doesn't look familiar.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #43737 ("Updating..." text in wrong tense) created</title>
+      
+        <dc:creator>drawcard</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 09:12:35 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43737</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43737/1523437955365880</guid>
+      <description>&lt;p&gt;
+The tense of the word "Updating" doesn't change to "Updated", when running updates from the sidebar.
+&lt;/p&gt;
+&lt;p&gt;
+&lt;a style="padding:0; border:none" href="https://i.imgur.com/3lAjy5c.png"&gt;&lt;img src="https://i.imgur.com/3lAjy5c.png" alt="https://i.imgur.com/3lAjy5c.png" crossorigin="anonymous" title="https://i.imgur.com/3lAjy5c.png" /&gt;&lt;/a&gt;
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #36228 (Uncheck "uncategorized" when you select a category) updated</title>
+      
+        <dc:creator>ocean90</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 09:06:25 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/36228#comment:11</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/36228#comment:11/1523437585836429</guid>
+      <description>&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+it is important we don't assume everyone knows how to change the default category, they simply do not. Perhaps that also indicates a deeper discoverability issue
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+So maybe we should fix this instead? Unchecking the default category sounds dangerous since it's not always "Uncategorized". It's a &lt;em&gt;random&lt;/em&gt; category because of the weird concept that a post needs at least one category.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #36228 (Uncheck "uncategorized" when you select a category) updated</title>
+      
+        <dc:creator>karmatosed</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 08:55:19 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/36228#comment:10</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/36228#comment:10/1523436919590368</guid>
+      <description>&lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #36228 (Uncheck "uncategorized" when you select a category) updated</title>
+      
+        <dc:creator>karmatosed</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 08:55:09 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/36228#comment:9</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/36228#comment:9/1523436909418035</guid>
+      <description>&lt;p&gt;
+@danielbachhuber this has come up time and time again with multiple people asking for it. We seem to be having the same discussion on the Gutenberg issue, I'll try and avoid repeating myself but it is important we don't assume everyone knows how to change the default category, they simply do not. Perhaps that also indicates a deeper discoverability issue, but it certainly can be helped by fixing this.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #43545 (Helper functions: Anonymizing data in a standardized way) updated</title>
+      
+        <dc:creator>azaozz</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 08:12:03 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43545#comment:30</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43545#comment:30/1523434323405290</guid>
+      <description>&lt;p&gt;
+Replying to &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/43545#comment:29" title="Comment 29"&gt;iandunn&lt;/a&gt;:
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+FYI, there was a recent bug fix to the Events Widget IP anonymization in &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/42968" title="Dashboard: Strip more extraneous IP parts to prevent PHP warnings.
+ ..."&gt;r42968&lt;/a&gt;, so that should probably be synced here.
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+Yep, thanks for the ping! :)
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+Although, rather than duplicating that code, would it be better to abstract it into a modular function that can be used by both the GDPR anonymization and the Events Widget anonymization?
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+Yeah, was thinking that too. In 43545.4.diff:
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;Abstract the code that anonymizes IP address and use it in both the Events Widget and &lt;code&gt;wp_privacy_anonymize_data()&lt;/code&gt;.
+&lt;/li&gt;&lt;li&gt;Make &lt;code&gt;$type&lt;/code&gt; required in &lt;code&gt;wp_privacy_anonymize_data()&lt;/code&gt;. The right data type is pretty important. Thinking it's better to always pass it rather than get an empty string for unspecified types. That will let us add more types in the future if needed.
+&lt;/li&gt;&lt;li&gt;Clean up the test a bit.
+&lt;/li&gt;&lt;/ul&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>43545.4.diff attached to Ticket #43545</title>
+      
+        <dc:creator>azaozz</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 08:03:12 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/43545/43545.4.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/43545/43545.4.diff/1523433792599644</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #43547 (Add personal data from usermeta/userdata to personal data export) updated</title>
+      
+        <dc:creator>TZ Media</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 05:30:38 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43547#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43547#comment:3/1523424638375807</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+&lt;a class="attachment" href="http://core.trac.wordpress.org/attachment/ticket/43547/43440.patch" title="Attachment '43440.patch' in Ticket #43547"&gt;43440.patch&lt;/a&gt;&lt;a class="trac-rawlink" href="http://core.trac.wordpress.org/raw-attachment/ticket/43547/43440.patch" title="Download"&gt;​&lt;/a&gt; adds a data exporter for user and user_meta, based on the code for the comments exporter.
+&lt;/p&gt;
+&lt;p&gt;
+It currently does not export the hashed password, and any data related to roles and capabilities. Should these be added, too?
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>43440.patch attached to Ticket #43547</title>
+      
+        <dc:creator>TZ Media</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 05:23:09 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/43547/43440.patch</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/43547/43440.patch/1523424189382194</guid>
+      <description>&lt;p&gt;
+Exporter for user and user_meta
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #43736 (Audio continues to play in Media Modal after close) updated</title>
+      
+        <dc:creator>bahia0019</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 03:24:02 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43736#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43736#comment:1/1523417042198073</guid>
+      <description>&lt;p&gt;
+I couldn't figure out how to properly diff the SVN I checked out, but my patch is:
+&lt;br /&gt;
+Adding the following to wp-includes/js/media-views.js line 4399.
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;$('.wp-media-wrapper').remove();
+&lt;/pre&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #43736 (Audio continues to play in Media Modal after close) created</title>
+      
+        <dc:creator>bahia0019</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 03:21:00 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43736</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43736/1523416860176261</guid>
+      <description>&lt;p&gt;
+When previewing an audio file in the Media Library modal, if you click Close or Escape, the audio continues to play.
+I haven't tested with Video, but I am assuming audio continues as well.
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Changeset [42970]: Bump `$wp_version` to latest revision.  ...</title>
+      
+        <dc:creator>dd32</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 02:58:45 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/42970</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/42970/1523415525174787</guid>
+      <description>&lt;p&gt;
+Bump &lt;code&gt;$wp_version&lt;/code&gt; to latest revision.
+&lt;/p&gt;
+&lt;p&gt;
+&lt;a href="https://core.trac.wordpress.org/"&gt;https://core.trac.wordpress.org/&lt;/a&gt; has been moved to new infrastructure, this is a test commit to verify that trunk builds continue to work as expected.
+&lt;/p&gt;
+&lt;p&gt;
+If you notice any breakage on Trac, please report it to &lt;a class="ext-link" href="https://meta.trac.wordpress.org/ticket/3526"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://meta.trac.wordpress.org/ticket/3526&lt;/a&gt; - there's a number of known UI issues at present which will be resolved soon.
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Changeset [42969]: Bump `$wp_version` to latest revision.  ...</title>
+      
+        <dc:creator>dd32</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 02:49:49 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/42969</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/42969/1523414989321114</guid>
+      <description>&lt;p&gt;
+Bump &lt;code&gt;$wp_version&lt;/code&gt; to latest revision.
+&lt;/p&gt;
+&lt;p&gt;
+&lt;a href="https://core.trac.wordpress.org/"&gt;https://core.trac.wordpress.org/&lt;/a&gt; has been moved to new infrastructure, this is a test commit to verify that trunk builds continue to work as expected.
+&lt;/p&gt;
+&lt;p&gt;
+If you notice any breakage on Trac, please report it to &lt;a class="ext-link" href="https://meta.trac.wordpress.org/ticket/3526"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://meta.trac.wordpress.org/ticket/3526&lt;/a&gt; - there's a number of known UI issues at present which will be resolved soon.
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>TracUnicode edited</title>
+      
+        <dc:creator>trac</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 02:13:58 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/wiki/TracUnicode?version=4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/wiki/TracUnicode?version=4/1523412838826153</guid>
+      <description> (&lt;a href="http://core.trac.wordpress.org/wiki/TracUnicode?action=diff&amp;amp;version=4"&gt;diff&lt;/a&gt;)</description>
+      <category>wiki</category>
+    </item><item>
+      <title>TracUpgrade edited</title>
+      
+        <dc:creator>trac</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 02:13:58 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/wiki/TracUpgrade?version=6</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/wiki/TracUpgrade?version=6/1523412838825942</guid>
+      <description> (&lt;a href="http://core.trac.wordpress.org/wiki/TracUpgrade?action=diff&amp;amp;version=6"&gt;diff&lt;/a&gt;)</description>
+      <category>wiki</category>
+    </item><item>
+      <title>TracSearch edited</title>
+      
+        <dc:creator>trac</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 02:13:58 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/wiki/TracSearch?version=4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/wiki/TracSearch?version=4/1523412838825670</guid>
+      <description> (&lt;a href="http://core.trac.wordpress.org/wiki/TracSearch?action=diff&amp;amp;version=4"&gt;diff&lt;/a&gt;)</description>
+      <category>wiki</category>
+    </item><item>
+      <title>TracBackup edited</title>
+      
+        <dc:creator>trac</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 02:13:58 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/wiki/TracBackup?version=6</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/wiki/TracBackup?version=6/1523412838825546</guid>
+      <description> (&lt;a href="http://core.trac.wordpress.org/wiki/TracBackup?action=diff&amp;amp;version=6"&gt;diff&lt;/a&gt;)</description>
+      <category>wiki</category>
+    </item><item>
+      <title>WikiFormatting edited</title>
+      
+        <dc:creator>trac</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 02:13:58 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/wiki/WikiFormatting?version=5</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/wiki/WikiFormatting?version=5/1523412838825310</guid>
+      <description> (&lt;a href="http://core.trac.wordpress.org/wiki/WikiFormatting?action=diff&amp;amp;version=5"&gt;diff&lt;/a&gt;)</description>
+      <category>wiki</category>
+    </item><item>
+      <title>TracInstall edited</title>
+      
+        <dc:creator>trac</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 02:13:58 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/wiki/TracInstall?version=4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/wiki/TracInstall?version=4/1523412838824867</guid>
+      <description> (&lt;a href="http://core.trac.wordpress.org/wiki/TracInstall?action=diff&amp;amp;version=4"&gt;diff&lt;/a&gt;)</description>
+      <category>wiki</category>
+    </item><item>
+      <title>CamelCase edited</title>
+      
+        <dc:creator>trac</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 02:13:58 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/wiki/CamelCase?version=6</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/wiki/CamelCase?version=6/1523412838824593</guid>
+      <description> (&lt;a href="http://core.trac.wordpress.org/wiki/CamelCase?action=diff&amp;amp;version=6"&gt;diff&lt;/a&gt;)</description>
+      <category>wiki</category>
+    </item><item>
+      <title>TracRevisionLog edited</title>
+      
+        <dc:creator>trac</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 02:13:58 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/wiki/TracRevisionLog?version=3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/wiki/TracRevisionLog?version=3/1523412838824469</guid>
+      <description> (&lt;a href="http://core.trac.wordpress.org/wiki/TracRevisionLog?action=diff&amp;amp;version=3"&gt;diff&lt;/a&gt;)</description>
+      <category>wiki</category>
+    </item><item>
+      <title>TracBatchModify edited</title>
+      
+        <dc:creator>trac</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 02:13:58 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/wiki/TracBatchModify?version=2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/wiki/TracBatchModify?version=2/1523412838824326</guid>
+      <description> (&lt;a href="http://core.trac.wordpress.org/wiki/TracBatchModify?action=diff&amp;amp;version=2"&gt;diff&lt;/a&gt;)</description>
+      <category>wiki</category>
+    </item><item>
+      <title>TracGuide edited</title>
+      
+        <dc:creator>trac</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 02:13:58 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/wiki/TracGuide?version=4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/wiki/TracGuide?version=4/1523412838824205</guid>
+      <description> (&lt;a href="http://core.trac.wordpress.org/wiki/TracGuide?action=diff&amp;amp;version=4"&gt;diff&lt;/a&gt;)</description>
+      <category>wiki</category>
+    </item><item>
+      <title>WikiHtml edited</title>
+      
+        <dc:creator>trac</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 02:13:58 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/wiki/WikiHtml?version=4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/wiki/WikiHtml?version=4/1523412838824053</guid>
+      <description> (&lt;a href="http://core.trac.wordpress.org/wiki/WikiHtml?action=diff&amp;amp;version=4"&gt;diff&lt;/a&gt;)</description>
+      <category>wiki</category>
+    </item><item>
+      <title>TracCgi edited</title>
+      
+        <dc:creator>trac</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 02:13:58 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/wiki/TracCgi?version=4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/wiki/TracCgi?version=4/1523412838823881</guid>
+      <description> (&lt;a href="http://core.trac.wordpress.org/wiki/TracCgi?action=diff&amp;amp;version=4"&gt;diff&lt;/a&gt;)</description>
+      <category>wiki</category>
+    </item><item>
+      <title>TracRoadmap edited</title>
+      
+        <dc:creator>trac</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 02:13:58 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/wiki/TracRoadmap?version=5</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/wiki/TracRoadmap?version=5/1523412838823751</guid>
+      <description> (&lt;a href="http://core.trac.wordpress.org/wiki/TracRoadmap?action=diff&amp;amp;version=5"&gt;diff&lt;/a&gt;)</description>
+      <category>wiki</category>
+    </item><item>
+      <title>TracSyntaxColoring edited</title>
+      
+        <dc:creator>trac</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 02:13:58 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/wiki/TracSyntaxColoring?version=5</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/wiki/TracSyntaxColoring?version=5/1523412838823616</guid>
+      <description> (&lt;a href="http://core.trac.wordpress.org/wiki/TracSyntaxColoring?action=diff&amp;amp;version=5"&gt;diff&lt;/a&gt;)</description>
+      <category>wiki</category>
+    </item><item>
+      <title>TracPermissions edited</title>
+      
+        <dc:creator>trac</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 02:13:58 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/wiki/TracPermissions?version=5</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/wiki/TracPermissions?version=5/1523412838823443</guid>
+      <description> (&lt;a href="http://core.trac.wordpress.org/wiki/TracPermissions?action=diff&amp;amp;version=5"&gt;diff&lt;/a&gt;)</description>
+      <category>wiki</category>
+    </item><item>
+      <title>WikiNewPage edited</title>
+      
+        <dc:creator>trac</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 02:13:58 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/wiki/WikiNewPage?version=5</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/wiki/WikiNewPage?version=5/1523412838823263</guid>
+      <description> (&lt;a href="http://core.trac.wordpress.org/wiki/WikiNewPage?action=diff&amp;amp;version=5"&gt;diff&lt;/a&gt;)</description>
+      <category>wiki</category>
+    </item><item>
+      <title>TracAdmin edited</title>
+      
+        <dc:creator>trac</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 02:13:58 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/wiki/TracAdmin?version=6</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/wiki/TracAdmin?version=6/1523412838823047</guid>
+      <description> (&lt;a href="http://core.trac.wordpress.org/wiki/TracAdmin?action=diff&amp;amp;version=6"&gt;diff&lt;/a&gt;)</description>
+      <category>wiki</category>
+    </item><item>
+      <title>TracChangeset edited</title>
+      
+        <dc:creator>trac</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 02:13:58 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/wiki/TracChangeset?version=5</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/wiki/TracChangeset?version=5/1523412838822905</guid>
+      <description> (&lt;a href="http://core.trac.wordpress.org/wiki/TracChangeset?action=diff&amp;amp;version=5"&gt;diff&lt;/a&gt;)</description>
+      <category>wiki</category>
+    </item><item>
+      <title>TracModWSGI edited</title>
+      
+        <dc:creator>trac</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 02:13:58 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/wiki/TracModWSGI?version=2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/wiki/TracModWSGI?version=2/1523412838822659</guid>
+      <description> (&lt;a href="http://core.trac.wordpress.org/wiki/TracModWSGI?action=diff&amp;amp;version=2"&gt;diff&lt;/a&gt;)</description>
+      <category>wiki</category>
+    </item><item>
+      <title>TracLogging edited</title>
+      
+        <dc:creator>trac</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 02:13:58 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/wiki/TracLogging?version=3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/wiki/TracLogging?version=3/1523412838822419</guid>
+      <description> (&lt;a href="http://core.trac.wordpress.org/wiki/TracLogging?action=diff&amp;amp;version=3"&gt;diff&lt;/a&gt;)</description>
+      <category>wiki</category>
+    </item><item>
+      <title>WikiPageNames edited</title>
+      
+        <dc:creator>trac</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 02:13:58 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/wiki/WikiPageNames?version=4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/wiki/WikiPageNames?version=4/1523412838822289</guid>
+      <description> (&lt;a href="http://core.trac.wordpress.org/wiki/WikiPageNames?action=diff&amp;amp;version=4"&gt;diff&lt;/a&gt;)</description>
+      <category>wiki</category>
+    </item><item>
+      <title>TracInterfaceCustomization edited</title>
+      
+        <dc:creator>trac</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 02:13:58 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/wiki/TracInterfaceCustomization?version=4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/wiki/TracInterfaceCustomization?version=4/1523412838822140</guid>
+      <description> (&lt;a href="http://core.trac.wordpress.org/wiki/TracInterfaceCustomization?action=diff&amp;amp;version=4"&gt;diff&lt;/a&gt;)</description>
+      <category>wiki</category>
+    </item><item>
+      <title>TracTickets edited</title>
+      
+        <dc:creator>trac</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 02:13:58 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/wiki/TracTickets?version=5</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/wiki/TracTickets?version=5/1523412838821942</guid>
+      <description> (&lt;a href="http://core.trac.wordpress.org/wiki/TracTickets?action=diff&amp;amp;version=5"&gt;diff&lt;/a&gt;)</description>
+      <category>wiki</category>
+    </item><item>
+      <title>TracReports edited</title>
+      
+        <dc:creator>trac</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 02:13:58 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/wiki/TracReports?version=5</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/wiki/TracReports?version=5/1523412838821725</guid>
+      <description> (&lt;a href="http://core.trac.wordpress.org/wiki/TracReports?action=diff&amp;amp;version=5"&gt;diff&lt;/a&gt;)</description>
+      <category>wiki</category>
+    </item><item>
+      <title>WikiDeletePage edited</title>
+      
+        <dc:creator>trac</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 02:13:58 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/wiki/WikiDeletePage?version=6</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/wiki/WikiDeletePage?version=6/1523412838821519</guid>
+      <description> (&lt;a href="http://core.trac.wordpress.org/wiki/WikiDeletePage?action=diff&amp;amp;version=6"&gt;diff&lt;/a&gt;)</description>
+      <category>wiki</category>
+    </item><item>
+      <title>WikiRestructuredText edited</title>
+      
+        <dc:creator>trac</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 02:13:58 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/wiki/WikiRestructuredText?version=5</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/wiki/WikiRestructuredText?version=5/1523412838821373</guid>
+      <description> (&lt;a href="http://core.trac.wordpress.org/wiki/WikiRestructuredText?action=diff&amp;amp;version=5"&gt;diff&lt;/a&gt;)</description>
+      <category>wiki</category>
+    </item><item>
+      <title>InterTrac edited</title>
+      
+        <dc:creator>trac</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 02:13:58 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/wiki/InterTrac?version=3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/wiki/InterTrac?version=3/1523412838821229</guid>
+      <description> (&lt;a href="http://core.trac.wordpress.org/wiki/InterTrac?action=diff&amp;amp;version=3"&gt;diff&lt;/a&gt;)</description>
+      <category>wiki</category>
+    </item><item>
+      <title>TracTimeline edited</title>
+      
+        <dc:creator>trac</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 02:13:58 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/wiki/TracTimeline?version=5</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/wiki/TracTimeline?version=5/1523412838821082</guid>
+      <description> (&lt;a href="http://core.trac.wordpress.org/wiki/TracTimeline?action=diff&amp;amp;version=5"&gt;diff&lt;/a&gt;)</description>
+      <category>wiki</category>
+    </item><item>
+      <title>TracPlugins edited</title>
+      
+        <dc:creator>trac</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 02:13:58 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/wiki/TracPlugins?version=4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/wiki/TracPlugins?version=4/1523412838820916</guid>
+      <description> (&lt;a href="http://core.trac.wordpress.org/wiki/TracPlugins?action=diff&amp;amp;version=4"&gt;diff&lt;/a&gt;)</description>
+      <category>wiki</category>
+    </item><item>
+      <title>TracModPython edited</title>
+      
+        <dc:creator>trac</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 02:13:58 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/wiki/TracModPython?version=4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/wiki/TracModPython?version=4/1523412838820476</guid>
+      <description> (&lt;a href="http://core.trac.wordpress.org/wiki/TracModPython?action=diff&amp;amp;version=4"&gt;diff&lt;/a&gt;)</description>
+      <category>wiki</category>
+    </item><item>
+      <title>TracRepositoryAdmin edited</title>
+      
+        <dc:creator>trac</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 02:13:58 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/wiki/TracRepositoryAdmin?version=2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/wiki/TracRepositoryAdmin?version=2/1523412838820197</guid>
+      <description> (&lt;a href="http://core.trac.wordpress.org/wiki/TracRepositoryAdmin?action=diff&amp;amp;version=2"&gt;diff&lt;/a&gt;)</description>
+      <category>wiki</category>
+    </item><item>
+      <title>TracWorkflow edited</title>
+      
+        <dc:creator>trac</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 02:13:58 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/wiki/TracWorkflow?version=2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/wiki/TracWorkflow?version=2/1523412838819931</guid>
+      <description> (&lt;a href="http://core.trac.wordpress.org/wiki/TracWorkflow?action=diff&amp;amp;version=2"&gt;diff&lt;/a&gt;)</description>
+      <category>wiki</category>
+    </item><item>
+      <title>TracStandalone edited</title>
+      
+        <dc:creator>trac</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 02:13:58 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/wiki/TracStandalone?version=4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/wiki/TracStandalone?version=4/1523412838819638</guid>
+      <description> (&lt;a href="http://core.trac.wordpress.org/wiki/TracStandalone?action=diff&amp;amp;version=4"&gt;diff&lt;/a&gt;)</description>
+      <category>wiki</category>
+    </item><item>
+      <title>PageTemplates edited</title>
+      
+        <dc:creator>trac</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 02:13:58 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/wiki/PageTemplates?version=2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/wiki/PageTemplates?version=2/1523412838819412</guid>
+      <description> (&lt;a href="http://core.trac.wordpress.org/wiki/PageTemplates?action=diff&amp;amp;version=2"&gt;diff&lt;/a&gt;)</description>
+      <category>wiki</category>
+    </item><item>
+      <title>TracQuery edited</title>
+      
+        <dc:creator>trac</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 02:13:58 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/wiki/TracQuery?version=5</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/wiki/TracQuery?version=5/1523412838819277</guid>
+      <description> (&lt;a href="http://core.trac.wordpress.org/wiki/TracQuery?action=diff&amp;amp;version=5"&gt;diff&lt;/a&gt;)</description>
+      <category>wiki</category>
+    </item><item>
+      <title>TracSupport edited</title>
+      
+        <dc:creator>trac</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 02:13:58 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/wiki/TracSupport?version=4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/wiki/TracSupport?version=4/1523412838819118</guid>
+      <description> (&lt;a href="http://core.trac.wordpress.org/wiki/TracSupport?action=diff&amp;amp;version=4"&gt;diff&lt;/a&gt;)</description>
+      <category>wiki</category>
+    </item><item>
+      <title>TracRss edited</title>
+      
+        <dc:creator>trac</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 02:13:58 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/wiki/TracRss?version=5</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/wiki/TracRss?version=5/1523412838818995</guid>
+      <description> (&lt;a href="http://core.trac.wordpress.org/wiki/TracRss?action=diff&amp;amp;version=5"&gt;diff&lt;/a&gt;)</description>
+      <category>wiki</category>
+    </item><item>
+      <title>TracNavigation edited</title>
+      
+        <dc:creator>trac</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 02:13:58 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/wiki/TracNavigation?version=2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/wiki/TracNavigation?version=2/1523412838818830</guid>
+      <description> (&lt;a href="http://core.trac.wordpress.org/wiki/TracNavigation?action=diff&amp;amp;version=2"&gt;diff&lt;/a&gt;)</description>
+      <category>wiki</category>
+    </item><item>
+      <title>WikiMacros edited</title>
+      
+        <dc:creator>trac</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 02:13:58 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/wiki/WikiMacros?version=5</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/wiki/WikiMacros?version=5/1523412838818689</guid>
+      <description> (&lt;a href="http://core.trac.wordpress.org/wiki/WikiMacros?action=diff&amp;amp;version=5"&gt;diff&lt;/a&gt;)</description>
+      <category>wiki</category>
+    </item><item>
+      <title>TracNotification edited</title>
+      
+        <dc:creator>trac</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 02:13:58 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/wiki/TracNotification?version=5</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/wiki/TracNotification?version=5/1523412838818508</guid>
+      <description> (&lt;a href="http://core.trac.wordpress.org/wiki/TracNotification?action=diff&amp;amp;version=5"&gt;diff&lt;/a&gt;)</description>
+      <category>wiki</category>
+    </item><item>
+      <title>TracWiki edited</title>
+      
+        <dc:creator>trac</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 02:13:58 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/wiki/TracWiki?version=5</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/wiki/TracWiki?version=5/1523412838818308</guid>
+      <description> (&lt;a href="http://core.trac.wordpress.org/wiki/TracWiki?action=diff&amp;amp;version=5"&gt;diff&lt;/a&gt;)</description>
+      <category>wiki</category>
+    </item><item>
+      <title>TicketQuery created</title>
+      
+        <dc:creator>trac</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 02:13:58 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/wiki/TicketQuery?version=1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/wiki/TicketQuery?version=1/1523412838818086</guid>
+      <description></description>
+      <category>wiki</category>
+    </item><item>
+      <title>TracFineGrainedPermissions edited</title>
+      
+        <dc:creator>trac</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 02:13:58 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/wiki/TracFineGrainedPermissions?version=2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/wiki/TracFineGrainedPermissions?version=2/1523412838817935</guid>
+      <description> (&lt;a href="http://core.trac.wordpress.org/wiki/TracFineGrainedPermissions?action=diff&amp;amp;version=2"&gt;diff&lt;/a&gt;)</description>
+      <category>wiki</category>
+    </item><item>
+      <title>WikiRestructuredTextLinks edited</title>
+      
+        <dc:creator>trac</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 02:13:58 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/wiki/WikiRestructuredTextLinks?version=4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/wiki/WikiRestructuredTextLinks?version=4/1523412838817743</guid>
+      <description> (&lt;a href="http://core.trac.wordpress.org/wiki/WikiRestructuredTextLinks?action=diff&amp;amp;version=4"&gt;diff&lt;/a&gt;)</description>
+      <category>wiki</category>
+    </item><item>
+      <title>TracAccessibility edited</title>
+      
+        <dc:creator>trac</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 02:13:58 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/wiki/TracAccessibility?version=5</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/wiki/TracAccessibility?version=5/1523412838817604</guid>
+      <description> (&lt;a href="http://core.trac.wordpress.org/wiki/TracAccessibility?action=diff&amp;amp;version=5"&gt;diff&lt;/a&gt;)</description>
+      <category>wiki</category>
+    </item><item>
+      <title>TracFastCgi edited</title>
+      
+        <dc:creator>trac</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 02:13:58 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/wiki/TracFastCgi?version=4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/wiki/TracFastCgi?version=4/1523412838817415</guid>
+      <description> (&lt;a href="http://core.trac.wordpress.org/wiki/TracFastCgi?action=diff&amp;amp;version=4"&gt;diff&lt;/a&gt;)</description>
+      <category>wiki</category>
+    </item><item>
+      <title>TracEnvironment edited</title>
+      
+        <dc:creator>trac</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 02:13:58 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/wiki/TracEnvironment?version=5</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/wiki/TracEnvironment?version=5/1523412838817126</guid>
+      <description> (&lt;a href="http://core.trac.wordpress.org/wiki/TracEnvironment?action=diff&amp;amp;version=5"&gt;diff&lt;/a&gt;)</description>
+      <category>wiki</category>
+    </item><item>
+      <title>WikiProcessors edited</title>
+      
+        <dc:creator>trac</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 02:13:58 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/wiki/WikiProcessors?version=5</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/wiki/WikiProcessors?version=5/1523412838816924</guid>
+      <description> (&lt;a href="http://core.trac.wordpress.org/wiki/WikiProcessors?action=diff&amp;amp;version=5"&gt;diff&lt;/a&gt;)</description>
+      <category>wiki</category>
+    </item><item>
+      <title>TracBrowser edited</title>
+      
+        <dc:creator>trac</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 02:13:58 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/wiki/TracBrowser?version=5</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/wiki/TracBrowser?version=5/1523412838816705</guid>
+      <description> (&lt;a href="http://core.trac.wordpress.org/wiki/TracBrowser?action=diff&amp;amp;version=5"&gt;diff&lt;/a&gt;)</description>
+      <category>wiki</category>
+    </item><item>
+      <title>TracChangeLog created</title>
+      
+        <dc:creator>trac</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 02:13:58 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/wiki/TracChangeLog?version=1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/wiki/TracChangeLog?version=1/1523412838816146</guid>
+      <description></description>
+      <category>wiki</category>
+    </item><item>
+      <title>InterWiki edited</title>
+      
+        <dc:creator>trac</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 02:13:58 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/wiki/InterWiki?version=3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/wiki/InterWiki?version=3/1523412838815928</guid>
+      <description> (&lt;a href="http://core.trac.wordpress.org/wiki/InterWiki?action=diff&amp;amp;version=3"&gt;diff&lt;/a&gt;)</description>
+      <category>wiki</category>
+    </item><item>
+      <title>TracIni edited</title>
+      
+        <dc:creator>trac</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 02:13:58 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/wiki/TracIni?version=5</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/wiki/TracIni?version=5/1523412838815787</guid>
+      <description> (&lt;a href="http://core.trac.wordpress.org/wiki/TracIni?action=diff&amp;amp;version=5"&gt;diff&lt;/a&gt;)</description>
+      <category>wiki</category>
+    </item><item>
+      <title>TracLinks edited</title>
+      
+        <dc:creator>trac</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 02:13:58 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/wiki/TracLinks?version=5</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/wiki/TracLinks?version=5/1523412838815569</guid>
+      <description> (&lt;a href="http://core.trac.wordpress.org/wiki/TracLinks?action=diff&amp;amp;version=5"&gt;diff&lt;/a&gt;)</description>
+      <category>wiki</category>
+    </item><item>
+      <title>TracTicketsCustomFields edited</title>
+      
+        <dc:creator>trac</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 02:13:58 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/wiki/TracTicketsCustomFields?version=5</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/wiki/TracTicketsCustomFields?version=5/1523412838815268</guid>
+      <description> (&lt;a href="http://core.trac.wordpress.org/wiki/TracTicketsCustomFields?action=diff&amp;amp;version=5"&gt;diff&lt;/a&gt;)</description>
+      <category>wiki</category>
+    </item><item>
+      <title>TracImport edited</title>
+      
+        <dc:creator>trac</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 02:13:58 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/wiki/TracImport?version=5</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/wiki/TracImport?version=5/1523412838814880</guid>
+      <description> (&lt;a href="http://core.trac.wordpress.org/wiki/TracImport?action=diff&amp;amp;version=5"&gt;diff&lt;/a&gt;)</description>
+      <category>wiki</category>
+    </item><item>
+      <title>Ticket #41316 (Introduce "Try Gutenberg" callout) updated</title>
+      
+        <dc:creator>danielbachhuber</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 01:10:00 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/41316#comment:103</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/41316#comment:103/1523409000710933</guid>
+      <description>&lt;p&gt;
+I reviewed all 673 open Gutenberg issues today to identify those I think are blockers for the &lt;code&gt;Try Gutenberg&lt;/code&gt; callout:
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;&lt;a class="ext-link" href="https://github.com/WordPress/gutenberg/issues/6096"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;Block conversion strips some inline attributes&lt;/a&gt; (and its sibling issues)
+&lt;/li&gt;&lt;li&gt;&lt;a class="ext-link" href="https://github.com/WordPress/gutenberg/issues/1586"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;Adding images to a post doesn't also attach it&lt;/a&gt;
+&lt;/li&gt;&lt;li&gt;&lt;a class="ext-link" href="https://github.com/WordPress/gutenberg/issues/3900"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;Gutenberg breaks "classic" posts w/ shortcodes by carelessly wrapping shortcodes into &amp;lt;p&amp;gt; tags&lt;/a&gt;
+&lt;/li&gt;&lt;li&gt;&lt;a class="ext-link" href="https://github.com/WordPress/gutenberg/issues/3656"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;Editing cases a huge number of revisions&lt;/a&gt;
+&lt;/li&gt;&lt;li&gt;&lt;a class="ext-link" href="https://github.com/WordPress/gutenberg/issues/5879"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;Category, tag, and taxonomy controls don't respect the correct capabilities&lt;/a&gt;, which can cause terms to be lost.
+&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;
+These are blockers because they cause some amount of data transformation that's non-trivial to recover from (particularly if revisions are disabled).
+&lt;/p&gt;
+&lt;p&gt;
+To roll out &lt;code&gt;Try Gutenberg&lt;/code&gt;, I'd suggest this order of operations:
+&lt;/p&gt;
+&lt;ol&gt;&lt;li&gt;Resolve all &lt;code&gt;Try Gutenberg&lt;/code&gt; blockers because it will be very annoying to try to fix associated data-mangling at scale after the fact.
+&lt;/li&gt;&lt;li&gt;Complete the "Feature Complete" milestone by landing all major APIs. There's no sense in extensive end-user testing while we're still making major architectural changes.
+&lt;/li&gt;&lt;li&gt;Allocate a solid few weeks to bug-fixing / polish to address the usability issues we already know of and don't need reported a second time.
+&lt;/li&gt;&lt;li&gt;Ensure WordPress.org support forums are adequately staffed, bug reporting workflow communicated, etc.
+&lt;/li&gt;&lt;li&gt;#shipit
+&lt;/li&gt;&lt;/ol&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #43733 (Replace Underscores.js with Lodash.js) updated</title>
+      
+        <dc:creator>netweb</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 01:02:31 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43733#comment:5</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43733#comment:5/1523408551903092</guid>
+      <description>&lt;i&gt;Type&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #36228 (Uncheck "uncategorized" when you select a category) updated</title>
+      
+        <dc:creator>danielbachhuber</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 00:43:23 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/36228#comment:8</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/36228#comment:8/1523407403513093</guid>
+      <description>&lt;p&gt;
+I think it makes more sense to replicate core's existing behavior in Gutenberg.
+&lt;/p&gt;
+&lt;p&gt;
+While the UX is less than ideal (I've personally set my default category to &lt;code&gt;Categorized&lt;/code&gt;), I don't think it's worth the effort to try and remove the concept of default categories in core.
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #32167 ([32307] does not set $wdpb-&gt;error) updated</title>
+      
+        <dc:creator>netweb</dc:creator>
+
+      <pubDate>Wed, 11 Apr 2018 00:00:59 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/32167#comment:12</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/32167#comment:12/1523404859957038</guid>
+      <description>&lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item>
+   </channel>
+</rss>
