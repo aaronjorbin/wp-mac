@@ -27,7 +27,16 @@ class App extends Component {
 	}
 	const tableData = _.map( data.people, ( c, p ) => {
 		const months = Object.keys( c ).length;
-		return { 'name' : p, 'months' : months };
+		const total = _.reduce( c, (sum,n) => {
+			return sum + n;
+		}, 0 );
+		const highest = _.reduce( c, (sum,n) => {
+			if ( sum > n ) {
+				return sum;
+			}
+			return n;
+		}, 0 );
+		return { 'name' : p, 'months' : months, 'highest' : highest, 'total': total };
 	})
 	const columns = [{
 		'Header' : 'User Name',
@@ -35,7 +44,14 @@ class App extends Component {
 	},{
 		'Header' : 'Months On Trac',
 		'accessor' : 'months'
-	}]
+	},{
+		'Header' : 'Most Activity in a Month',
+		'accessor' : 'highest'
+	},{
+		'Header' : 'Total Events',
+		'accessor' : 'total'
+	}
+	]
     return (
       <div className="App">
         <header className="App-header">
