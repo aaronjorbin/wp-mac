@@ -5,6 +5,7 @@ const got = require('got');
 const PQueue = require('p-queue');
 const xml2js = require('xml2js');
 const fs = require( 'fs' );
+const names = require( './name.js' );
 
 const queue = new PQueue({
 	concurrency: 1,
@@ -58,7 +59,12 @@ queue.onIdle().then( () => {
 					const date = DateTime.fromHTTP( events.pubDate[0] ); 
 					const month = date.toFormat( 'yyyyLL' )
 					// person
-					const person =  events[ 'dc:creator' ] ? events[ 'dc:creator' ][0] : events[ 'author' ][0];
+					const name =  events[ 'dc:creator' ] ? events[ 'dc:creator' ][0] : events[ 'author' ][0];
+					const person = names.getName( name );
+
+					if ( ! name ) {
+						return;
+					}
 
 					if ( ! data.months[ month ] ){
 						data.months[ month ] = {};
@@ -78,5 +84,5 @@ queue.onIdle().then( () => {
 			}
 		});
 	});
-	fs.writeFileSync( 'public/data.json', JSON.stringify( data ), { encoding:'utf8'}  ); 
+	fs.writeFileSync( 'src/data.json', JSON.stringify( data ), { encoding:'utf8'}  ); 
 });
