@@ -28,10 +28,11 @@ while( currentDate.toISODate() !== endDate.toISODate() ) {
 	const from = currentDate.toLocaleString(DateTime.DATE_SHORT); 
 	const url = 'https://core.trac.wordpress.org/timeline?from=' + encodeURIComponent( from ) + '&daysback=0&authors=&milestone=on&ticket=on&ticket_details=on&changeset=on&repo-=on&repo-design=on&repo-tests=on&wiki=on&sfp_email=&sfph_mail=&max=999&update=Update&format=rss';
 	const fileName = 'tracData/' + currentDate.toFormat( 'yyyyLLdd' ) + '.xml';
+	const since = currentDate.toISO();
 	files.push( fileName );
 
 	if ( false === fs.existsSync( fileName ) ) {
-		console.log( 'Fetching: ' + from );
+		console.log( 'Fetching: ' + since );
 		queue.add(() => got( url ).then( response => {
 			fs.writeFileSync( fileName, response.body, { encoding:'utf8'} );
 		}).catch( err => {
