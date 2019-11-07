@@ -21,6 +21,11 @@ const data = {
 	months : {}
 };
 
+const min10 = {
+	people : {},
+	months : {}
+}
+
 let files = [];
 let currentDate = startDate;
 
@@ -63,7 +68,7 @@ queue.onIdle().then( () => {
 					const name =  events[ 'dc:creator' ] ? events[ 'dc:creator' ][0] : events[ 'author' ][0];
 					const person = names.getName( name );
 
-					if ( ! name ) {
+					if ( ! person ) {
 						return;
 					}
 
@@ -81,9 +86,28 @@ queue.onIdle().then( () => {
 					}
 					data.months[ month ][ person ]++;
 					data.people[ person ][ month ]++;
+
+					if ( data.months[ month ][ person ] > 10 ){
+						if ( ! min10.months[ month ] ){
+							min10.months[ month ] = {};
+						}
+						if ( ! min10.months[ month ][ person ] ){
+							min10.months[ month ][ person ] = 0;
+						}
+						if ( ! min10.people[ person ] ) {
+							min10.people[ person ] = {};
+						}
+						if ( ! min10.people[ person ][ month ] ){
+							min10.people[ person ][ month ] = 0
+						}
+
+						min10.people[ person ][ month ] = data.people[ person ][ month ]; 
+						min10.months[ month ][ person ] = data.months[ month ][ person ]; 
+					}
 				});
 			}
 		});
 	});
 	fs.writeFileSync( 'src/data.json', JSON.stringify( data ), { encoding:'utf8'}  ); 
+	fs.writeFileSync( 'src/min10.json', JSON.stringify( min10 ), { encoding:'utf8'}  ); 
 });

@@ -1,0 +1,2647 @@
+<?xml version="1.0"?>
+<rss xmlns:dc="http://purl.org/dc/elements/1.1/" version="2.0">
+  <channel>
+    <title>WordPress Trac</title>
+    <link>http://core.trac.wordpress.org/timeline</link>
+    <description>Trac Timeline</description>
+    <language>en-US</language>
+    <generator>Trac 1.2.2</generator>
+    <image>
+      <title>WordPress Trac</title>
+      <url>http://core.trac.wordpress.org/chrome/site/your_project_logo.png</url>
+      <link>http://core.trac.wordpress.org/timeline</link>
+    </image>
+    <item>
+      <title>Ticket #47678 (Modernize/simplify current_user_can()) updated</title>
+      
+        <dc:creator>jrf</dc:creator>
+
+      <pubDate>Mon, 15 Jul 2019 23:37:03 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/47678#comment:28</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/47678#comment:28/1563233823952975</guid>
+      <description>&lt;p&gt;
+Replying to &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/47678#comment:27" title="Comment 27"&gt;peterwilsoncc&lt;/a&gt;:&lt;br /&gt;
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+I've found WPdirectory does a slightly better job of finding code, searching &lt;code&gt;extends [A-Za-z_]*Walker&lt;/code&gt; returns the following:&lt;br /&gt;
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;Themes: &lt;a class="ext-link" href="https://wpdirectory.net/search/01DFVS3VNYJJR948DPTT9APEC1"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;1496 matches&lt;/a&gt;
+&lt;/li&gt;&lt;li&gt;Plugins: &lt;a class="ext-link" href="https://wpdirectory.net/search/01DFVS7CTWSBHN2SYKF5F3BMR9"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;1127 matches&lt;/a&gt;
+&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;
+As custom walkers are more common in themes, I'm concerned about breaking BC as themes are less likely to be open-source than plugins. Most sites run a custom theme.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Custom walkers are required for relatively common features, for example adding data attributes and IDs to &lt;code&gt;Walker_Nav_Menu &amp;gt; ul&lt;/code&gt; for use with generic JavaScript libraries. &lt;br /&gt;
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+Hi Peter, nice! I hadn't thought of searching that way.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+I appreciate your concerns and take them seriously, so I've done some more research.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+I've reviewed the code of the themes with &amp;gt; 5000 installs based on the links you posted, but all of those are &lt;em&gt;false positives&lt;/em&gt;, in that - similar to my previous findings - they just overload the &lt;code&gt;start_el()&lt;/code&gt;, &lt;code&gt;start_lvl()&lt;/code&gt;, &lt;code&gt;end_el()&lt;/code&gt; and/or &lt;code&gt;end_lvl()&lt;/code&gt; methods, not the &lt;code&gt;walk()&lt;/code&gt; or &lt;code&gt;paged_walk()&lt;/code&gt; methods.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+So, let's look at getting a little more accurate search results and use this regex &lt;code&gt;function (?:paged_)?walk\s*\(\s*\$&lt;/code&gt;.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+The results are very different then:&lt;br /&gt;
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;&lt;a class="ext-link" href="https://wpdirectory.net/search/01DFVWTFAEQ7SYTES05GZBMFZM"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;Themes&lt;/a&gt;: It says 11 matches, but is showing only &lt;strong&gt;4&lt;/strong&gt; themes, 1 of which is a false positive (not in a class extending a &lt;code&gt;*Walker&lt;/code&gt; class)
+&lt;/li&gt;&lt;li&gt;&lt;a class="ext-link" href="https://wpdirectory.net/search/01DFVWQ74HXF1EPP4K75RNQWJH"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;Plugins&lt;/a&gt;: It says 277 matches, but is showing only &lt;strong&gt;102&lt;/strong&gt; plugins, with ~50% having 0 installs and most of the ones which do have installs, including ACF, being false positives, i.e. in a class not extending a &lt;code&gt;Walker&lt;/code&gt; class, but, typically a stand-alone &lt;code&gt;RWMB_Walker_Select_Tree&lt;/code&gt; class or a class extending &lt;code&gt;acf_field&lt;/code&gt;. In reality only &lt;strong&gt;20&lt;/strong&gt; of the plugins with more than 0 installs extends a &lt;code&gt;*Walker&lt;/code&gt; class.
+&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;
+So 3 out 5.000+ themes and some 20 plugins out of 80.000+ in the repo.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Of course, this excludes the commercial plugins and themes, as well as private plugins and themes, but all the same, I do think it's safe to assume that the numbers will be roughly the same, which means that less than &lt;strong&gt;0.05%&lt;/strong&gt; of plugins and themes will run into this issue.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+So, while I appreciate that we should be very careful about this, I think that we may be overestimating the impact a bit.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #46965 (Site Health: "harddrive" spelling should be "hard drive".) updated</title>
+      
+        <dc:creator>chetan200891</dc:creator>
+
+      <pubDate>Mon, 15 Jul 2019 22:43:24 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/46965#comment:6</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/46965#comment:6/1563230604329972</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+@Clorith Patch refreshed.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>46965.1.diff attached to Ticket #46965</title>
+      
+        <dc:creator>chetan200891</dc:creator>
+
+      <pubDate>Mon, 15 Jul 2019 22:42:59 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/46965/46965.1.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/46965/46965.1.diff/1563230579079130</guid>
+      <description>&lt;p&gt;
+Refreshed patch.
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #46965 (Site Health: "harddrive" spelling should be "hard drive".) updated</title>
+      
+        <dc:creator>Clorith</dc:creator>
+
+      <pubDate>Mon, 15 Jul 2019 22:34:16 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/46965#comment:5</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/46965#comment:5/1563230056086724</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Good call on the verbiage, I agree that &lt;code&gt;harddrive&lt;/code&gt; is not ideal here. For the average user, they don't distinguish between the type of storage medium, but it makes more sense to use a different term.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Although &lt;code&gt;computer&lt;/code&gt; is nice, it's a bit limiting in our current technological landscape, let's use &lt;code&gt;device&lt;/code&gt; instead, would either of you like to update the patch to reflect this?&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #27250 (Exception when running import unit test group without the importer ...) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Mon, 15 Jul 2019 22:22:41 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/27250#comment:5</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/27250#comment:5/1563229361737923</guid>
+      <description>&lt;p&gt;
+Follow-up: &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/41345" title="#41345: enhancement: 'import' group tests fail using git repository (closed: fixed)"&gt;#41345&lt;/a&gt;&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #31432 (Unit tests are sensitive to line endings) updated</title>
+      
+        <dc:creator>slackbot</dc:creator>
+
+      <pubDate>Mon, 15 Jul 2019 22:17:39 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/31432#comment:12</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/31432#comment:12/1563229059369286</guid>
+      <description>&lt;p&gt;
+&lt;em&gt;This ticket was mentioned in &lt;a class="ext-link" href="https://make.wordpress.org/chat/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;Slack&lt;/a&gt; in #core by sergey. &lt;a class="ext-link" href="https://wordpress.slack.com/archives/core/p1563229057359700"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;View the logs&lt;/a&gt;.&lt;/em&gt;&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #41345 ('import' group tests fail using git repository) updated</title>
+      
+        <dc:creator>slackbot</dc:creator>
+
+      <pubDate>Mon, 15 Jul 2019 22:17:39 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/41345#comment:8</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/41345#comment:8/1563229059320908</guid>
+      <description>&lt;p&gt;
+&lt;em&gt;This ticket was mentioned in &lt;a class="ext-link" href="https://make.wordpress.org/chat/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;Slack&lt;/a&gt; in #core by sergey. &lt;a class="ext-link" href="https://wordpress.slack.com/archives/core/p1563229057359700"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;View the logs&lt;/a&gt;.&lt;/em&gt;&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #47705 (Gutenberg: Copy/Paste does not copy internal links href="#ID" as-is ...) updated</title>
+      
+        <dc:creator>mygfxx1</dc:creator>
+
+      <pubDate>Mon, 15 Jul 2019 22:11:44 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/47705#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/47705#comment:3/1563228704967512</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #47705 (Gutenberg: Copy/Paste does not copy internal links href="#ID" as-is ...) updated</title>
+      
+        <dc:creator>mygfxx1</dc:creator>
+
+      <pubDate>Mon, 15 Jul 2019 22:11:22 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/47705#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/47705#comment:2/1563228682674203</guid>
+      <description>&lt;p&gt;
+.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #47678 (Modernize/simplify current_user_can()) updated</title>
+      
+        <dc:creator>peterwilsoncc</dc:creator>
+
+      <pubDate>Mon, 15 Jul 2019 21:54:27 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/47678#comment:27</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/47678#comment:27/1563227667921225</guid>
+      <description>&lt;p&gt;
+I've found WPdirectory does a slightly better job of finding code, searching &lt;code&gt;extends [A-Za-z_]*Walker&lt;/code&gt; returns the following:&lt;br /&gt;
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;Themes: &lt;a class="ext-link" href="https://wpdirectory.net/search/01DFVS3VNYJJR948DPTT9APEC1"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;1496 matches&lt;/a&gt;
+&lt;/li&gt;&lt;li&gt;Plugins: &lt;a class="ext-link" href="https://wpdirectory.net/search/01DFVS7CTWSBHN2SYKF5F3BMR9"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;1127 matches&lt;/a&gt;
+&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;
+As custom walkers are more common in themes, I'm concerned about breaking BC as themes are less likely to be open-source than plugins. Most sites run a custom theme.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Custom walkers are required for relatively common features, for example adding data attributes and IDs to &lt;code&gt;Walker_Nav_Menu &amp;gt; ul&lt;/code&gt; for use with generic JavaScript libraries. &lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44275 (&lt;span data-mce-type="bookmark" style="display: inline-block; width: ...) closed</title>
+      
+        <dc:creator>azaozz</dc:creator>
+
+      <pubDate>Mon, 15 Jul 2019 20:41:27 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44275#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44275#comment:3/1563223287385130</guid>
+      <description>worksforme: &lt;p&gt;
+This is the "bookmark" inserted to keep the cursor position when switching Visual -&amp;gt; Text or Text -&amp;gt; Visual in the classic editor. Looks like another edge case there.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+However I can't reproduce it now. All shortcodes (and shortcode look-alike strings) seem to work properly now. When switching Visual -&amp;gt; Text, either the whole shortcode is selected if there is a wpview preview and it was focused or the cursor position is kept if there was no preview.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+When switching Text -&amp;gt; Visual and the cursor was in a shortcode, the whole shortcode is selected, or if there is a preview, the preview is focused.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+In any case, if something seems wrong when switching Text -&amp;gt; Visual, try clicking somewhere else in the text to move the cursor. This will ensure that the code for keeping the cursor position wouldn't interfere with other editor functionality.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Closing as worksforme, feel free to reopen with more details and steps to reproduce if this still happens.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Ticket #46935 (Dashboard icons don't pass color contrast) updated</title>
+      
+        <dc:creator>chetan200891</dc:creator>
+
+      <pubDate>Mon, 15 Jul 2019 20:06:45 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/46935#comment:10</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/46935#comment:10/1563221205623006</guid>
+      <description>&lt;p&gt;
+@kjellr I have updated patch.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>46935.1.diff attached to Ticket #46935</title>
+      
+        <dc:creator>chetan200891</dc:creator>
+
+      <pubDate>Mon, 15 Jul 2019 20:06:21 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/46935/46935.1.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/46935/46935.1.diff/1563221181104231</guid>
+      <description>&lt;p&gt;
+Updated patch.
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #39309 (Secure WordPress Against Infrastructure Attacks) updated</title>
+      
+        <dc:creator>paragoninitiativeenterprises</dc:creator>
+
+      <pubDate>Mon, 15 Jul 2019 19:48:23 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/39309#comment:94</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/39309#comment:94/1563220103667820</guid>
+      <description>&lt;p&gt;
+@pento:&lt;br /&gt;
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+Without trying to turn this into a bikeshedding ticket, are there options available that are already built?&lt;br /&gt;
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+There aren't any in the PHP ecosystem, outside of PIE's work. (See also: &lt;a class="ext-link" href="https://github.com/paragonie/airship/blob/master/src/Engine/Keyggdrasil.php"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;Airship&lt;/a&gt;, which was designed from the ground up to be automatically updated, securely.)&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Outside of PHP, there is &lt;a class="ext-link" href="https://theupdateframework.github.io/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;The Update Framework&lt;/a&gt; which is chiefly concerned with solving the problem that WordPress has already solved in this ticket. So that's not very helpful either.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Mozilla uses a system they call &lt;a class="ext-link" href="https://wiki.mozilla.org/Security/Binary_Transparency"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;Binary Transparency&lt;/a&gt; which piggybacks on Certificate Transparency to sign new releases. It's a clever use of existing technology, but going that route would probably require a partnership with the ISRG (a.k.a. Let's Encrypt).&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Ultimately, secure code delivery is as much an important problem as it is a woefully neglected one. And none of the solutions we're aware of have attempted to tackle it at the ecosystem level before (i.e. to enable individual developers to manage their own keys and sign their own updates, rather than just a central body).&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+We're breaking new ground here, and it's important to get it right (especially if other projects look to WordPress for inspiration or guidance on how to deploy such a system at scale).&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+@withinboredom:&lt;br /&gt;
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+Verification of these blocks takes some time. Having lots of them results in an indeterminate amount of time to do so. This could mean that a DOS is as simple as doing many releases.&lt;br /&gt;
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+...&lt;br /&gt;
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+Another DOS attack vector (that's used in the wild with GPG, I can't recall the name of it right now), is to simply sign a key with hundreds, or even thousands of other randomly generated keys. Verifying the signatures takes time and can even keep a very powerful computer busy for quite a while (months?).&lt;br /&gt;
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+In the scheme I proposed, the only system that can write to the ledger is the update server. We can throttle writes to the ledger at that layer if someone is trying to abuse the system.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Additionally, Ed25519 signature verification is very fast (with ext/sodium installed, which I certainly hope it *would* be on the WordPress backend infra). You can squeeze thousands of such verifications in a second. This isn't anything like a blockchain with a 7 tx/s bottleneck.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+If Chronicle is selected as the cryptographic ledger, it's worth noting that Chronicle uses a hash chain data structure rather than a Merkle tree. The main implication here is: Writes are faster and it uses less memory.  Since writes are centralized (but verification is decentralized), a hash chain is appropriate. (You'd want a Merkle tree in a decentralized publishing.)&lt;br /&gt;
+&lt;/p&gt;
+&lt;hr /&gt;
+&lt;p&gt;
+To move forward, we just need answers to the following questions:&lt;br /&gt;
+&lt;/p&gt;
+&lt;ol&gt;&lt;li&gt;Does WordPress want a solution sooner-than-later? (This answer will dictate Paragon's resource allocation into this initiative.)
+&lt;/li&gt;&lt;li&gt;How much third party review will be satisfactory for any designs/implementations we propose?
+&lt;/li&gt;&lt;li&gt;Bonus: Would any of the companies that rely on WordPress be willing to hire auditors to provide additional third party review if need be?
+&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;
+This might be a good topic to ask during the weekly dev meeting on Wednesday, if you'd like to wait until then before answering.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+I've already pinged a couple colleagues for their feedback on this design. I hope if they see any sources of concern with Gossamer's design, they'll chime in directly. If they opt to send me any feedback privately, I'll share it here as soon as I've received and understood their issues. (Transparency is vital for these sorts of designs.)&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #32920 (Centering iFrames using visual editor) closed</title>
+      
+        <dc:creator>azaozz</dc:creator>
+
+      <pubDate>Mon, 15 Jul 2019 19:17:38 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/32920#comment:13</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/32920#comment:13/1563218258852913</guid>
+      <description>worksforme: &lt;p&gt;
+Looking at this again, seems the TinyMCE &lt;code&gt;media&lt;/code&gt; plugin is not used now when pasting a video embed code (that is an iframe) in the Text tab. Testing with few Vimeo videos, the iframes seem to work properly and are not replaced with a video placeholder as before, and cannot be resized by dragging in the Visual tab but the width/height can be entered on the Text tab. &lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Aligning these iframes works as expected. They are wrapped in &lt;code&gt;&amp;lt;p style="text-align:center"&amp;gt;&lt;/code&gt; as mentioned in the ticket description.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Also there are several ways to add a video:&lt;br /&gt;
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;Add a video block in the block editor.
+&lt;/li&gt;&lt;li&gt;Add a media &amp;amp; text block.
+&lt;/li&gt;&lt;li&gt;Add one of the embed blocks for videos from a specific site (Youtube, Vimeo, etc.).
+&lt;/li&gt;&lt;li&gt;Paste the URL in the classic block and editor (if the host site supports oEmbed).
+&lt;/li&gt;&lt;li&gt;Use the media modal to insert a video shortcode for a locally hosted videos.
+&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;
+Closing as worksforme. Feel free to reopen if there is something we can fix here for the classic editor and block.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Ticket #47678 (Modernize/simplify current_user_can()) updated</title>
+      
+        <dc:creator>jrf</dc:creator>
+
+      <pubDate>Mon, 15 Jul 2019 18:47:41 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/47678#comment:26</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/47678#comment:26/1563216461436127</guid>
+      <description>&lt;p&gt;
+Replying to &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/47678#comment:24" title="Comment 24"&gt;pento&lt;/a&gt;:&lt;br /&gt;
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+There are &lt;a class="ext-link" href="https://github.com/search?q=org%3Awp-plugins+%22extends+walker%22&amp;amp;type=Code"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;~260 instances&lt;/a&gt; of &lt;code&gt;extend Walker&lt;/code&gt; here, but presumably more in themes, custom plugins, etc.&lt;br /&gt;
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+I've reviewed the first 100 results and only two of these overload the &lt;code&gt;walk()&lt;/code&gt; method.&lt;br /&gt;
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;&lt;a class="ext-link" href="https://github.com/wp-plugins/polylang/blob/72f6116b15ccabf987741e32ff219553babdf9f9/include/walker-dropdown.php#L60"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;Polylang&lt;/a&gt;
+&lt;/li&gt;&lt;li&gt;&lt;a class="ext-link" href="https://github.com/wp-plugins/thoughtful-comments/blob/657b85426e233580d601381e7c03b2e2fba0d8dd/walkers.php#L122"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;Thoughtful Comments&lt;/a&gt;
+&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;
+All the others just overload the &lt;code&gt;start_el()&lt;/code&gt;, &lt;code&gt;start_lvl()&lt;/code&gt;, &lt;code&gt;end_el()&lt;/code&gt; and/or &lt;code&gt;end_lvl()&lt;/code&gt; methods, just like the WP Core native child classes do.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+A &lt;a class="ext-link" href="https://github.com/search?l=&amp;amp;q=org:wp-plugins+%22extends+Walker%22+%22function+walk%28%22+language:PHP&amp;amp;type=Code"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;little more specific search&lt;/a&gt; yields 26 results out of which 16 are still false positives or tagged version duplicates and only 10 actually 1) extend one of the &lt;code&gt;Walker&lt;/code&gt; classes and 2) overload the &lt;code&gt;walk()&lt;/code&gt; method.&lt;br /&gt;
+Those 10 files are in the following 8 plugins:&lt;br /&gt;
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;Polylang (2x)
+&lt;/li&gt;&lt;li&gt;Thoughful Comments (1x)
+&lt;/li&gt;&lt;li&gt;Another WordPress Classifieds Plugin (1x)
+&lt;/li&gt;&lt;li&gt;BuddyPress (1x)
+&lt;/li&gt;&lt;li&gt;Extended Categories Widget (2x)
+&lt;/li&gt;&lt;li&gt;Page Menu Widget (1x)
+&lt;/li&gt;&lt;li&gt;WP Sitemanager (1x)
+&lt;/li&gt;&lt;li&gt;Custom Menu Wizard (1x)
+&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;
+So, while it does happen, it is extremely rare (8 plugins out of 80.000+).&lt;br /&gt;
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+I think this change could still work, in combination with a dev-note, and an easy pattern for plugin authors to maintain back compat with old versions of WordPress.&lt;br /&gt;
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+Maintaining back-compat with older versions of WP is not a problem. Overloaded methods are perfectly okay to have &lt;em&gt;more&lt;/em&gt; parameters than the parent method. See: &lt;a class="ext-link" href="https://3v4l.org/P1PaI"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://3v4l.org/P1PaI&lt;/a&gt;&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+The only issue would be that they wouldn't be able to still support older PHP versions. They would &lt;em&gt;have&lt;/em&gt; to update their minimum supported PHP version to 5.6+ to use the spread operator.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+And while we've now just looked at &lt;code&gt;Walker::walk()&lt;/code&gt;, the same principle applies to the other &lt;code&gt;public&lt;/code&gt; methods where the signature changed. Though I expect that, for any of those to be overloaded, would be even more rare than the overloading of &lt;code&gt;Walker::walk()&lt;/code&gt;.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Changed WP Core classes:&lt;br /&gt;
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;&lt;code&gt;WP:User::has_cap()&lt;/code&gt;
+&lt;/li&gt;&lt;li&gt;&lt;code&gt;Walker::walk()&lt;/code&gt; (reverted in &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/45640" title="Code Modernisation: Revert [45624].
+Changing the method signatures on ..."&gt;[45640]&lt;/a&gt;)
+&lt;/li&gt;&lt;li&gt;&lt;code&gt;Walker::paged_walk()&lt;/code&gt;
+&lt;/li&gt;&lt;li&gt;&lt;code&gt;wpdb::prepare()&lt;/code&gt;
+&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;
+And in the WP unit test classes:&lt;br /&gt;
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;&lt;code&gt;WP_UnitTestCase_Base::assertQueryTrue()&lt;/code&gt;
+&lt;/li&gt;&lt;li&gt;&lt;code&gt;MockAction::filterall()&lt;/code&gt;
+&lt;/li&gt;&lt;li&gt;&lt;code&gt;Tests_WP_Customize_Manager::capture_customize_post_value_set_actions()&lt;/code&gt;
+&lt;/li&gt;&lt;li&gt;&lt;code&gt;Tests_WP_Hook_Do_Action::_action_callback()&lt;/code&gt;
+&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;
+And the tools class:&lt;br /&gt;
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;&lt;code&gt;NotGettexted::logmsg()&lt;/code&gt;
+&lt;/li&gt;&lt;/ul&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #32554 (Editing an image inserted in a post does not resize correctly) closed</title>
+      
+        <dc:creator>azaozz</dc:creator>
+
+      <pubDate>Mon, 15 Jul 2019 18:41:22 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/32554#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/32554#comment:3/1563216082009720</guid>
+      <description>worksforme: &lt;p&gt;
+Looking at this again, it's currently only a problem with the image "preview" in the classic block and editor. It would be a nice touch to replace the image src when the user resizes the image to larger than the current size. However thinking we should probably remove the ability to choose specific image sub-size in the image block. It's just not needed as on the front-end the browser will pick the best size from the srcset anyway.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Closing this as worksforme as:&lt;br /&gt;
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;On the front-end the browser picks the right image source from the srcset regardless of that is in the image src.
+&lt;/li&gt;&lt;li&gt;In the image block the "large" size is always used.
+&lt;/li&gt;&lt;li&gt;There is a workaround for the classic block and editor: the user can select larger image size.
+&lt;/li&gt;&lt;/ul&gt;</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Ticket #46588 (comment-reply JavaScript not working with comments loaded via Ajax) updated</title>
+      
+        <dc:creator>ocean90</dc:creator>
+
+      <pubDate>Mon, 15 Jul 2019 18:26:44 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/46588#comment:5</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/46588#comment:5/1563215204384842</guid>
+      <description>&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+The MutationObserver observeChanges method never fires.&lt;br /&gt;
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+@dcooney Can you check if &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/45641" title="Comments: Fix typo in comment reply observer options.
+Props maguiar. ..."&gt;[45641]&lt;/a&gt; was the cause for this and if it works without the typo?&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>47701.2.patch attached to Ticket #47701</title>
+      
+        <dc:creator>pbearne</dc:creator>
+
+      <pubDate>Mon, 15 Jul 2019 17:24:30 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/47701/47701.2.patch</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/47701/47701.2.patch/1563211470407655</guid>
+      <description>&lt;p&gt;
+cleaned up and removed the duplicate data
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #46935 (Dashboard icons don't pass color contrast) updated</title>
+      
+        <dc:creator>kjellr</dc:creator>
+
+      <pubDate>Mon, 15 Jul 2019 17:00:46 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/46935#comment:9</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/46935#comment:9/1563210046766753</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+We could change them all to &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/606" title="#606: defect (bug): is_single() does not work (closed: fixed)"&gt;#606&lt;/a&gt;A73, which passes AA on both white and #fafafa, or we could do &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/606" title="#606: defect (bug): is_single() does not work (closed: fixed)"&gt;#606&lt;/a&gt;A73 on #fafafa and &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/6" title="#6: defect (bug): the_excerpt() on non-excerpt posts doesn't stripslashes (closed: fixed)"&gt;#6&lt;/a&gt;C7781 on white.&lt;br /&gt;
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+We discussed this in Design triage on slack today:&lt;br /&gt;
+&lt;a class="ext-link" href="https://wordpress.slack.com/archives/C02S78ZAL/p1563209628387100"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://wordpress.slack.com/archives/C02S78ZAL/p1563209628387100&lt;/a&gt;&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+This seems like a great change, but I'd suggest we use Mel's first suggestion here — just the single &lt;code&gt;#606A73&lt;/code&gt; color. The two proposed grays are generally close to each other, so it makes sense to just use one and keep things a little more consistent. &lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+@chetan200891 would you mind updating your patch to use &lt;code&gt;#606A73&lt;/code&gt; in both places? &lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Thank you!&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #46935 (Dashboard icons don't pass color contrast) updated</title>
+      
+        <dc:creator>slackbot</dc:creator>
+
+      <pubDate>Mon, 15 Jul 2019 16:53:50 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/46935#comment:8</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/46935#comment:8/1563209630230421</guid>
+      <description>&lt;p&gt;
+&lt;em&gt;This ticket was mentioned in &lt;a class="ext-link" href="https://make.wordpress.org/chat/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;Slack&lt;/a&gt; in #design by karmatosed. &lt;a class="ext-link" href="https://wordpress.slack.com/archives/design/p1563209628387100"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;View the logs&lt;/a&gt;.&lt;/em&gt;&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Tickets #46260,​47706 batch updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Mon, 15 Jul 2019 16:45:59 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/query?id=46260%2C47706</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/query?id=46260%2C47706/1563209159620872</guid>
+      <description>fixed: &lt;p&gt;
+In &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/45641" title="Comments: Fix typo in comment reply observer options.
+Props maguiar. ..."&gt;45641&lt;/a&gt;:&lt;br /&gt;
+&lt;/p&gt;
+&lt;div class="message"&gt;&lt;p&gt;
+Comments: Fix typo in comment reply observer options.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Props maguiar.&lt;br /&gt;
+Fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/47706" title="#47706: defect (bug): Typo in comments reply observer, new comments don't get events attached (closed: fixed)"&gt;#47706&lt;/a&gt;. See &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/46260" title="#46260: defect (bug): 5.1 Backwards Compatibility Issue: comment-reply.js (closed: fixed)"&gt;#46260&lt;/a&gt;.&lt;br /&gt;
+&lt;/p&gt;
+&lt;/div&gt;</description>
+      <category>batchmodify</category>
+    </item><item>
+      <title>Changeset [45641]: Comments: Fix typo in comment reply observer options.  Props maguiar. ...</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Mon, 15 Jul 2019 16:45:58 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/45641</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/45641/1563209158667765</guid>
+      <description>&lt;p&gt;
+Comments: Fix typo in comment reply observer options.
+&lt;/p&gt;
+&lt;p&gt;
+Props maguiar.
+Fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/47706" title="#47706: defect (bug): Typo in comments reply observer, new comments don't get events attached (closed: fixed)"&gt;#47706&lt;/a&gt;. See &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/46260" title="#46260: defect (bug): 5.1 Backwards Compatibility Issue: comment-reply.js (closed: fixed)"&gt;#46260&lt;/a&gt;.
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Ticket #47706 (Typo in comments reply observer, new comments don't get events attached) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Mon, 15 Jul 2019 16:42:50 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/47706#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/47706#comment:3/1563208970533040</guid>
+      <description>&lt;i&gt;Version&lt;/i&gt;, &lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Hi @maguiar, welcome to WordPress Trac! Thanks for the ticket and the patch.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Introduced in &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/44748" title="Comments: Fix backward compatibility regressions in comment reply ..."&gt;[44748]&lt;/a&gt;.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #47706 (Typo in comments reply observer, new comments don't get events attached) updated</title>
+      
+        <dc:creator>maguiar</dc:creator>
+
+      <pubDate>Mon, 15 Jul 2019 16:40:42 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/47706#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/47706#comment:2/1563208842937393</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>47706.diff attached to Ticket #47706</title>
+      
+        <dc:creator>maguiar</dc:creator>
+
+      <pubDate>Mon, 15 Jul 2019 16:40:08 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/47706/47706.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/47706/47706.diff/1563208808079343</guid>
+      <description>&lt;p&gt;
+Typo fix
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #47706 (Typo in comments reply observer, new comments don't get events attached) updated</title>
+      
+        <dc:creator>maguiar</dc:creator>
+
+      <pubDate>Mon, 15 Jul 2019 16:39:08 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/47706#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/47706#comment:1/1563208748456961</guid>
+      <description>&lt;p&gt;
+For reference, here's the &lt;code&gt;subtree&lt;/code&gt; documentation: &lt;a class="ext-link" href="https://developer.mozilla.org/en-US/docs/Web/API/MutationObserverInit/subtree"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://developer.mozilla.org/en-US/docs/Web/API/MutationObserverInit/subtree&lt;/a&gt;&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #47366 (Privacy Policy page dropdown needs a max-width) updated</title>
+      
+        <dc:creator>slackbot</dc:creator>
+
+      <pubDate>Mon, 15 Jul 2019 16:32:01 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/47366#comment:12</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/47366#comment:12/1563208321262290</guid>
+      <description>&lt;p&gt;
+&lt;em&gt;This ticket was mentioned in &lt;a class="ext-link" href="https://make.wordpress.org/chat/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;Slack&lt;/a&gt; in #design by karmatosed. &lt;a class="ext-link" href="https://wordpress.slack.com/archives/design/p1563208320373700"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;View the logs&lt;/a&gt;.&lt;/em&gt;&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #47706 (Typo in comments reply observer, new comments don't get events attached) created</title>
+      
+        <dc:creator>maguiar</dc:creator>
+
+      <pubDate>Mon, 15 Jul 2019 16:10:36 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/47706</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/47706/1563207036769227</guid>
+      <description>&lt;p&gt;
+There's a typo in the comment's reply link observer. It's supposed to observe DOM changes inside &lt;code&gt;body&lt;/code&gt; so it can attach the reply link event to new nodes. However, Core has it written as:&lt;br /&gt;
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;var observerOptions = {
+    childList: true,
+    subTree: true
+};
+&lt;/pre&gt;&lt;p&gt;
+&lt;code&gt;subTree&lt;/code&gt; should be &lt;code&gt;subtree&lt;/code&gt;. Because of this new comments added with ajax don't get the event attached to them, and the reply link directs instead to whatever the reply link points to. While the rest of comments open the reply form below the comment.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #47705 (Gutenberg: Copy/Paste does not copy internal links href="#ID" as-is ...) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Mon, 15 Jul 2019 15:25:58 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/47705#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/47705#comment:1/1563204358450458</guid>
+      <description>&lt;i&gt;Component&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #47705 (Gutenberg: Copy/Paste does not copy internal links href="#ID" as-is ...) created</title>
+      
+        <dc:creator>e467gj6x</dc:creator>
+
+      <pubDate>Mon, 15 Jul 2019 15:07:29 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/47705</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/47705/1563203249474524</guid>
+      <description>&lt;p&gt;
+Gutenberg editor interprets internal hyperlinks when copy/pasting. Not good.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+I wrote a blog post with a table of contents, several chapters, and return-to-TOC -links. Something like this:&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+&amp;lt;h2 id="toc"&amp;gt;Table of contents&amp;lt;/h2&amp;gt;&lt;br /&gt;
+&amp;lt;a href="#chapter1"&amp;gt;Chapter 1&amp;lt;/a&amp;gt;&lt;br /&gt;
+&amp;lt;a href="#chapter2"&amp;gt;Chapter 2&amp;lt;/a&amp;gt;&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+...&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+&amp;lt;h2 id="chapter1"&amp;gt;Chapter 1&amp;lt;/a&amp;gt;&lt;br /&gt;
+Really important stuff here, really.&lt;br /&gt;
+&amp;lt;a href="#toc"&amp;gt;Return to table of contents&amp;lt;/a&amp;gt;&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Now, If I ever need to EDIT this page and I copy/paste any of these links in the editor, then #chapter1 is no longer #chapter1 but an explicit link to the admin-interface. And #toc is no longet #toc but an explicit link.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Those explicit links work as long as I stay logged in, but when the world (my friends probably) accesses my writings, there will be no page-internal links but instead references to the admin side.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+I want #ref to stay #ref, explicitly, when copy/pasting.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #47704 (PHP 7.4: Fix issues regarding accessing null/bool/etc as if they were ...) updated</title>
+      
+        <dc:creator>jrf</dc:creator>
+
+      <pubDate>Mon, 15 Jul 2019 12:49:01 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/47704#comment:6</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/47704#comment:6/1563194941401129</guid>
+      <description>&lt;p&gt;
+Thanks @pento! and yes, leaving the ticket open was the idea ;-)&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #47701 (unit test for wp_get_mime_types()) updated</title>
+      
+        <dc:creator>pbearne</dc:creator>
+
+      <pubDate>Mon, 15 Jul 2019 12:22:20 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/47701#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/47701#comment:2/1563193340654080</guid>
+      <description>&lt;p&gt;
+I agree, I will rewrite it&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #42151 (Create a filter to add information to query data saved when ...) closed</title>
+      
+        <dc:creator>ocean90</dc:creator>
+
+      <pubDate>Mon, 15 Jul 2019 11:57:58 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/42151#comment:26</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/42151#comment:26/1563191878060571</guid>
+      <description>fixed: &lt;p&gt;
+In &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/45635" title="WPDB: Allow custom data to be added to logged queries.
+This adds a ..."&gt;45635&lt;/a&gt;:&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+WPDB: Allow custom data to be added to logged queries.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+This adds a new method, &lt;code&gt;wpdb::log_query()&lt;/code&gt;, and a new filter, &lt;code&gt;log_query_custom_data&lt;/code&gt;. The custom data is stored as a new element in each entry of the &lt;code&gt;wpdb::$queries&lt;/code&gt; array.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Props CrazyJaco, johnbillion, pento.&lt;br /&gt;
+Fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/42151" title="#42151: enhancement: Create a filter to add information to query data saved when ... (closed: fixed)"&gt;#42151&lt;/a&gt;.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Ticket #39309 (Secure WordPress Against Infrastructure Attacks) updated</title>
+      
+        <dc:creator>withinboredom</dc:creator>
+
+      <pubDate>Mon, 15 Jul 2019 11:46:42 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/39309#comment:93</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/39309#comment:93/1563191202681851</guid>
+      <description>&lt;p&gt;
+@paragoninitiativeenterprises &lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+My only concern with Gossamer is specific to:&lt;br /&gt;
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+Rewinds the ledger to the genesis block and plays through each subsequent update to ensure that the final state that WordPress sees is deterministic.&lt;br /&gt;
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+Verification of these blocks takes some time. Having lots of them results in an indeterminate amount of time to do so. This could mean that a DOS is as simple as doing many releases.&lt;br /&gt;
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+Plugin/theme developers would need tooling to generate/manage their signing keys.&lt;br /&gt;
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+Another DOS attack vector (that's used in the wild with GPG, I can't recall the name of it right now), is to simply sign a key with hundreds, or even thousands of other randomly generated keys. Verifying the signatures takes time and can even keep a very powerful computer busy for quite a while (months?). This could be exploited by building or purchasing a simple but useful plugin and then updating the signing key to one that can DOS the entire network and all sites. &lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+As long as these are mitigated while still maintaining security, we'll probably benefit from something like Gossamer.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Here are my issues with code signing, in general:&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+The keys expire, which is ridiculous. Either the release was authentic when it was released or it wasn't. The fact that some amount of time passed doesn't make it any less authentic.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+When a package is signed by a developer, we have to assume that the keys have been protected. Generally, they might be, or they might not be. It's probably better to keep the keys in an HSM and let that handle signing. The Foundation is probably in a better position to protect the keys than the average developer.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+By that token, developers could get issued a one-time signing key that's signed by the key protected in hardware. That key would be revoked if not used in a certain amount of time or if used more than once. It could also be revoked by emailing/texting the developer with a one-click link when issued.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #47676 (Add support for If-Unmodified-Since header to make a conditional ...) updated</title>
+      
+        <dc:creator>swissspidy</dc:creator>
+
+      <pubDate>Mon, 15 Jul 2019 09:27:15 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/47676#comment:4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/47676#comment:4/1563182835807721</guid>
+      <description>&lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #39309 (Secure WordPress Against Infrastructure Attacks) updated</title>
+      
+        <dc:creator>pento</dc:creator>
+
+      <pubDate>Mon, 15 Jul 2019 08:05:23 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/39309#comment:92</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/39309#comment:92/1563177923733888</guid>
+      <description>&lt;p&gt;
+Thank you for the detailed info, @paragoninitiativeenterprises. This is well into areas that I'm not familiar with, I appreciate you taking the time to write it all out. 🙂&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Gossamer certainly sounds interesting, though I'm not sure how much assistance WordPress folk would be able to provide: there are very few folks in Core (though a few more in the wider ecosystem) familiar with building this kind of software.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Without trying to turn this into a bikeshedding ticket, are there options available that are already built? What are the downsides to them that would make them unsuitable? &lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #47678 (Modernize/simplify current_user_can()) updated</title>
+      
+        <dc:creator>pento</dc:creator>
+
+      <pubDate>Mon, 15 Jul 2019 07:03:55 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/47678#comment:25</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/47678#comment:25/1563174235163812</guid>
+      <description>&lt;p&gt;
+In &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/45640" title="Code Modernisation: Revert [45624].
+Changing the method signatures on ..."&gt;45640&lt;/a&gt;:&lt;br /&gt;
+&lt;/p&gt;
+&lt;div class="message"&gt;&lt;p&gt;
+Code Modernisation: Revert &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/45624" title="Code Modernisation: Introduce the spread operator in `Walker`.
+Rather ..."&gt;[45624]&lt;/a&gt;.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Changing the method signatures on &lt;code&gt;Walker&lt;/code&gt; causes back compat issues.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+See &lt;a class="assigned ticket" href="http://core.trac.wordpress.org/ticket/47678" title="#47678: task (blessed): Modernize/simplify current_user_can() (assigned)"&gt;#47678&lt;/a&gt;.&lt;br /&gt;
+&lt;/p&gt;
+&lt;/div&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Changeset [45640]: Code Modernisation: Revert [45624].  Changing the method signatures on ...</title>
+      
+        <dc:creator>pento</dc:creator>
+
+      <pubDate>Mon, 15 Jul 2019 07:03:54 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/45640</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/45640/1563174234147202</guid>
+      <description>&lt;p&gt;
+Code Modernisation: Revert &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/45624" title="Code Modernisation: Introduce the spread operator in `Walker`.
+Rather ..."&gt;[45624]&lt;/a&gt;.
+&lt;/p&gt;
+&lt;p&gt;
+Changing the method signatures on &lt;code&gt;Walker&lt;/code&gt; causes back compat issues.
+&lt;/p&gt;
+&lt;p&gt;
+See &lt;a class="assigned ticket" href="http://core.trac.wordpress.org/ticket/47678" title="#47678: task (blessed): Modernize/simplify current_user_can() (assigned)"&gt;#47678&lt;/a&gt;.
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Ticket #47678 (Modernize/simplify current_user_can()) updated</title>
+      
+        <dc:creator>pento</dc:creator>
+
+      <pubDate>Mon, 15 Jul 2019 07:01:19 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/47678#comment:24</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/47678#comment:24/1563174079979939</guid>
+      <description>&lt;p&gt;
+Replying to &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/47678#comment:23" title="Comment 23"&gt;jrf&lt;/a&gt;:&lt;br /&gt;
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+There are two choices here:&lt;br /&gt;
+&lt;/p&gt;
+&lt;ol&gt;&lt;li&gt;Revert that particular change.
+&lt;/li&gt;&lt;li&gt;Update the method signature for the &lt;code&gt;walk()&lt;/code&gt; and &lt;code&gt;paged_walk()&lt;/code&gt; methods in child classes.
+&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;
+I'm very much in favour of 2. Yes, WP is notorious for its backward-compatibility, but it's not as if other methods have never received new arguments if a functional change warranted this or am I mistaken ?&lt;br /&gt;
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+New arguments are added to methods extremely rarely, and offset against the effort required for plugins to release a compatibility fix. The last instance I recall was &lt;code&gt;WP_Customize_Manager::__construct()&lt;/code&gt; gaining a parameter in WP 4.7.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+There are &lt;a class="ext-link" href="https://github.com/search?q=org%3Awp-plugins+%22extends+walker%22&amp;amp;type=Code"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;~260 instances&lt;/a&gt; of &lt;code&gt;extend Walker&lt;/code&gt; here, but presumably more in themes, custom plugins, etc.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+I think this change could still work, in combination with a dev-note, and an easy pattern for plugin authors to maintain back compat with old versions of WordPress.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+For now, I'm going to revert &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/45624" title="Code Modernisation: Introduce the spread operator in `Walker`.
+Rather ..."&gt;[45624]&lt;/a&gt; until we have a plan laid out.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #47704 (PHP 7.4: Fix issues regarding accessing null/bool/etc as if they were ...) updated</title>
+      
+        <dc:creator>pento</dc:creator>
+
+      <pubDate>Mon, 15 Jul 2019 06:25:49 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/47704#comment:5</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/47704#comment:5/1563171949034441</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt;, &lt;i&gt;Type&lt;/i&gt;, &lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+&lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/45639" title="Code Modernisation: Fix known instances of array access on data types ..."&gt;[45639]&lt;/a&gt; includes all of the patches to date. I'm going to leave this ticket open as a task for the 5.3 cycle, in case we run into more that need fixing.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #47704 (PHP 7.4: Fix issues regarding accessing null/bool/etc as if they were ...) updated</title>
+      
+        <dc:creator>pento</dc:creator>
+
+      <pubDate>Mon, 15 Jul 2019 06:24:09 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/47704#comment:4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/47704#comment:4/1563171849591154</guid>
+      <description>&lt;p&gt;
+In &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/45639" title="Code Modernisation: Fix known instances of array access on data types ..."&gt;45639&lt;/a&gt;:&lt;br /&gt;
+&lt;/p&gt;
+&lt;div class="message"&gt;&lt;p&gt;
+Code Modernisation: Fix known instances of array access on data types that can't be accessed as arrays.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+PHP 7.4 addes a warning when trying access a null/bool/int/float/resource (everything but array, string and object) as if it were an array.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+This change fixes all of these warnings visible in unit tests.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Props jrf.&lt;br /&gt;
+See &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/47704" title="#47704: task (blessed): PHP 7.4: Fix issues regarding accessing null/bool/etc as if they were ... (closed: fixed)"&gt;#47704&lt;/a&gt;.&lt;br /&gt;
+&lt;/p&gt;
+&lt;/div&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Changeset [45639]: Code Modernisation: Fix known instances of array access on data types ...</title>
+      
+        <dc:creator>pento</dc:creator>
+
+      <pubDate>Mon, 15 Jul 2019 06:24:08 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/45639</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/45639/1563171848437472</guid>
+      <description>&lt;p&gt;
+Code Modernisation: Fix known instances of array access on data types that can't be accessed as arrays.
+&lt;/p&gt;
+&lt;p&gt;
+PHP 7.4 addes a warning when trying access a null/bool/int/float/resource (everything but array, string and object) as if it were an array.
+&lt;/p&gt;
+&lt;p&gt;
+This change fixes all of these warnings visible in unit tests.
+&lt;/p&gt;
+&lt;p&gt;
+Props jrf.
+See &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/47704" title="#47704: task (blessed): PHP 7.4: Fix issues regarding accessing null/bool/etc as if they were ... (closed: fixed)"&gt;#47704&lt;/a&gt;.
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>47366.4.diff attached to Ticket #47366</title>
+      
+        <dc:creator>jalpa1984</dc:creator>
+
+      <pubDate>Mon, 15 Jul 2019 06:00:16 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/47366/47366.4.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/47366/47366.4.diff/1563170416003461</guid>
+      <description>&lt;p&gt;
+Forms.css changes
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #47699 (Remove redundant JSON polyfills for PHP native functionality) updated</title>
+      
+        <dc:creator>pento</dc:creator>
+
+      <pubDate>Mon, 15 Jul 2019 05:26:51 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/47699#comment:5</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/47699#comment:5/1563168411235715</guid>
+      <description>&lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Hopefully we can use &lt;a class="attachment" href="http://core.trac.wordpress.org/attachment/ticket/47699/47699-remove-json-polyfills-and-work-arounds.patch" title="Attachment '47699-remove-json-polyfills-and-work-arounds.patch' in Ticket #47699"&gt;47699-remove-json-polyfills-and-work-arounds.patch&lt;/a&gt;&lt;a class="trac-rawlink" href="http://core.trac.wordpress.org/raw-attachment/ticket/47699/47699-remove-json-polyfills-and-work-arounds.patch" title="Download"&gt;​&lt;/a&gt;, but I like the direction of &lt;a class="attachment" href="http://core.trac.wordpress.org/attachment/ticket/47699/47699-deprecate-JSON-polyfills.patch" title="Attachment '47699-deprecate-JSON-polyfills.patch' in Ticket #47699"&gt;47699-deprecate-JSON-polyfills.patch&lt;/a&gt;&lt;a class="trac-rawlink" href="http://core.trac.wordpress.org/raw-attachment/ticket/47699/47699-deprecate-JSON-polyfills.patch" title="Download"&gt;​&lt;/a&gt; as a backup option.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+I've asked the VaultPress crew to see how many sites are running PHP 5.6+ without the JSON extension (with breakdown by PHP version, if possible). Once we have some data, we'll hopefully have a better idea of which direction we can go.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #47699 (Remove redundant JSON polyfills for PHP native functionality) updated</title>
+      
+        <dc:creator>jrf</dc:creator>
+
+      <pubDate>Mon, 15 Jul 2019 05:15:11 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/47699#comment:4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/47699#comment:4/1563167711827292</guid>
+      <description>&lt;p&gt;
+@Clorith I've added a new patch which aggressively deprecates any and all deprecatable JSON related functionality.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Note: Constants, interfaces, (global) variables can not throw deprecation notices, so this still doesn't cover everything, but AFAICS it's as close as it can get.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+The patch includes:&lt;br /&gt;
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;Adding the &lt;code&gt;JSON&lt;/code&gt; extension as a &lt;strong&gt;required&lt;/strong&gt; module to Site Health. The check is based on the &lt;code&gt;json_last_error()&lt;/code&gt; function, which is the only function in the JSON extension not polyfilled.
+&lt;/li&gt;&lt;li&gt;Removing version based checks from &lt;code&gt;wp_json_encode()&lt;/code&gt;. See my remark about that above.
+&lt;/li&gt;&lt;li&gt;In a few cases, replacing version based logic with feature based logic.
+&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;
+Passing build: &lt;a class="ext-link" href="https://travis-ci.com/WordPress/wordpress-develop/builds/119097007"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://travis-ci.com/WordPress/wordpress-develop/builds/119097007&lt;/a&gt;&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+For WP 5.4/5.5, a secondary patch will be needed to remove everything. My original patch can be used for inspiration at that time.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Note: I have &lt;strong&gt;not&lt;/strong&gt; applied this deprecation route to the patches in &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/47698" title="#47698: enhancement: Remove redundant polyfills for PHP native functionality (excl JSON) (closed: fixed)"&gt;#47698&lt;/a&gt; as, IMO, it doesn't apply for those patches.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #47698 (Remove redundant polyfills for PHP native functionality (excl JSON)) closed</title>
+      
+        <dc:creator>pento</dc:creator>
+
+      <pubDate>Mon, 15 Jul 2019 05:13:11 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/47698#comment:6</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/47698#comment:6/1563167591148879</guid>
+      <description>fixed: &lt;p&gt;
+In &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/45638" title="Code Modernisation: Document when the Hash polyfills can be removed.
+ ..."&gt;45638&lt;/a&gt;:&lt;br /&gt;
+&lt;/p&gt;
+&lt;div class="message"&gt;&lt;p&gt;
+Code Modernisation: Document when the Hash polyfills can be removed.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+The Hash extension cannot be disabled as of PHP 7.4. So, while we can't remove these polyfills yet, we can document when we'll be able to.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Props jrf.&lt;br /&gt;
+Fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/47698" title="#47698: enhancement: Remove redundant polyfills for PHP native functionality (excl JSON) (closed: fixed)"&gt;#47698&lt;/a&gt;.&lt;br /&gt;
+&lt;/p&gt;
+&lt;/div&gt;</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Changeset [45638]: Code Modernisation: Document when the Hash polyfills can be removed.  ...</title>
+      
+        <dc:creator>pento</dc:creator>
+
+      <pubDate>Mon, 15 Jul 2019 05:13:10 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/45638</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/45638/1563167590078458</guid>
+      <description>&lt;p&gt;
+Code Modernisation: Document when the Hash polyfills can be removed.
+&lt;/p&gt;
+&lt;p&gt;
+The Hash extension cannot be disabled as of PHP 7.4. So, while we can't remove these polyfills yet, we can document when we'll be able to.
+&lt;/p&gt;
+&lt;p&gt;
+Props jrf.
+Fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/47698" title="#47698: enhancement: Remove redundant polyfills for PHP native functionality (excl JSON) (closed: fixed)"&gt;#47698&lt;/a&gt;.
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Tickets #46630,​47698 batch updated</title>
+      
+        <dc:creator>pento</dc:creator>
+
+      <pubDate>Mon, 15 Jul 2019 05:10:37 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/query?id=46630%2C47698</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/query?id=46630%2C47698/1563167437379019</guid>
+      <description>&lt;p&gt;
+In &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/45637" title="Code Modernisation: Remove the SPL autoloader polyfill.
+As of PHP ..."&gt;45637&lt;/a&gt;:&lt;br /&gt;
+&lt;/p&gt;
+&lt;div class="message"&gt;&lt;p&gt;
+Code Modernisation: Remove the SPL autoloader polyfill.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+As of PHP 5.3, the SPL extension cannot be disabled, so we no longer need this polyfill.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+The file is kept with a &lt;code&gt;_deprecated_file()&lt;/code&gt; call, to alert any plugins or themes that may be loading it directly.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Props jrf, ayeshrajans.&lt;br /&gt;
+See &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/47698" title="#47698: enhancement: Remove redundant polyfills for PHP native functionality (excl JSON) (closed: fixed)"&gt;#47698&lt;/a&gt;, &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/46630" title="#46630: enhancement: Remove SPL-Autoload polyfill (closed: duplicate)"&gt;#46630&lt;/a&gt;.&lt;br /&gt;
+&lt;/p&gt;
+&lt;/div&gt;</description>
+      <category>batchmodify</category>
+    </item><item>
+      <title>Changeset [45637]: Code Modernisation: Remove the SPL autoloader polyfill.  As of PHP ...</title>
+      
+        <dc:creator>pento</dc:creator>
+
+      <pubDate>Mon, 15 Jul 2019 05:10:36 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/45637</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/45637/1563167436066737</guid>
+      <description>&lt;p&gt;
+Code Modernisation: Remove the SPL autoloader polyfill.
+&lt;/p&gt;
+&lt;p&gt;
+As of PHP 5.3, the SPL extension cannot be disabled, so we no longer need this polyfill.
+&lt;/p&gt;
+&lt;p&gt;
+The file is kept with a &lt;code&gt;_deprecated_file()&lt;/code&gt; call, to alert any plugins or themes that may be loading it directly.
+&lt;/p&gt;
+&lt;p&gt;
+Props jrf, ayeshrajans.
+See &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/47698" title="#47698: enhancement: Remove redundant polyfills for PHP native functionality (excl JSON) (closed: fixed)"&gt;#47698&lt;/a&gt;, &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/46630" title="#46630: enhancement: Remove SPL-Autoload polyfill (closed: duplicate)"&gt;#46630&lt;/a&gt;.
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Ticket #47698 (Remove redundant polyfills for PHP native functionality (excl JSON)) updated</title>
+      
+        <dc:creator>pento</dc:creator>
+
+      <pubDate>Mon, 15 Jul 2019 05:07:22 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/47698#comment:4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/47698#comment:4/1563167242037888</guid>
+      <description>&lt;p&gt;
+In &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/45636" title="Code Modernisation: Remove the `array_replace_recursive()` polyfill.
+ ..."&gt;45636&lt;/a&gt;:&lt;br /&gt;
+&lt;/p&gt;
+&lt;div class="message"&gt;&lt;p&gt;
+Code Modernisation: Remove the &lt;code&gt;array_replace_recursive()&lt;/code&gt; polyfill.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+This function was added in PHP 5.3.0, so we no longer need the polyfill.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Props jrf.&lt;br /&gt;
+See &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/47698" title="#47698: enhancement: Remove redundant polyfills for PHP native functionality (excl JSON) (closed: fixed)"&gt;#47698&lt;/a&gt;.&lt;br /&gt;
+&lt;/p&gt;
+&lt;/div&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Changeset [45636]: Code Modernisation: Remove the `array_replace_recursive()` polyfill.  ...</title>
+      
+        <dc:creator>pento</dc:creator>
+
+      <pubDate>Mon, 15 Jul 2019 05:07:20 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/45636</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/45636/1563167240955931</guid>
+      <description>&lt;p&gt;
+Code Modernisation: Remove the &lt;code&gt;array_replace_recursive()&lt;/code&gt; polyfill.
+&lt;/p&gt;
+&lt;p&gt;
+This function was added in PHP 5.3.0, so we no longer need the polyfill.
+&lt;/p&gt;
+&lt;p&gt;
+Props jrf.
+See &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/47698" title="#47698: enhancement: Remove redundant polyfills for PHP native functionality (excl JSON) (closed: fixed)"&gt;#47698&lt;/a&gt;.
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Tickets #46630,​47698 batch updated</title>
+      
+        <dc:creator>pento</dc:creator>
+
+      <pubDate>Mon, 15 Jul 2019 05:04:57 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/query?id=46630%2C47698</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/query?id=46630%2C47698/1563167097594871</guid>
+      <description>&lt;p&gt;
+&lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/46630" title="#46630: enhancement: Remove SPL-Autoload polyfill (closed: duplicate)"&gt;#46630&lt;/a&gt; was marked as a duplicate.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>batchmodify</category>
+    </item><item>
+      <title>47699-deprecate-JSON-polyfills.patch attached to Ticket #47699</title>
+      
+        <dc:creator>jrf</dc:creator>
+
+      <pubDate>Mon, 15 Jul 2019 05:04:47 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/47699/47699-deprecate-JSON-polyfills.patch</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/47699/47699-deprecate-JSON-polyfills.patch/1563167087508068</guid>
+      <description>&lt;p&gt;
+Agressively deprecate all JSON related polyfills &amp;amp; make the JSON extension a requirement
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Changeset [45635]: WPDB: Allow custom data to be added to logged queries.  This adds a ...</title>
+      
+        <dc:creator>pento</dc:creator>
+
+      <pubDate>Mon, 15 Jul 2019 04:06:24 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/45635</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/45635/1563163584563527</guid>
+      <description>&lt;p&gt;
+WPDB: Allow custom data to be added to logged queries.
+&lt;/p&gt;
+&lt;p&gt;
+This adds a new method, &lt;code&gt;wpdb::log_query()&lt;/code&gt;, and a new filter, &lt;code&gt;log_query_custom_data&lt;/code&gt;. The custom data is stored as a new element in each entry of the &lt;code&gt;wpdb::$queries&lt;/code&gt; array.
+&lt;/p&gt;
+&lt;p&gt;
+Props CrazyJaco, johnbillion, pento.
+Fixes 42151.
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Ticket #42151 (Create a filter to add information to query data saved when ...) updated</title>
+      
+        <dc:creator>pento</dc:creator>
+
+      <pubDate>Mon, 15 Jul 2019 04:01:12 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/42151#comment:25</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/42151#comment:25/1563163272147739</guid>
+      <description>&lt;i&gt;Status&lt;/i&gt;, &lt;i&gt;Owner&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Thank you for the patch update, @CrazyJaco!&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+I originally added the entire data array to the filter as it's useful to be able to obtain that data when running the filter. I agree that it's risky, though: I've modified the query to pass them as extra parameters, instead, so they can't be modified, just read. &lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #47704 (PHP 7.4: Fix issues regarding accessing null/bool/etc as if they were ...) updated</title>
+      
+        <dc:creator>jrf</dc:creator>
+
+      <pubDate>Mon, 15 Jul 2019 03:36:15 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/47704#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/47704#comment:3/1563161775674508</guid>
+      <description>&lt;p&gt;
+PR to fix the issue in the WordPress Importer plugin: &lt;a class="ext-link" href="https://github.com/WordPress/wordpress-importer/pull/53"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://github.com/WordPress/wordpress-importer/pull/53&lt;/a&gt;&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #47702 (Text in wp-signup.php doesn't make sense) closed</title>
+      
+        <dc:creator>pento</dc:creator>
+
+      <pubDate>Mon, 15 Jul 2019 02:53:45 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/47702#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/47702#comment:2/1563159225671884</guid>
+      <description>wontfix: &lt;p&gt;
+Thank you for the suggestion, @henrywright!&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+"Now have at it!" is a colloquialism, encouraging the reader to start working with the new site straight away. It's comparable in meaning to "go for it!", or something of that nature. &lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+I do understand that sometimes not everyone will be familiar with particular colloquialisms, but used sparingly, they add a little bit of personality to the experience.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+For that reason, I'm going to close this ticket as &lt;code&gt;wontfix&lt;/code&gt;.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Ticket #47704 (PHP 7.4: Fix issues regarding accessing null/bool/etc as if they were ...) updated</title>
+      
+        <dc:creator>jrf</dc:creator>
+
+      <pubDate>Mon, 15 Jul 2019 01:32:27 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/47704#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/47704#comment:2/1563154347191395</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #47704 (PHP 7.4: Fix issues regarding accessing null/bool/etc as if they were ...) updated</title>
+      
+        <dc:creator>jrf</dc:creator>
+
+      <pubDate>Mon, 15 Jul 2019 01:29:25 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/47704#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/47704#comment:1/1563154165805644</guid>
+      <description>&lt;p&gt;
+A build on a branch including all attached patches can be found here: &lt;a class="ext-link" href="https://travis-ci.com/WordPress/wordpress-develop/jobs/215960581"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://travis-ci.com/WordPress/wordpress-develop/jobs/215960581&lt;/a&gt;&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+The remaining three failing unit tests are caused by the same issue existing in the &lt;a class="ext-link" href="https://github.com/wordpress/wordpress-importer"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;WordPress Importer&lt;/a&gt; plugin. Once the issue in the plugin is fixed and a new version of the plugin tagged, those three remaining unit tests should start passing again.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>47704-Tests_TermExists-test_term_.patch attached to Ticket #47704</title>
+      
+        <dc:creator>jrf</dc:creator>
+
+      <pubDate>Mon, 15 Jul 2019 01:24:50 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/47704/47704-Tests_TermExists-test_term_.patch</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/47704/47704-Tests_TermExists-test_term_.patch/1563153890486457</guid>
+      <description>&lt;p&gt;
+PHP 7.4/array-access: Fix Tests_TermExists::test_term_exists_taxonomy_nonempty_parent_0_should_return_false_for_child_term() - fixes 1 faulty unit test
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>47704-Tests_Query_GeneratePostdat.patch attached to Ticket #47704</title>
+      
+        <dc:creator>jrf</dc:creator>
+
+      <pubDate>Mon, 15 Jul 2019 01:24:28 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/47704/47704-Tests_Query_GeneratePostdat.patch</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/47704/47704-Tests_Query_GeneratePostdat.patch/1563153868307183</guid>
+      <description>&lt;p&gt;
+PHP 7.4/array-access: Fix Tests_Query_GeneratePostdata::test_setup_by_fake_post() - fixes 1 faulty unit test
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>47704-WP_Customize_Manager-regist.patch attached to Ticket #47704</title>
+      
+        <dc:creator>jrf</dc:creator>
+
+      <pubDate>Mon, 15 Jul 2019 01:23:42 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/47704/47704-WP_Customize_Manager-regist.patch</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/47704/47704-WP_Customize_Manager-regist.patch/1563153822537080</guid>
+      <description>&lt;p&gt;
+PHP 7.4/array-access: Fix WP_Customize_Manager::register_controls() - fixes 12 errors
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>47704-wpdb-strip_invalid_text.patch attached to Ticket #47704</title>
+      
+        <dc:creator>jrf</dc:creator>
+
+      <pubDate>Mon, 15 Jul 2019 01:22:48 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/47704/47704-wpdb-strip_invalid_text.patch</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/47704/47704-wpdb-strip_invalid_text.patch/1563153768422863</guid>
+      <description>&lt;p&gt;
+PHP 7.4/array-access: Fix wpdb::strip_invalid_text() - fixes 3 errors
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>47704-get_metadata.patch attached to Ticket #47704</title>
+      
+        <dc:creator>jrf</dc:creator>
+
+      <pubDate>Mon, 15 Jul 2019 01:21:37 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/47704/47704-get_metadata.patch</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/47704/47704-get_metadata.patch/1563153697070209</guid>
+      <description>&lt;p&gt;
+PHP 7.4/array-access: Fix get_metadata() - fixes 1 error
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #47699 (Remove redundant JSON polyfills for PHP native functionality) updated</title>
+      
+        <dc:creator>Clorith</dc:creator>
+
+      <pubDate>Mon, 15 Jul 2019 01:20:59 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/47699#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/47699#comment:3/1563153659925306</guid>
+      <description>&lt;p&gt;
+I like the approach you've outlined, and I agree 5.5 at the latest to remove any deprecated features now in supported PHP versions sounds very reasonable.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+(and, ironically enough, it was in the Site Health Checker, but I removed it for the same reason you've stated here, that's when the considerations from above were brought to my attention as well, so I thought I'd at least bring it up here for full consideration :) )&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>47704-wp_update_user.patch attached to Ticket #47704</title>
+      
+        <dc:creator>jrf</dc:creator>
+
+      <pubDate>Mon, 15 Jul 2019 01:20:56 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/47704/47704-wp_update_user.patch</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/47704/47704-wp_update_user.patch/1563153656738095</guid>
+      <description>&lt;p&gt;
+PHP 7.4/array-access: Fix wp_update_user() - fixes 2 errors
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>47704-WP_Customize_Nav_Menu_Item_.patch attached to Ticket #47704</title>
+      
+        <dc:creator>jrf</dc:creator>
+
+      <pubDate>Mon, 15 Jul 2019 01:20:07 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/47704/47704-WP_Customize_Nav_Menu_Item_.patch</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/47704/47704-WP_Customize_Nav_Menu_Item_.patch/1563153607990857</guid>
+      <description>&lt;p&gt;
+PHP 7.4/array-access: Fix WP_Customize_Nav_Menu_Item_Setting::filter_wp_get_nav_menu_items() - fixes 1 error
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>47704-add_theme_support.patch attached to Ticket #47704</title>
+      
+        <dc:creator>jrf</dc:creator>
+
+      <pubDate>Mon, 15 Jul 2019 01:19:15 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/47704/47704-add_theme_support.patch</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/47704/47704-add_theme_support.patch/1563153555783913</guid>
+      <description>&lt;p&gt;
+PHP 7.4/array-access: Fix add_theme_support() - fixes 15 errors
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>47704-WP_REST_Request-get_content.patch attached to Ticket #47704</title>
+      
+        <dc:creator>jrf</dc:creator>
+
+      <pubDate>Mon, 15 Jul 2019 01:18:07 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/47704/47704-WP_REST_Request-get_content.patch</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/47704/47704-WP_REST_Request-get_content.patch/1563153487774433</guid>
+      <description>&lt;p&gt;
+PHP 7.4/array-access: Fix WP_REST_Request::get_content_type() - fixes 810 errors, 2 failures and 32 unnecessarily skipped tests
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #47224 (Document the `show_split_view` argument for `wp_text_diff()`) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Mon, 15 Jul 2019 01:07:55 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/47224#comment:4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/47224#comment:4/1563152875277859</guid>
+      <description>&lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #47704 (PHP 7.4: Fix issues regarding accessing null/bool/etc as if they were ...) created</title>
+      
+        <dc:creator>jrf</dc:creator>
+
+      <pubDate>Mon, 15 Jul 2019 00:46:33 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/47704</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/47704/1563151593833152</guid>
+      <description>&lt;h2 id="ThechangeinPHP7.4"&gt;&lt;strong&gt;The change in PHP 7.4&lt;/strong&gt;&lt;/h2&gt;
+&lt;p&gt;
+PHP 7.4 introduces a "&lt;em&gt;Trying to access array offset on value of type ...&lt;/em&gt;" warning for accessing null/bool/int/float/resource (everything but array, string and object) as if it were an array.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Previously PHP already threw a warning when you would attempt to use an offset that is of an invalid type. Now PHP will also throw a warning when a container is of an invalid type.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+The undocumented, default behavior, of a silent NULL return, is still maintained.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Refs:&lt;br /&gt;
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;&lt;a class="ext-link" href="https://wiki.php.net/rfc/notice-for-non-valid-array-container"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://wiki.php.net/rfc/notice-for-non-valid-array-container&lt;/a&gt;
+&lt;/li&gt;&lt;li&gt;&lt;a class="ext-link" href="https://github.com/php/php-src/pull/4386"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://github.com/php/php-src/pull/4386&lt;/a&gt;
+&lt;/li&gt;&lt;/ul&gt;&lt;h2 id="Theproblem"&gt;&lt;strong&gt;The problem&lt;/strong&gt;&lt;/h2&gt;
+&lt;p&gt;
+While code which relies on this undocumented behaviour of PHP returning &lt;code&gt;null&lt;/code&gt; when attempting to array access a null/bool/int/float/resource, will continue to work as expected, each and every instance of this will now throw a PHP &lt;code&gt;E_WARNING&lt;/code&gt;.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+This is already causing the unit tests to fail when run against PHP 7.4 as can be seen in the latest Travis build against &lt;code&gt;master&lt;/code&gt;: &lt;a class="ext-link" href="https://travis-ci.com/WordPress/wordpress-develop/jobs/215901645"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://travis-ci.com/WordPress/wordpress-develop/jobs/215901645&lt;/a&gt;&lt;br /&gt;
+&lt;/p&gt;
+&lt;h2 id="Thesolution"&gt;&lt;strong&gt;The solution&lt;/strong&gt;&lt;/h2&gt;
+&lt;p&gt;
+When using array access on the outcome of functions with mixed return values, i.e. &lt;code&gt;array|false&lt;/code&gt; and the likes, more type checking needs to be done before attempting to access the return value as if it were an array to prevent this warning.&lt;br /&gt;
+&lt;/p&gt;
+&lt;h2 id="Patches"&gt;&lt;strong&gt;Patches&lt;/strong&gt;&lt;/h2&gt;
+&lt;p&gt;
+For those unit tests currently failing because of this issue, I will be attaching patches.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+This does not imply that all instances of this issue will be solved by merging these patches as not all code is 100% unit tested, so there may well be more problem code which has not surfaced yet.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+I expect more issues to be reported - both in Core as well as in plugins and themes - once PHP 7.4 is out and starting to be used for real.&lt;br /&gt;
+&lt;/p&gt;
+&lt;h2 id="Findingadditionalissues"&gt;&lt;strong&gt;Finding additional issues&lt;/strong&gt;&lt;/h2&gt;
+&lt;p&gt;
+At this time, AFAIK there are no (static) analysis tools available to find these issues.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+I can already tell you now that tools such as &lt;a class="ext-link" href="https://github.com/PHPCompatibility/PHPCompatibility"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;PHPCompatibility&lt;/a&gt; will not be able to detect these issues.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #47701 (unit test for wp_get_mime_types()) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Mon, 15 Jul 2019 00:13:23 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/47701#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/47701#comment:1/1563149603557984</guid>
+      <description>&lt;p&gt;
+Thanks for the patch! However, I'm not sure if there's any benefit in duplicate the entire list of of mime types in the test and maintaining it in two places...&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Perhaps something like &lt;a class="source" href="http://core.trac.wordpress.org/browser/tags/5.2.2/tests/phpunit/tests/functions.php#L981"&gt;test_wp_get_ext_types()&lt;/a&gt;&lt;a class="trac-rawlink" href="http://core.trac.wordpress.org/export/HEAD/tags/5.2.2/tests/phpunit/tests/functions.php#L981" title="Download"&gt;​&lt;/a&gt; that we have for &lt;code&gt;wp_get_ext_types()&lt;/code&gt; would be enough here?&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #45907 (Twenty Nineteen: Right-aligned, uncaptioned images inserted via the ...) updated</title>
+      
+        <dc:creator>nestor19</dc:creator>
+
+      <pubDate>Sun, 14 Jul 2019 22:06:04 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/45907#comment:6</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/45907#comment:6/1563141964514872</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Hi @kjellr thank you very very much for your comments, they were really helpful.&lt;br /&gt;
+I attached a possibly patch. As you said, I focused in the particular case of &lt;code&gt;alignright&lt;/code&gt; images inside a &lt;code&gt;p&lt;/code&gt; tag.&lt;br /&gt;
+I look forward to your comments.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>45907.diff attached to Ticket #45907</title>
+      
+        <dc:creator>nestor19</dc:creator>
+
+      <pubDate>Sun, 14 Jul 2019 21:56:48 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/45907/45907.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/45907/45907.diff/1563141408283130</guid>
+      <description>&lt;p&gt;
+Patch
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #20542 (Extend register_widget to allow passing params as second argument) closed</title>
+      
+        <dc:creator>audrasjb</dc:creator>
+
+      <pubDate>Sun, 14 Jul 2019 21:08:52 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/20542#comment:10</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/20542#comment:10/1563138532288601</guid>
+      <description>invalid: &lt;p&gt;
+Hi there,&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+I'm going to close this ticket per Weston's comment above (poster 3years ago, not reporter feedback).&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Feel free to reopen it if needed.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Cheers,&lt;br /&gt;
+Jb&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Ticket #41892 (Widgets Disappear from Admin 4.8.1) closed</title>
+      
+        <dc:creator>audrasjb</dc:creator>
+
+      <pubDate>Sun, 14 Jul 2019 20:59:47 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/41892#comment:4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/41892#comment:4/1563137987797547</guid>
+      <description>invalid: &lt;p&gt;
+Hi,&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+I'm closing this ticket as it looks like a plugin issue and because there were no reporter feedback in few months. Feel free to reopen it if needed.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Cheers,&lt;br /&gt;
+Jb&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Ticket #47703 (RSS Widget cannot download https URLs) closed</title>
+      
+        <dc:creator>audrasjb</dc:creator>
+
+      <pubDate>Sun, 14 Jul 2019 20:54:36 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/47703#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/47703#comment:2/1563137676910498</guid>
+      <description>worksforme: &lt;p&gt;
+Hi, welcome to WordPress Core Trac and thanks for opening a ticket,&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+I tested the issue and everything looks good on my side.&lt;br /&gt;
+It's working with both https and http in case http is redirecting to https (see screenshot above).&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Please note that you linked a WordPress.com documentation URL. On WordPress.org Trac, we are only working on the self hosted WordPress.org open-source project. Their documentation can be out of date.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Closing as &lt;code&gt;worksforme&lt;/code&gt;. Feel free to reopen the ticket if you think I missed some use case :-)&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Thanks,&lt;br /&gt;
+Jb&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Ticket #47702 (Text in wp-signup.php doesn't make sense) updated</title>
+      
+        <dc:creator>henry.wright</dc:creator>
+
+      <pubDate>Sun, 14 Jul 2019 20:52:18 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/47702#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/47702#comment:1/1563137538568186</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Attached is a patch. The part of the text that doesn't make sense has been removed&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>47702.diff attached to Ticket #47702</title>
+      
+        <dc:creator>henry.wright</dc:creator>
+
+      <pubDate>Sun, 14 Jul 2019 20:51:40 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/47702/47702.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/47702/47702.diff/1563137500247558</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Capture d’écran 2019-07-14 à 22.47.12.png attached to Ticket #47703</title>
+      
+        <dc:creator>audrasjb</dc:creator>
+
+      <pubDate>Sun, 14 Jul 2019 20:50:15 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/47703/Capture%20d%E2%80%99%C3%A9cran%202019-07-14%20%C3%A0%2022.47.12.png</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/47703/Capture%20d%E2%80%99%C3%A9cran%202019-07-14%20%C3%A0%2022.47.12.png/1563137415086075</guid>
+      <description>&lt;p&gt;
+Both are working fine
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Capture d’écran 2019-07-14 à 22.49.13.png attached to Ticket #47703</title>
+      
+        <dc:creator>audrasjb</dc:creator>
+
+      <pubDate>Sun, 14 Jul 2019 20:49:54 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/47703/Capture%20d%E2%80%99%C3%A9cran%202019-07-14%20%C3%A0%2022.49.13.png</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/47703/Capture%20d%E2%80%99%C3%A9cran%202019-07-14%20%C3%A0%2022.49.13.png/1563137394677664</guid>
+      <description>&lt;p&gt;
+Testing HTTP feed on the same URL which is redirecting to HTTPS
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Capture d’écran 2019-07-14 à 22.46.51.png attached to Ticket #47703</title>
+      
+        <dc:creator>audrasjb</dc:creator>
+
+      <pubDate>Sun, 14 Jul 2019 20:49:10 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/47703/Capture%20d%E2%80%99%C3%A9cran%202019-07-14%20%C3%A0%2022.46.51.png</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/47703/Capture%20d%E2%80%99%C3%A9cran%202019-07-14%20%C3%A0%2022.46.51.png/1563137350506884</guid>
+      <description>&lt;p&gt;
+Testing HTTPS feed URL
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #47703 (RSS Widget cannot download https URLs) updated</title>
+      
+        <dc:creator>audrasjb</dc:creator>
+
+      <pubDate>Sun, 14 Jul 2019 20:38:21 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/47703#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/47703#comment:1/1563136701964206</guid>
+      <description>&lt;i&gt;Status&lt;/i&gt;, &lt;i&gt;Owner&lt;/i&gt;, &lt;i&gt;Version&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #47703 (RSS Widget cannot download https URLs) created</title>
+      
+        <dc:creator>slyall</dc:creator>
+
+      <pubDate>Sun, 14 Jul 2019 20:06:33 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/47703</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/47703/1563134793650074</guid>
+      <description>&lt;p&gt;
+The RSS Widget downloads RSS feeds to display a summary on a wordpress site.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+It is currently limited to downloading http URLs. It will not work with https URLs or http URLs that redirect to https.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+As websites increasing become https-only the widget works with fewer of them.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+For example the 3 sample feeds (wordpress.com, nytimes.com and amazon.com) on the documentation page:&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+&lt;a class="ext-link" href="https://en.support.wordpress.com/widgets/rss-widget/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://en.support.wordpress.com/widgets/rss-widget/&lt;/a&gt;&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+now all redirect to https and do not work.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+The lack of https support is documented on the widgets page:&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+"Feed URLs that start with “&lt;a class="ext-link" href="https://"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://&lt;/a&gt;” will not work on our RSS Widget."&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+but this was less of a problem in the past.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #47702 (Text in wp-signup.php doesn't make sense) created</title>
+      
+        <dc:creator>henry.wright</dc:creator>
+
+      <pubDate>Sun, 14 Jul 2019 19:48:34 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/47702</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/47702/1563133714654296</guid>
+      <description>&lt;p&gt;
+In a network install go to "My Sites" and then "Add New". The text displayed doesn't make sense.&lt;br /&gt;
+&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;
+If you’re not going to use a great site domain, leave it for a new user. Now have at it!&lt;br /&gt;
+&lt;/p&gt;
+&lt;/blockquote&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #47699 (Remove redundant JSON polyfills for PHP native functionality) updated</title>
+      
+        <dc:creator>jrf</dc:creator>
+
+      <pubDate>Sun, 14 Jul 2019 19:41:54 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/47699#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/47699#comment:2/1563133314903139</guid>
+      <description>&lt;p&gt;
+@Clorith You bring up a valid consideration.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+However:&lt;br /&gt;
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+There is no installation needed to use these functions; they are part of the PHP core.&lt;br /&gt;
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+Source: &lt;a class="ext-link" href="https://www.php.net/manual/en/json.requirements.php"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://www.php.net/manual/en/json.requirements.php&lt;/a&gt;&lt;br /&gt;
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+As of PHP 5.2.0, the JSON extension is bundled and compiled into PHP by default. &lt;br /&gt;
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+Source: &lt;a class="ext-link" href="https://www.php.net/manual/en/json.installation.php"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://www.php.net/manual/en/json.installation.php&lt;/a&gt;&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+And while it looks like there &lt;em&gt;is&lt;/em&gt; &lt;a class="ext-link" href="https://github.com/php/php-src/blob/master/ext/json/config.m4"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;an undocumented option to `--disable-json`&lt;/a&gt;, any host offering PHP without the JSON extension is willfully breaking PHP and should be &lt;strong&gt;&lt;em&gt;burned at the stake&lt;/em&gt;&lt;/strong&gt; (she says in jest).&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+All comments regarding disabled JSON extensions in the PHP manual are at least five years old, no new comments to that effect have been added since, so I'm hoping this means that hosts have wizened up.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+I also don't think that numbers from 8 years ago when 5.3 was the latest &amp;amp; greatest PHP version can in any way compare with the current landscape.&lt;br /&gt;
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+Perhaps a golden middle ground could be taken in this instance, one where we deprecate the polyfills for 1-2 major core releases, where we implement a _doing_it_wrong when the polyfills that should be safe to remove are used. This should give ample warning in scenarios where they are used, while also covering our backs in the process?&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+In fact, I think a deprecation route such as this would be beneficial for any polyfill slated for removal.&lt;br /&gt;
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+While I agree, that &lt;em&gt;might&lt;/em&gt; be a valid route for something like the &lt;code&gt;Services_JSON&lt;/code&gt; class, for anything that is Core PHP, deprecation should be redundant.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+All the same, if people are seriously wary of this, I propose the following:&lt;br /&gt;
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;Add &lt;code&gt;_deprecated_xxx()&lt;/code&gt; calls in all relevant places in WP 5.3.
+&lt;/li&gt;&lt;li&gt;Remove work-arounds for differences across PHP versions in WP 5.3. Those already don't take the polyfills into account as they are based on PHP versions, so this should not cause any problems which don't exist already 🙃
+&lt;/li&gt;&lt;li&gt;Add the &lt;code&gt;JSON&lt;/code&gt; extension as a &lt;a href="https://core.trac.wordpress.org/browser/trunk/src/wp-admin/includes/class-wp-site-health.php#L759"&gt;required extension&lt;/a&gt; to the list in Site Health in WP 5.3. (&lt;em&gt;Why the heck isn't it listed there now ?!?!?'')
+&lt;/em&gt;&lt;/li&gt;&lt;li&gt;Execute the removal in WP 5.5 at the latest or by the end of the year in the same version as the next PHP version bump, whichever comes sooner.
+&lt;/li&gt;&lt;/ul&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #47571 (Expanding "Passed Tests" in Site Health unlocks the scroll lock on ...) updated</title>
+      
+        <dc:creator>superpoincare</dc:creator>
+
+      <pubDate>Sun, 14 Jul 2019 19:36:42 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/47571#comment:4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/47571#comment:4/1563133002328829</guid>
+      <description>&lt;p&gt;
+No need to register with Wordpress.com&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Just install and check. &lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+I will raise a ticket at Github. &lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #47571 (Expanding "Passed Tests" in Site Health unlocks the scroll lock on ...) updated</title>
+      
+        <dc:creator>superpoincare</dc:creator>
+
+      <pubDate>Sun, 14 Jul 2019 19:35:25 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/47571#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/47571#comment:3/1563132925088820</guid>
+      <description>&lt;p&gt;
+@Clorith &lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Good catch!&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Jetpack it is. I did a fresh installation and checked plugins one by one. &lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Can you confirm? &lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>47701.patch attached to Ticket #47701</title>
+      
+        <dc:creator>pbearne</dc:creator>
+
+      <pubDate>Sun, 14 Jul 2019 19:28:15 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/47701/47701.patch</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/47701/47701.patch/1563132495169877</guid>
+      <description>&lt;p&gt;
+new unit test
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #47701 (unit test for wp_get_mime_types()) created</title>
+      
+        <dc:creator>pbearne</dc:creator>
+
+      <pubDate>Sun, 14 Jul 2019 19:26:46 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/47701</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/47701/1563132406075565</guid>
+      <description>&lt;p&gt;
+just a unit test for a function in functions.php&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #47700 (My Sites text is confusing) updated</title>
+      
+        <dc:creator>tobifjellner</dc:creator>
+
+      <pubDate>Sun, 14 Jul 2019 19:16:43 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/47700#comment:9</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/47700#comment:9/1563131803547932</guid>
+      <description>&lt;i&gt;Component&lt;/i&gt;, &lt;i&gt;Version&lt;/i&gt;, &lt;i&gt;Type&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #27473 (Thickbox width and height parameters are ignored when using TB_iframe) updated</title>
+      
+        <dc:creator>MoreSympathy</dc:creator>
+
+      <pubDate>Sun, 14 Jul 2019 19:03:19 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/27473#comment:17</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/27473#comment:17/1563130999143882</guid>
+      <description>&lt;p&gt;
+Are there any updates on this? Still experiencing this in WP 5.2.2.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #47700 (My Sites text is confusing) updated</title>
+      
+        <dc:creator>henry.wright</dc:creator>
+
+      <pubDate>Sun, 14 Jul 2019 18:46:03 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/47700#comment:8</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/47700#comment:8/1563129963493156</guid>
+      <description>&lt;p&gt;
+Thanks for the info. I'll try to join the session on Tuesday&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #47700 (My Sites text is confusing) updated</title>
+      
+        <dc:creator>tobifjellner</dc:creator>
+
+      <pubDate>Sun, 14 Jul 2019 18:42:57 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/47700#comment:7</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/47700#comment:7/1563129777215755</guid>
+      <description>&lt;p&gt;
+Next step: If the time would be ok for you, try to show up at &lt;br /&gt;
+Multisite Weekly Chat Tuesday, July 16, 2019, 5:00 PM GMT in Slack channel "core-multisite" to support your suggestion. :)&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #47571 (Expanding "Passed Tests" in Site Health unlocks the scroll lock on ...) updated</title>
+      
+        <dc:creator>Clorith</dc:creator>
+
+      <pubDate>Sun, 14 Jul 2019 18:39:18 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/47571#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/47571#comment:2/1563129558770910</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Hiya,&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+I'm not able to replicate this behavior on a plain 5.2.2 install with just a default theme, could you check if this might be related to a plugin or theme conflict?&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #46925 (Site Health: Update 'Other Themes' to 'Inactive Themes' and give ...) updated</title>
+      
+        <dc:creator>Clorith</dc:creator>
+
+      <pubDate>Sun, 14 Jul 2019 18:15:50 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/46925#comment:13</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/46925#comment:13/1563128150274244</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+&lt;a class="attachment" href="http://core.trac.wordpress.org/attachment/ticket/46925/46925.6.diff" title="Attachment '46925.6.diff' in Ticket #46925"&gt;46925.6.diff&lt;/a&gt;&lt;a class="trac-rawlink" href="http://core.trac.wordpress.org/raw-attachment/ticket/46925/46925.6.diff" title="Download"&gt;​&lt;/a&gt; looks good, I like the approach, and the re-labeling of &lt;code&gt;Other themes&lt;/code&gt; to &lt;code&gt;Inactive themes&lt;/code&gt; makes much more sense from a reading perspective.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #47664 (Cite Health only 58% - using wp version 5.2.2) closed</title>
+      
+        <dc:creator>Clorith</dc:creator>
+
+      <pubDate>Sun, 14 Jul 2019 17:56:44 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/47664#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/47664#comment:2/1563127004207112</guid>
+      <description>invalid: &lt;p&gt;
+Hiya,&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+This seems like a plugin, your theme, or your hosting setup is blocking certain requests, I'd recommend opening a topic on our &lt;a class="ext-link" href="https://wordpress.org/support/forums"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;support forums&lt;/a&gt; so one of our volunteers there can have a look at this with you, but to get you started if possible please try again with any plugins disabled and a default theme (such as Twenty Nineteen) enabled.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+I'm going to close this ticket (with the unfortunately named &lt;code&gt;invalid&lt;/code&gt; keyword, it's what our bugtracker uses), as it's more a support request, but if it's discovered to be in part relating to a bug, we can re-open it at that time.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Screenshot 2019-07-14 at 18.53.41.png attached to Ticket #47700</title>
+      
+        <dc:creator>henry.wright</dc:creator>
+
+      <pubDate>Sun, 14 Jul 2019 17:55:07 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/47700/Screenshot%202019-07-14%20at%2018.53.41.png</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/47700/Screenshot%202019-07-14%20at%2018.53.41.png/1563126907117253</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #47700 (My Sites text is confusing) updated</title>
+      
+        <dc:creator>henry.wright</dc:creator>
+
+      <pubDate>Sun, 14 Jul 2019 17:54:32 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/47700#comment:6</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/47700#comment:6/1563126872246358</guid>
+      <description>&lt;p&gt;
+See attached image for how that would look&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #47700 (My Sites text is confusing) updated</title>
+      
+        <dc:creator>henry.wright</dc:creator>
+
+      <pubDate>Sun, 14 Jul 2019 17:48:32 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/47700#comment:5</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/47700#comment:5/1563126512169833</guid>
+      <description>&lt;p&gt;
+That would work&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #47700 (My Sites text is confusing) updated</title>
+      
+        <dc:creator>tobifjellner</dc:creator>
+
+      <pubDate>Sun, 14 Jul 2019 17:44:38 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/47700#comment:4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/47700#comment:4/1563126278419686</guid>
+      <description>&lt;p&gt;
+... or "My site list"&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #47700 (My Sites text is confusing) updated</title>
+      
+        <dc:creator>henry.wright</dc:creator>
+
+      <pubDate>Sun, 14 Jul 2019 17:42:22 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/47700#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/47700#comment:3/1563126142226805</guid>
+      <description>&lt;p&gt;
+Perhaps something like:&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+My Network&lt;br /&gt;
+My Network of Sites&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #47699 (Remove redundant JSON polyfills for PHP native functionality) updated</title>
+      
+        <dc:creator>Clorith</dc:creator>
+
+      <pubDate>Sun, 14 Jul 2019 17:41:12 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/47699#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/47699#comment:1/1563126072450238</guid>
+      <description>&lt;p&gt;
+I think we may need data to back this, as a discussion in this took place in March in the #core-php channel, and although it's compiled into PHP by default, many choose to define extensions manually when building PHP, and as such may not be including it.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+@SergeyBiryukov brought up the point that hosts did (and some still might) compile without the json extension. Given how important json is in the majority of interactions on the internet today, it would be beneficial to have some metric behind removing various polyfills, jsut so we don't "breaking the internet" by removing one (at least that was the outcome of the discussions back then).&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+I see we've previously reached out to VaultPress for these kind of metrics, is this a viable approach still, or are there better ways to get anonymous data of that variety (I know there's been talk of it being useful in other scenarios, but we don't have anything like this our selves at times time last I heard).&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Related: &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/18015" title="#18015: defect (bug): Restore compat Services_JSON (class-json.php), json_encode, json_decode (closed: fixed)"&gt;#18015&lt;/a&gt;, &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/19524" title="#19524: defect (bug): Script Loader dies in 3.3 on no-JSON PHP (closed: fixed)"&gt;#19524&lt;/a&gt; (the removal of the polyfill when the minimum PHP requirement was bumped to 5.2 for WordPress 3.2)&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+The percentages are likely different now (I would hope), but it would be nice to have confirmation on that if at all possible.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+---&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Perhaps a golden middle ground could be taken in this instance, one where we deprecate the polyfills for 1-2 major core releases, where we implement a &lt;code&gt;_doing_it_wrong&lt;/code&gt; when the polyfills that should be safe to remove are used. This should give ample warning in scenarios where they are used, while also covering our backs in the process?&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+In fact, I think a deprecation route such as this would be beneficial for any polyfill slated for removal.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #47700 (My Sites text is confusing) updated</title>
+      
+        <dc:creator>henry.wright</dc:creator>
+
+      <pubDate>Sun, 14 Jul 2019 17:33:20 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/47700#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/47700#comment:2/1563125600906663</guid>
+      <description>&lt;p&gt;
+That's exactly the string I'm referring to. I can't edit my post above to say I am referring to a network install.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+"Sites I have created and sites I am a member of" does the job but it is far too long.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #47700 (My Sites text is confusing) updated</title>
+      
+        <dc:creator>tobifjellner</dc:creator>
+
+      <pubDate>Sun, 14 Jul 2019 17:20:18 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/47700#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/47700#comment:1/1563124818529470</guid>
+      <description>&lt;p&gt;
+Are you referring to &lt;a class="ext-link" href="https://build.trac.wordpress.org/browser/trunk/wp-includes/admin-bar.php?marks=471#L471"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://build.trac.wordpress.org/browser/trunk/wp-includes/admin-bar.php?marks=471#L471&lt;/a&gt; ?&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+It lists all sites where you're a member in a multisite network.&lt;br /&gt;
+Do you have a better suggestion? It needs to be a short string, since the space in the adminbar is quite limited.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #47700 (My Sites text is confusing) created</title>
+      
+        <dc:creator>henry.wright</dc:creator>
+
+      <pubDate>Sun, 14 Jul 2019 17:12:00 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/47700</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/47700/1563124320005439</guid>
+      <description>&lt;p&gt;
+To me the "My Sites" wording indicates I own the lists of sites shown. This isn't the case. I just need to be able to "read" a site for it to be shown in the "My Sites" list&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #47698 (Remove redundant polyfills for PHP native functionality (excl JSON)) updated</title>
+      
+        <dc:creator>jrf</dc:creator>
+
+      <pubDate>Sun, 14 Jul 2019 17:08:51 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/47698#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/47698#comment:2/1563124131987441</guid>
+      <description>&lt;p&gt;
+Ticket for the JSON polyfill removal: &lt;a class="reviewing ticket" href="http://core.trac.wordpress.org/ticket/47699" title="#47699: task (blessed): Remove redundant JSON polyfills for PHP native functionality (reviewing)"&gt;#47699&lt;/a&gt;&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>47699-remove-json-polyfills-and-work-arounds.patch attached to Ticket #47699</title>
+      
+        <dc:creator>jrf</dc:creator>
+
+      <pubDate>Sun, 14 Jul 2019 17:08:08 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/47699/47699-remove-json-polyfills-and-work-arounds.patch</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/47699/47699-remove-json-polyfills-and-work-arounds.patch/1563124088812352</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #47699 (Remove redundant JSON polyfills for PHP native functionality) created</title>
+      
+        <dc:creator>jrf</dc:creator>
+
+      <pubDate>Sun, 14 Jul 2019 17:07:16 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/47699</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/47699/1563124036109165</guid>
+      <description>&lt;p&gt;
+Now the new minimum PHP requirement for WordPress is PHP 5.6.20, the JSON functionality related polyfills for the native PHP functions and related work-arounds can be removed.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+I will add a patch for this to this ticket.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Let's talk through it all:&lt;br /&gt;
+&lt;/p&gt;
+&lt;h2 id="Currentimplementation"&gt;&lt;strong&gt;Current implementation&lt;/strong&gt;&lt;/h2&gt;
+&lt;p&gt;
+WP polyfills the following PHP native JSON functionality:&lt;br /&gt;
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;The function &lt;a class="ext-link" href="https://www.php.net/manual/en/function.json-encode.php"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;`json_encode()`&lt;/a&gt; (PHP 5.2.0+)
+&lt;/li&gt;&lt;li&gt;The function &lt;a class="ext-link" href="https://www.php.net/manual/en/function.json-decode.php"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;`json_decode()`&lt;/a&gt; (PHP 5.2.0+)
+&lt;/li&gt;&lt;li&gt;The function &lt;a class="ext-link" href="https://www.php.net/manual/en/function.json-last-error-msg.php"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;`json_last_error_msg()`&lt;/a&gt; (PHP 5.5.0+)
+&lt;/li&gt;&lt;li&gt;The constant &lt;a class="ext-link" href="https://www.php.net/manual/en/json.constants.php#constant.json-pretty-print"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;`JSON_PRETTY_PRINT`&lt;/a&gt; (PHP 5.4.0+)
+&lt;/li&gt;&lt;li&gt;The constant &lt;a class="ext-link" href="https://www.php.net/manual/en/json.constants.php#constant.json-error-none"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;`JSON_ERROR_NONE`&lt;/a&gt; (as part of &lt;code&gt;json_last_error_msg()&lt;/code&gt;) (PHP 5.3.0+)
+&lt;/li&gt;&lt;li&gt;The interface &lt;a class="ext-link" href="https://www.php.net/manual/en/class.jsonserializable.php"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;`JsonSerializable`&lt;/a&gt; (PHP 5.4.0+)
+&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;
+In addition to this, it:&lt;br /&gt;
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;adds the &lt;code&gt;_json_decode_object_helper()&lt;/code&gt;function, the &lt;code&gt;WP_JSON_SERIALIZE_COMPATIBLE&lt;/code&gt; constant and the &lt;code&gt;$wp_json&lt;/code&gt; global variable in the &lt;code&gt;wp-includes/compat.php&lt;/code&gt; file.
+&lt;/li&gt;&lt;li&gt;contains various work-arounds for differences between PHP versions in the &lt;code&gt;wp_json_encode()&lt;/code&gt; function in the &lt;code&gt;wp-includes/functions.php&lt;/code&gt; file, including the &lt;code&gt;_wp_json_prepare_data()&lt;/code&gt; function which is 100% work-around code.
+&lt;/li&gt;&lt;li&gt;adds various constants, a &lt;code&gt;Services_JSON&lt;/code&gt; and a &lt;code&gt;Services_JSON_Error&lt;/code&gt; class in the &lt;code&gt;wp-includes/class-json.php&lt;/code&gt; file
+&lt;/li&gt;&lt;/ul&gt;&lt;h2 id="Whyalloftheabovecanbesafelydeprecatedremoved"&gt;&lt;strong&gt;Why all of the above can be safely deprecated/removed&lt;/strong&gt;&lt;/h2&gt;
+&lt;h3 id="Step1"&gt;&lt;strong&gt;Step 1&lt;/strong&gt;&lt;/h3&gt;
+&lt;p&gt;
+As of PHP 5.2.0, the &lt;a class="ext-link" href="https://www.php.net/manual/en/json.installation.php"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;JSON extension is bundled and compiled with PHP by default&lt;/a&gt; and can not be disabled.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+This means in effect that the following code has not been used since WP 3.3.0 when the minimum PHP requirement went up to PHP 5.2.6:&lt;br /&gt;
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;&lt;code&gt;json_encode()&lt;/code&gt; polyfill, including the dummy copy in &lt;code&gt;wp-admin/includes/noop.php&lt;/code&gt;
+&lt;/li&gt;&lt;li&gt;&lt;code&gt;json_decode()&lt;/code&gt; polyfill
+&lt;/li&gt;&lt;li&gt;&lt;code&gt;_json_decode_object_helper()&lt;/code&gt; function which would only be declared if the PHP native &lt;code&gt;json_decode()&lt;/code&gt; function didn't exist and was used exclusively by that polyfill.
+&lt;/li&gt;&lt;li&gt;&lt;code&gt;$wp_json&lt;/code&gt; variable as it would only be assigned a value if the PHP native &lt;code&gt;json_encode()&lt;/code&gt; and &lt;code&gt;json_decode()&lt;/code&gt; functions didn't exist.
+&lt;/li&gt;&lt;li&gt;All of the code in the &lt;code&gt;wp-includes/class-json.php&lt;/code&gt; file.
+&lt;/li&gt;&lt;li&gt;The associated &lt;code&gt;test_json_encode_decode()&lt;/code&gt; unit test.
+&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;
+With the above in mind, there can be no discussion about removing the first two polyfills - &lt;code&gt;json_encode()&lt;/code&gt; and &lt;code&gt;json_decode()&lt;/code&gt; -.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+As for removing the &lt;code&gt;_json_decode_object_helper()&lt;/code&gt;, &lt;code&gt;$wp_json&lt;/code&gt; and the code in the &lt;code&gt;wp-includes/class-json.php&lt;/code&gt; file:&lt;br /&gt;
+As those were only available conditionally, any userland code referring to this function/variable/these classes/constants, would already have to have been surrounded by appropriate &lt;code&gt;function_exists()&lt;/code&gt;, &lt;code&gt;class_exists()&lt;/code&gt;, &lt;code&gt;defined()&lt;/code&gt; or an &lt;code&gt;isset()&lt;/code&gt; calls.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+So, having said that, IMO it is safe to remove all of this.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+I'm making one caveat, namely that while the code in the &lt;code&gt;wp-includes/class-json.php&lt;/code&gt; file can be safely removed, the file itself should probably remain (for now) and should generate a &lt;em&gt;deprecated file&lt;/em&gt; notice just in case a userland plugin/theme would require it directly, though if they do, they've already had eight years to remove that file-include and they will run into trouble now that the code in the file has been removed, but in my estimation, it would be exceedingly rare, most likely non-existent, for any plugin/theme to include this file directly.&lt;br /&gt;
+&lt;/p&gt;
+&lt;h3 id="Step2"&gt;&lt;strong&gt;Step 2&lt;/strong&gt;&lt;/h3&gt;
+&lt;p&gt;
+Now, as the minimum PHP requirement for WP is now 5.6.20, we can also safely remove:&lt;br /&gt;
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;the &lt;code&gt;json_last_error_msg()&lt;/code&gt; polyfill
+&lt;/li&gt;&lt;li&gt;the &lt;code&gt;JSON_PRETTY_PRINT&lt;/code&gt; constant polyfill
+&lt;/li&gt;&lt;li&gt;the &lt;code&gt;JSON_ERROR_NONE&lt;/code&gt; constant polyfill
+&lt;/li&gt;&lt;li&gt;the &lt;code&gt;JsonSerializable&lt;/code&gt; polyfill
+&lt;/li&gt;&lt;li&gt;any and all work-arounds for differences between PHP versions regarding &lt;code&gt;json_encode()&lt;/code&gt;
+&lt;/li&gt;&lt;li&gt;any and all work-arounds for the missing polyfill for &lt;code&gt;json_last_error()&lt;/code&gt; - see &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/27799" title="#27799: defect (bug): json_last_error is not provided by JSON compatibility layer (closed: wontfix)"&gt;#27799&lt;/a&gt;
+&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;
+This includes deprecating the &lt;code&gt;_wp_json_prepare_data()&lt;/code&gt; function which was only needed for PHP 5.2-5.3.&lt;br /&gt;
+&lt;/p&gt;
+&lt;h2 id="Unittests"&gt;&lt;strong&gt;Unit tests&lt;/strong&gt;&lt;/h2&gt;
+&lt;p&gt;
+As these functions are used throughout core, removing them can be considered sufficiently unit tested when all the WP Core unit tests pass, and they still do: &lt;a class="ext-link" href="https://travis-ci.com/WordPress/wordpress-develop/builds/119072132"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://travis-ci.com/WordPress/wordpress-develop/builds/119072132&lt;/a&gt;&lt;br /&gt;
+&lt;/p&gt;
+&lt;h2 id="Other"&gt;&lt;strong&gt;Other&lt;/strong&gt;&lt;/h2&gt;
+&lt;ul&gt;&lt;li&gt;I've tried to be comprehensive with this ticket and have searched the codebase for any and all relevant keywords and reviewed all the related code. All the same, as there were quite a lot of different bits and pieces involved in this, I will not guarantee that nothing remains, though I'm fairly confident about the completeness of this patch.
+&lt;/li&gt;&lt;li&gt;The patch includes removing the &lt;code&gt;wp-includes/class-json.php&lt;/code&gt; from the PHPCS exclusions list.
+&lt;/li&gt;&lt;/ul&gt;&lt;h2 id="Relatedtickets"&gt;&lt;strong&gt;Related tickets&lt;/strong&gt;&lt;/h2&gt;
+&lt;ul&gt;&lt;li&gt;This ticket is related to &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/47698" title="#47698: enhancement: Remove redundant polyfills for PHP native functionality (excl JSON) (closed: fixed)"&gt;#47698&lt;/a&gt; which addresses the other polyfills which can be removed.
+&lt;/li&gt;&lt;li&gt;This ticket is related to &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/27799" title="#27799: defect (bug): json_last_error is not provided by JSON compatibility layer (closed: wontfix)"&gt;#27799&lt;/a&gt;, &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/30139" title="#30139: defect (bug): Allow JSON_PRETTY_PRINT to be used without notice on PHP &amp;lt; 5.4 (closed: fixed)"&gt;#30139&lt;/a&gt;.
+&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;
+/cc @pento&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #44975 (REST API support switching draft to unscheduled) updated</title>
+      
+        <dc:creator>aldavigdis</dc:creator>
+
+      <pubDate>Sun, 14 Jul 2019 16:25:29 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44975#comment:13</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44975#comment:13/1563121529539710</guid>
+      <description>&lt;p&gt;
+There is a discussion about the same topic for Gutenberg over at &lt;a class="ext-link" href="https://github.com/WordPress/gutenberg/issues/12048"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://github.com/WordPress/gutenberg/issues/12048&lt;/a&gt;. Perhaps it would be a good idea to coordinate on this and prioritise?&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #47695 (i18n/multisite: Contextualize strings in theme update screen) closed</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Sun, 14 Jul 2019 14:46:11 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/47695#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/47695#comment:3/1563115571301362</guid>
+      <description>fixed: &lt;p&gt;
+In &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/45634" title="I18N: Add context for theme filter strings in ..."&gt;45634&lt;/a&gt;:&lt;br /&gt;
+&lt;/p&gt;
+&lt;div class="message"&gt;&lt;p&gt;
+I18N: Add context for theme filter strings in &lt;code&gt;WP_MS_Themes_List_Table::get_views()&lt;/code&gt;.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Props audrasjb.&lt;br /&gt;
+Fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/47695" title="#47695: enhancement: i18n/multisite: Contextualize strings in theme update screen (closed: fixed)"&gt;#47695&lt;/a&gt;.&lt;br /&gt;
+&lt;/p&gt;
+&lt;/div&gt;</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Changeset [45634]: I18N: Add context for theme filter strings in ...</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Sun, 14 Jul 2019 14:46:10 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/45634</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/45634/1563115570236136</guid>
+      <description>&lt;p&gt;
+I18N: Add context for theme filter strings in &lt;code&gt;WP_MS_Themes_List_Table::get_views()&lt;/code&gt;.
+&lt;/p&gt;
+&lt;p&gt;
+Props audrasjb.
+Fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/47695" title="#47695: enhancement: i18n/multisite: Contextualize strings in theme update screen (closed: fixed)"&gt;#47695&lt;/a&gt;.
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Ticket #47074 (Commented out code in upgrade.php) closed</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Sun, 14 Jul 2019 14:38:45 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/47074#comment:5</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/47074#comment:5/1563115125068849</guid>
+      <description>fixed: &lt;p&gt;
+In &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/45633" title="Upgrade/Install: Remove debugging artifacts from ..."&gt;45633&lt;/a&gt;:&lt;br /&gt;
+&lt;/p&gt;
+&lt;div class="message"&gt;&lt;p&gt;
+Upgrade/Install: Remove debugging artifacts from &lt;code&gt;wp-admin/upgrade.php&lt;/code&gt; added in &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/1229" title="Upgrades should run faster now.
+"&gt;[1229]&lt;/a&gt;.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Props rahulvaza.&lt;br /&gt;
+Fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/47074" title="#47074: defect (bug): Commented out code in upgrade.php (closed: fixed)"&gt;#47074&lt;/a&gt;.&lt;br /&gt;
+&lt;/p&gt;
+&lt;/div&gt;</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Changeset [45633]: Upgrade/Install: Remove debugging artifacts from ...</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Sun, 14 Jul 2019 14:38:43 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/45633</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/45633/1563115123978781</guid>
+      <description>&lt;p&gt;
+Upgrade/Install: Remove debugging artifacts from &lt;code&gt;wp-admin/upgrade.php&lt;/code&gt; added in &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/1229" title="Upgrades should run faster now.
+"&gt;[1229]&lt;/a&gt;.
+&lt;/p&gt;
+&lt;p&gt;
+Props rahulvaza.
+Fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/47074" title="#47074: defect (bug): Commented out code in upgrade.php (closed: fixed)"&gt;#47074&lt;/a&gt;.
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Ticket #40030 (Pass User and Comment Objects to rest_get_avatar_urls) closed</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Sun, 14 Jul 2019 14:34:03 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/40030#comment:13</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/40030#comment:13/1563114843473328</guid>
+      <description>fixed: &lt;p&gt;
+In &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/45632" title="REST API: Allow `rest_get_avatar_urls()` to accept full user, post, or ..."&gt;45632&lt;/a&gt;:&lt;br /&gt;
+&lt;/p&gt;
+&lt;div class="message"&gt;&lt;p&gt;
+REST API: Allow &lt;code&gt;rest_get_avatar_urls()&lt;/code&gt; to accept full user, post, or comment objects, rather than just an email address, to provide better flexibility for alternative avatar data.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Since the function uses &lt;code&gt;get_avatar_url()&lt;/code&gt; internally, which already supports it, this should not have any backward compatibility concerns.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Props donmhico, dshanske, pputzer, joehoyle, TimothyBlynJacobs.&lt;br /&gt;
+Fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/40030" title="#40030: defect (bug): Pass User and Comment Objects to rest_get_avatar_urls (closed: fixed)"&gt;#40030&lt;/a&gt;.&lt;br /&gt;
+&lt;/p&gt;
+&lt;/div&gt;</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Changeset [45632]: REST API: Allow `rest_get_avatar_urls()` to accept full user, post, or ...</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Sun, 14 Jul 2019 14:34:02 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/45632</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/45632/1563114842295329</guid>
+      <description>&lt;p&gt;
+REST API: Allow &lt;code&gt;rest_get_avatar_urls()&lt;/code&gt; to accept full user, post, or comment objects, rather than just an email address, to provide better flexibility for alternative avatar data.
+&lt;/p&gt;
+&lt;p&gt;
+Since the function uses &lt;code&gt;get_avatar_url()&lt;/code&gt; internally, which already supports it, this should not have any backward compatibility concerns.
+&lt;/p&gt;
+&lt;p&gt;
+Props donmhico, dshanske, pputzer, joehoyle, TimothyBlynJacobs.
+Fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/40030" title="#40030: defect (bug): Pass User and Comment Objects to rest_get_avatar_urls (closed: fixed)"&gt;#40030&lt;/a&gt;.
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Ticket #40030 (Pass User and Comment Objects to rest_get_avatar_urls) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Sun, 14 Jul 2019 14:24:18 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/40030#comment:12</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/40030#comment:12/1563114258177088</guid>
+      <description>&lt;p&gt;
+Replying to &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/40030#comment:10" title="Comment 10"&gt;pputzer&lt;/a&gt;:&lt;br /&gt;
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+@donmhico's patch looks good to me, except that I think the parameter object should not be referred to as "the Gravatar". I know that's the wording from &lt;code&gt;get_avatar_url()&lt;/code&gt;, but I think "The object to retrieve an avatar URL for." would be better to make it clear what the parameter actually is.&lt;br /&gt;
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+Given that the &lt;code&gt;$id_or_email&lt;/code&gt; parameter is described as "The Gravatar to retrieve a URL for"  in &lt;br /&gt;
+&lt;code&gt;get_avatar_url()&lt;/code&gt;, &lt;code&gt;get_avatar_data()&lt;/code&gt;, &lt;code&gt;get_avatar()&lt;/code&gt;, and their respective filters, I'd rather do the same for consistency here.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+We could open a new ticket to change that description globally if necessary.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #40030 (Pass User and Comment Objects to rest_get_avatar_urls) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Sun, 14 Jul 2019 14:11:32 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/40030#comment:11</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/40030#comment:11/1563113492967751</guid>
+      <description>&lt;i&gt;Status&lt;/i&gt;, &lt;i&gt;Owner&lt;/i&gt;, &lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #40030 (Pass User and Comment Objects to rest_get_avatar_urls) updated</title>
+      
+        <dc:creator>pputzer</dc:creator>
+
+      <pubDate>Sun, 14 Jul 2019 14:06:48 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/40030#comment:10</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/40030#comment:10/1563113208645388</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+@donmhico's patch looks good to me, except that I think the parameter object should not be referred to as "the Gravatar". I know that's the wording from &lt;code&gt;get_avatar_url()&lt;/code&gt;, but I think "The object to retrieve an avatar URL for." would be better to make it clear what the parameter actually is. (The suggested wording would also not reinforce the erroneous conception that "avatar" and "Gravatar" are interchangeable.)&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>pass_object_to_rest_get_avatar_urls.40030.diff attached to Ticket #40030</title>
+      
+        <dc:creator>donmhico</dc:creator>
+
+      <pubDate>Sun, 14 Jul 2019 13:50:27 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/40030/pass_object_to_rest_get_avatar_urls.40030.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/40030/pass_object_to_rest_get_avatar_urls.40030.diff/1563112227214572</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #47697 (php &amp; wordpress login plugin) closed</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Sun, 14 Jul 2019 13:40:22 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/47697#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/47697#comment:2/1563111622298278</guid>
+      <description>invalid: &lt;p&gt;
+Hi @zeinabde, welcome to WordPress Trac! Thanks for the ticket.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+I'm sorry to hear you are having issues with WordPress. Please note that this Trac is used for enhancements and bug reporting for the WordPress core software, not for individual support questions.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Please try the support forums to get help with your site: &lt;a class="ext-link" href="https://wordpress.org/support/forums/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://wordpress.org/support/forums/&lt;/a&gt;.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Ticket #46630 (Remove SPL-Autoload polyfill) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Sun, 14 Jul 2019 13:38:08 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/46630#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/46630#comment:2/1563111488252987</guid>
+      <description>&lt;p&gt;
+Related: &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/47698" title="#47698: enhancement: Remove redundant polyfills for PHP native functionality (excl JSON) (closed: fixed)"&gt;#47698&lt;/a&gt;&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #47698 (Remove redundant polyfills for PHP native functionality (excl JSON)) updated</title>
+      
+        <dc:creator>jrf</dc:creator>
+
+      <pubDate>Sun, 14 Jul 2019 13:32:10 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/47698#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/47698#comment:1/1563111130543614</guid>
+      <description>&lt;i&gt;Description&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>47698-patch-3-enhance-documentation-hash-polyfills.patch attached to Ticket #47698</title>
+      
+        <dc:creator>jrf</dc:creator>
+
+      <pubDate>Sun, 14 Jul 2019 12:39:18 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/47698/47698-patch-3-enhance-documentation-hash-polyfills.patch</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/47698/47698-patch-3-enhance-documentation-hash-polyfills.patch/1563107958150189</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>47698-patch-2-remove-spl-autoload-polyfill.patch attached to Ticket #47698</title>
+      
+        <dc:creator>jrf</dc:creator>
+
+      <pubDate>Sun, 14 Jul 2019 12:39:05 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/47698/47698-patch-2-remove-spl-autoload-polyfill.patch</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/47698/47698-patch-2-remove-spl-autoload-polyfill.patch/1563107945558878</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>47698-patch-1-remove-array_replace_recursive-polyfill.patch attached to Ticket #47698</title>
+      
+        <dc:creator>jrf</dc:creator>
+
+      <pubDate>Sun, 14 Jul 2019 12:38:56 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/47698/47698-patch-1-remove-array_replace_recursive-polyfill.patch</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/47698/47698-patch-1-remove-array_replace_recursive-polyfill.patch/1563107936665575</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #47698 (Remove redundant polyfills for PHP native functionality (excl JSON)) created</title>
+      
+        <dc:creator>jrf</dc:creator>
+
+      <pubDate>Sun, 14 Jul 2019 12:37:03 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/47698</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/47698/1563107823252269</guid>
+      <description>&lt;p&gt;
+Now the new minimum PHP requirement for WordPress is PHP 5.6.20, a number of the polyfills WordPress provides for PHP functionality can be removed.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+I will be attaching the relevant patches for this to this ticket.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Let's talk through them:&lt;br /&gt;
+&lt;/p&gt;
+&lt;h2 id="array_replace_recursive"&gt;&lt;strong&gt;&lt;code&gt;array_replace_recursive()&lt;/code&gt;&lt;/strong&gt;&lt;/h2&gt;
+&lt;p&gt;
+The &lt;a class="ext-link" href="https://www.php.net/manual/en/function.array-replace-recursive.php"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;`array_replace_recursive()`&lt;/a&gt; function was introduced in PHP 5.3.0.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+The function has had no significant changes since then which would need to be accounted for.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+The &lt;code&gt;Array&lt;/code&gt; extension is part of &lt;a class="ext-link" href="https://www.php.net/manual/en/array.installation.php"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;PHP Core and cannot be disabled&lt;/a&gt;.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+&lt;strong&gt;Conclusion&lt;/strong&gt;: this polyfill can now be safely removed.&lt;br /&gt;
+&lt;/p&gt;
+&lt;h2 id="SPLautoload"&gt;&lt;strong&gt;SPL autoload&lt;/strong&gt;&lt;/h2&gt;
+&lt;p&gt;
+WP polyfills the following PHP native SPL extension functionality:&lt;br /&gt;
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;The function &lt;a class="ext-link" href="https://www.php.net/manual/en/function.spl-autoload-register.php"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;`spl_autoload_register()`&lt;/a&gt; (PHP 5.1.0+)
+&lt;/li&gt;&lt;li&gt;The function &lt;a class="ext-link" href="https://www.php.net/manual/en/function.spl-autoload-unregister.php"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;`spl_autoload_unregister(()`&lt;/a&gt; (PHP 5.1.0+)
+&lt;/li&gt;&lt;li&gt;The function &lt;a class="ext-link" href="https://www.php.net/manual/en/function.spl-autoload-functions.php"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;`spl_autoload_functions()`&lt;/a&gt; (PHP 5.1.0+)
+&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;
+These function have had no significant changes since then which would need to be accounted for.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+&lt;a class="ext-link" href="https://www.php.net/manual/en/spl.installation.php"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;Prior to PHP 5.3.0, the SPL extension could be disabled&lt;/a&gt; via a compilation flag - and sometimes was -. As of PHP 5.3.0, the extension can no longer be disabled.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+&lt;strong&gt;Conclusion&lt;/strong&gt;: these polyfills can now be safely removed.&lt;br /&gt;
+&lt;/p&gt;
+&lt;h3 id="Implementation"&gt;&lt;strong&gt;Implementation&lt;/strong&gt;&lt;/h3&gt;
+&lt;p&gt;
+This polyfill uses a separate file &lt;code&gt;wp-includes/spl-autoload-compat.php&lt;/code&gt;.&lt;br /&gt;
+While I suspect this to be exceedingly rare in practice, plugins/themes &lt;em&gt;could&lt;/em&gt; load this file directly.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+So, there is a choice to make here:&lt;br /&gt;
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;Remove the file completely.
+&lt;/li&gt;&lt;li&gt;Remove the code and deprecate the file.
+&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;
+In line with WP's general cautiousness in these cases, I have opted for the second choice and have removed the code from the file, replacing it with a call to &lt;code&gt;_deprecated_file()&lt;/code&gt; to alert any plugins/themes which would still try to include the file directly.&lt;br /&gt;
+&lt;/p&gt;
+&lt;h3 id="Otherconsiderations"&gt;&lt;strong&gt;Other considerations&lt;/strong&gt;&lt;/h3&gt;
+&lt;p&gt;
+The removed code includes a WP specific global variable &lt;code&gt;$_wp_spl_autoloaders&lt;/code&gt; which was conditionally declared when the polyfill was active.&lt;br /&gt;
+This global variable will no longer be available.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+While I don't expect any plugins/themes access this variable directly, removing this variable could be considered a BC-break.&lt;br /&gt;
+All the same, as the variable would only be available on PHP &amp;lt; 5.3 when the SPL extension was disabled, one can expect that any userland code which &lt;em&gt;would&lt;/em&gt; access this variable directly, would be accompanied by a call to &lt;code&gt;isset()&lt;/code&gt;, so removing this variable should - in practice - not cause any problems.&lt;br /&gt;
+&lt;/p&gt;
+&lt;h2 id="Hash"&gt;&lt;strong&gt;Hash&lt;/strong&gt;&lt;/h2&gt;
+&lt;p&gt;
+WP polyfills the following PHP native Hash extension functionality:&lt;br /&gt;
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;The function &lt;a class="ext-link" href="https://www.php.net/manual/en/function.hash-hmac.php"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;`hash_hmac()`&lt;/a&gt; (PHP 5.1.2+)
+&lt;/li&gt;&lt;li&gt;The function &lt;a class="ext-link" href="https://www.php.net/manual/en/function.hash-equals.php"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;`hash_equals()`&lt;/a&gt; (PHP 5.6.0+)
+&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;
+These functions have had no significant changes since then which would need to be accounted for.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+While one may think those can now be safely removed, this is not the case.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+While the Hash extension has been bundled and compiled with PHP core since PHP 5.1.2, until PHP 7.4, the Hash extension could still be &lt;a class="ext-link" href="https://www.php.net/manual/en/hash.installation.php"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;disabled at compile time using the `--disable-hash` flag&lt;/a&gt;.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+&lt;strong&gt;Conclusion&lt;/strong&gt;: Based on the above, these two functions should &lt;em&gt;&lt;strong&gt;not&lt;/strong&gt;&lt;/em&gt; be removed at this time.&lt;br /&gt;
+&lt;/p&gt;
+&lt;h3 id="Implementation1"&gt;&lt;strong&gt;Implementation&lt;/strong&gt;&lt;/h3&gt;
+&lt;p&gt;
+I have added some additional documentation to these functions, making it explicit when will be the right time to remove them.&lt;br /&gt;
+&lt;/p&gt;
+&lt;h2 id="Unittests"&gt;&lt;strong&gt;Unit tests&lt;/strong&gt;&lt;/h2&gt;
+&lt;p&gt;
+As these functions are used throughout core, removing them can be considered sufficiently unit tested when all the WP Core unit tests pass, and they still do: &lt;a class="ext-link" href="https://travis-ci.com/WordPress/wordpress-develop/builds/119063509"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://travis-ci.com/WordPress/wordpress-develop/builds/119063509&lt;/a&gt;&lt;br /&gt;
+&lt;/p&gt;
+&lt;h2 id="Other"&gt;&lt;strong&gt;Other&lt;/strong&gt;&lt;/h2&gt;
+&lt;ul&gt;&lt;li&gt;Ticket &lt;a href="https://core.trac.wordpress.org/ticket/46630"&gt;https://core.trac.wordpress.org/ticket/46630&lt;/a&gt; is a partial duplicate of this ticket.
+&lt;/li&gt;&lt;li&gt;The JSON functionality related polyfills will be addressed in a separate ticket, which I will link to once I've created it.
+&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;
+/cc @pento&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #47366 (Privacy Policy page dropdown needs a max-width) updated</title>
+      
+        <dc:creator>adhitya03</dc:creator>
+
+      <pubDate>Sun, 14 Jul 2019 12:07:37 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/47366#comment:11</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/47366#comment:11/1563106057451614</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #40030 (Pass User and Comment Objects to rest_get_avatar_urls) updated</title>
+      
+        <dc:creator>slackbot</dc:creator>
+
+      <pubDate>Sun, 14 Jul 2019 12:02:38 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/40030#comment:9</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/40030#comment:9/1563105758777886</guid>
+      <description>&lt;p&gt;
+&lt;em&gt;This ticket was mentioned in &lt;a class="ext-link" href="https://make.wordpress.org/chat/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;Slack&lt;/a&gt; in #core by donmhico. &lt;a class="ext-link" href="https://wordpress.slack.com/archives/core/p1563105756326200"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;View the logs&lt;/a&gt;.&lt;/em&gt;&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #47697 (php &amp; wordpress login plugin) updated</title>
+      
+        <dc:creator>audrasjb</dc:creator>
+
+      <pubDate>Sun, 14 Jul 2019 08:41:17 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/47697#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/47697#comment:1/1563093677330873</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt;, &lt;i&gt;Version&lt;/i&gt;, &lt;i&gt;Component&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Hi and welcome to WordPress Core Trac,&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Do you reproduce the issue with a fresh install? (only default plugins/themes).&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Is not, you must use support forums instead of Core Trac.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44621 (Privacy Policy Guide: Improve the readability of the suggested text) updated</title>
+      
+        <dc:creator>sabernhardt</dc:creator>
+
+      <pubDate>Sun, 14 Jul 2019 06:07:21 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44621#comment:18</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44621#comment:18/1563084441594695</guid>
+      <description>&lt;p&gt;
+Since we seem to be in agreement about replacing the italicized style with indentation, I submitted a small patch to the stylesheet to achieve the layout shown in v3 (for both left-to-right and right-to-left directions).&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>44621.diff attached to Ticket #44621</title>
+      
+        <dc:creator>sabernhardt</dc:creator>
+
+      <pubDate>Sun, 14 Jul 2019 05:51:34 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/44621/44621.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/44621/44621.diff/1563083494640065</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #47697 (php &amp; wordpress login plugin) created</title>
+      
+        <dc:creator>zeinabde</dc:creator>
+
+      <pubDate>Sun, 14 Jul 2019 05:31:40 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/47697</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/47697/1563082300775959</guid>
+      <description>&lt;p&gt;
+I have a problem with login page in wordpress&lt;br /&gt;
+error: The resource you are looking for has been removed, had its name changed, or is temporarily unavailable.&lt;br /&gt;
+it is accured when we update PHP from 5.6 to 7.3.7.&lt;br /&gt;
+for solving this problem we update wordpress to 5.2.2 and that error is still there.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Tickets #47074,​47696 batch updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Sun, 14 Jul 2019 03:12:46 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/query?id=47074%2C47696</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/query?id=47074%2C47696/1563073966105884</guid>
+      <description>duplicate: &lt;p&gt;
+Hi @prashantvatsh, welcome to WordPress Trac!&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Thanks for the ticket, we're already tracking this in &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/47074" title="#47074: defect (bug): Commented out code in upgrade.php (closed: fixed)"&gt;#47074&lt;/a&gt;.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>batchmodify</category>
+    </item>
+   </channel>
+</rss>

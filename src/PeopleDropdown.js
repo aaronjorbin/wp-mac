@@ -1,19 +1,17 @@
 import React, { Component } from 'react';
-import data from './data';
+import Select from 'react-select';
 import _ from 'lodash'; 
 
 class PeopleDropdown extends Component {
-
   render() {
-	const options = _.map( data.people, (d,p) => {
-		return <option key={ p } value={ p }>{ p }</option>
+	const options = _.map( this.props.data.people, (d,p) => {
+		return { value: p, label: p };
 	});
 
-    return (
-		<select>
-			{options}	
-		</select>
+	options.unshift( { value: 'all', label: 'All Contributors' } );
 
+    return (
+		<Select onChange={this.props.change} options={options} />
 	)
   }
 }
