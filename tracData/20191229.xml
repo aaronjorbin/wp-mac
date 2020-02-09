@@ -1,0 +1,915 @@
+<?xml version="1.0"?>
+<rss xmlns:dc="http://purl.org/dc/elements/1.1/" version="2.0">
+  <channel>
+    <title>WordPress Trac</title>
+    <link>http://core.trac.wordpress.org/timeline</link>
+    <description>Trac Timeline</description>
+    <language>en-US</language>
+    <generator>Trac 1.2.2</generator>
+    <image>
+      <title>WordPress Trac</title>
+      <url>http://core.trac.wordpress.org/chrome/site/your_project_logo.png</url>
+      <link>http://core.trac.wordpress.org/timeline</link>
+    </image>
+    <item>
+      <title>Ticket #49087 (impossible to set show_admin_bar_front to false in wp_insert_user) updated</title>
+      
+        <dc:creator>valentinbora</dc:creator>
+
+      <pubDate>Sun, 29 Dec 2019 23:57:08 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/49087#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/49087#comment:3/1577663828378520</guid>
+      <description>&lt;p&gt;
+@SergeyBiryukov &lt;a class="ext-link" href="https://developer.wordpress.org/reference/functions/wp_insert_user/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://developer.wordpress.org/reference/functions/wp_insert_user/&lt;/a&gt; mentions &lt;code&gt;(string|bool)&lt;/code&gt; in the param docs, so the OP's ticket makes sense to a certain extent.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Should we consider updating the code per the patch or updating the docs?&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #49087 (impossible to set show_admin_bar_front to false in wp_insert_user) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Sun, 29 Dec 2019 23:47:00 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/49087#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/49087#comment:2/1577663220396868</guid>
+      <description>&lt;i&gt;Status&lt;/i&gt;, &lt;i&gt;Owner&lt;/i&gt;, &lt;i&gt;Focuses&lt;/i&gt;, &lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Hi there, welcome to WordPress Trac! Thanks for the report.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+As seen in &lt;a class="source" href="http://core.trac.wordpress.org/browser/tags/5.3.2/src/wp-admin/includes/user.php?marks=119"&gt;edit_user()&lt;/a&gt;&lt;a class="trac-rawlink" href="http://core.trac.wordpress.org/export/HEAD/tags/5.3.2/src/wp-admin/includes/user.php" title="Download"&gt;​&lt;/a&gt;, the value accepts a string &lt;code&gt;'true'&lt;/code&gt; or &lt;code&gt;'false'&lt;/code&gt;, not a boolean &lt;code&gt;true&lt;/code&gt; or &lt;code&gt;false&lt;/code&gt;, so the code is correct as is.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+It could probably be explained better in the documentation, though.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #16557 (Ability to disable redirect_guess_404_permalink()) updated</title>
+      
+        <dc:creator>apedog</dc:creator>
+
+      <pubDate>Sun, 29 Dec 2019 23:30:01 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/16557#comment:41</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/16557#comment:41/1577662201707915</guid>
+      <description>&lt;p&gt;
+I've written a clean fresh patch that I believe addresses all the issues raised in this ticket.&lt;br /&gt;
+I've added 3 new filters to &lt;code&gt;redirect_guess_404_permalink()&lt;/code&gt;:&lt;br /&gt;
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;&lt;code&gt;'do_redirect_guess_404_permalink'&lt;/code&gt; - Allows disabling 404 guessing altogether.
+&lt;pre class="wiki"&gt;add_filter('do_redirect_guess_404_permalink', '__return_false');
+&lt;/pre&gt;&lt;/li&gt;&lt;/ul&gt;&lt;ul&gt;&lt;li&gt;&lt;code&gt;'pre_redirect_guess_404_permalink'&lt;/code&gt; - Allows short-circuit of function and returning a custom guess from a callback. This is a much needed functionality IMO. Especially with current WordPress handling. A very easy way for plugins to hook in a custom guessing function while not breaking anything else.
+&lt;pre class="wiki"&gt;add_filter('pre_redirect_guess_404_permalink', 'my_custom_guess');
+function my_custom_guess($pre){
+    return home_url('did-i-guess-right');
+}
+&lt;/pre&gt;&lt;/li&gt;&lt;/ul&gt;&lt;ul&gt;&lt;li&gt;&lt;code&gt;'strict_redirect_guess_404_permalink'&lt;/code&gt; - Allows strict guesses using &lt;code&gt;post_name = %s&lt;/code&gt; SQL query instead of expensive (and overly broad) &lt;code&gt;post_name LIKE %s&lt;/code&gt;} query. So &lt;code&gt;slug&lt;/code&gt; might redirect to &lt;code&gt;parent/slug&lt;/code&gt; but not to &lt;code&gt;sluggish-day&lt;/code&gt;. Default is the current non-strict &lt;code&gt;LIKE&lt;/code&gt; query.
+&lt;pre class="wiki"&gt;add_filter('strict_redirect_guess_404_permalink', '__return_true');
+&lt;/pre&gt;&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;
+All filters are nested within single function. So code and logic are all neatly tucked in one place. Nice for cohesion.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+I've tested these filters locally and they work.&lt;br /&gt;
+&lt;/p&gt;
+&lt;hr /&gt;
+&lt;ul&gt;&lt;li&gt;Filters &lt;code&gt;'do_redirect_guess_404_permalink'&lt;/code&gt; and &lt;code&gt;'pre_redirect_guess_404_permalink'&lt;/code&gt; can be merged into a single filter. But semantically, disabling and short-circuiting are separate concerns so I figured two filters would be clearer.
+&lt;/li&gt;&lt;/ul&gt;&lt;ul&gt;&lt;li&gt;Filter &lt;code&gt;'strict_redirect_guess_404_permalink'&lt;/code&gt; touches the actual logic. And might merit discussion. So maybe it could be considered separately from the short-circuit filters.
+&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;
+@markjaquith &lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>16557.short-circuit-and-strict-filters.diff attached to Ticket #16557</title>
+      
+        <dc:creator>apedog</dc:creator>
+
+      <pubDate>Sun, 29 Dec 2019 23:25:38 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/16557/16557.short-circuit-and-strict-filters.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/16557/16557.short-circuit-and-strict-filters.diff/1577661938198926</guid>
+      <description>&lt;p&gt;
+New patch off current master
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>49087-wp_insert_user-show_admin_bar_front.diff attached to Ticket #49087</title>
+      
+        <dc:creator>valentinbora</dc:creator>
+
+      <pubDate>Sun, 29 Dec 2019 23:00:42 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/49087/49087-wp_insert_user-show_admin_bar_front.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/49087/49087-wp_insert_user-show_admin_bar_front.diff/1577660442351980</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #49091 (TwentyTwenty: name of svg icon "arrow-down-circled" not trimmed) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Sun, 29 Dec 2019 22:30:27 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/49091#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/49091#comment:3/1577658627313466</guid>
+      <description>&lt;p&gt;
+In &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/47020" title="Coding Standards: Fix WPCS issue in [47019].
+See #49091."&gt;47020&lt;/a&gt;:&lt;br /&gt;
+&lt;/p&gt;
+&lt;div class="message"&gt;&lt;p&gt;
+Coding Standards: Fix WPCS issue in &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/47019" title="Twenty Twenty: Remove extra space from `arrow-down-circled` icon name ..."&gt;[47019]&lt;/a&gt;.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+See &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/49091" title="#49091: defect (bug): TwentyTwenty: name of svg icon &amp;#34;arrow-down-circled&amp;#34; not trimmed (closed: fixed)"&gt;#49091&lt;/a&gt;.&lt;br /&gt;
+&lt;/p&gt;
+&lt;/div&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Changeset [47020]: Coding Standards: Fix WPCS issue in [47019].  See #49091.</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Sun, 29 Dec 2019 22:30:26 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/47020</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/47020/1577658626149578</guid>
+      <description>&lt;p&gt;
+Coding Standards: Fix WPCS issue in &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/47019" title="Twenty Twenty: Remove extra space from `arrow-down-circled` icon name ..."&gt;[47019]&lt;/a&gt;.
+&lt;/p&gt;
+&lt;p&gt;
+See &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/49091" title="#49091: defect (bug): TwentyTwenty: name of svg icon &amp;#34;arrow-down-circled&amp;#34; not trimmed (closed: fixed)"&gt;#49091&lt;/a&gt;.
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Ticket #49094 (preg_match() expects parameter 2 to be string on line 417 of ...) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Sun, 29 Dec 2019 22:28:49 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/49094#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/49094#comment:1/1577658529782157</guid>
+      <description>&lt;i&gt;Component&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #49093 (get_posts Some fields of the $args argument are not documented) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Sun, 29 Dec 2019 20:51:43 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/49093#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/49093#comment:3/1577652703660565</guid>
+      <description>&lt;p&gt;
+Hi there, welcome to WordPress Trac! Thanks for the ticket.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+There was a previous discussion on this in &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/47896#comment:2" title="Comment 2 for #47896: defect (bug): Docs: add missing argument in the wp_list_categories function docblock (closed: fixed)"&gt;comment:2:ticket:47896&lt;/a&gt;:&lt;br /&gt;
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+@birgire: The way I see it now, is that it's good if we can &lt;strong&gt;avoid duplicating the documentation&lt;/strong&gt; of input arguments if possible and only document it if it's a part of the corresponding function's code base. Then e.g. refer to the other places where the other "hidden" but supported input arguments are documented.&lt;br /&gt;
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+and &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/47896#comment:8" title="Comment 8 for #47896: defect (bug): Docs: add missing argument in the wp_list_categories function docblock (closed: fixed)"&gt;comment:8:ticket:47896&lt;/a&gt;:&lt;br /&gt;
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+@boonebgorges: I agree with this. I'd spell out the principle as follows:&lt;br /&gt;
+&lt;/p&gt;
+&lt;ol&gt;&lt;li&gt;If a function accepts arguments that are passed through, without modification, to another function, then those arguments should not be documented on the wrapper function, but there should be a reference along the lines of &lt;code&gt;See get_terms()&lt;/code&gt; in the description of &lt;code&gt;$args&lt;/code&gt;.
+&lt;/li&gt;&lt;li&gt;The wrapper function should fully document arguments that (a) are not passed through at all (such as &lt;code&gt;$title_li&lt;/code&gt;) or (b) are modified or play a special role in the wrapper (such as &lt;code&gt;$exclude_tree&lt;/code&gt;).
+&lt;/li&gt;&lt;/ol&gt;&lt;/blockquote&gt;
+&lt;p&gt;
+It was also previously discussed in &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/41058" title="#41058: enhancement: wp_dropdown_categories documentation is missing arguments (closed: fixed)"&gt;#41058&lt;/a&gt;, specifically &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/41058#comment:8" title="Comment 8 for #41058: enhancement: wp_dropdown_categories documentation is missing arguments (closed: fixed)"&gt;comment:8:ticket:41058&lt;/a&gt;.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #49093 (get_posts Some fields of the $args argument are not documented) updated</title>
+      
+        <dc:creator>Marcio Zebedeu</dc:creator>
+
+      <pubDate>Sun, 29 Dec 2019 20:48:56 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/49093#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/49093#comment:2/1577652536524850</guid>
+      <description>&lt;p&gt;
+Replying to &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/49093#comment:1" title="Comment 1"&gt;sebastienserre&lt;/a&gt;:&lt;br /&gt;
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+Hello Marcio and thank you for your ticket and contribution&lt;br /&gt;
+There's already a menion to the WP Query documentation pages:&lt;br /&gt;
+&lt;code&gt;See WP_Query::parse_query() for all available arguments.&lt;/code&gt;&lt;br /&gt;
+Too much doc should loose users I think&lt;br /&gt;
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+I understand @sebastienserre &lt;br /&gt;
+&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;
+However, the WP_Query::parse_query has many parameters that are not used in the get_posts which can somehow confuse the user because not all arguments of the WP_Query::parse_query are really necessary to pass in  get_posts&lt;br /&gt;
+&lt;/p&gt;
+&lt;/blockquote&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #49094 (preg_match() expects parameter 2 to be string on line 417 of ...) created</title>
+      
+        <dc:creator>thenerdcave</dc:creator>
+
+      <pubDate>Sun, 29 Dec 2019 20:45:06 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/49094</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/49094/1577652306739744</guid>
+      <description>&lt;p&gt;
+wp version 5.3.2&lt;br /&gt;
+os MacOS 10.15.2&lt;br /&gt;
+browser FireFox 71.0&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Building a custom theme and on a very simple page if I have a qry param in the url that is an array &lt;em&gt;(ex. ?c[]=3&amp;amp;c[]=6)&lt;/em&gt; I get the following warnings. If I change the url param to a string like &lt;em&gt;c=3&lt;/em&gt; then the warnings go away.&lt;br /&gt;
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;Warning: preg_match() expects parameter 2 to be string, array given in /wp-includes/class-wp-block-parser.php on line 417
+Warning: strlen() expects parameter 1 to be string, array given in /wp-includes/class-wp-block-parser.php on line 489
+&lt;/pre&gt;&lt;p&gt;
+The reason the url has these params is for a custom data filter with a multi-select menu.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+After a google search it appears that this bug was introduced in version 5.3.1 and based on my findings to fix the issue that is accurate. &lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+The bug appears to be related to the parse_blocks() function, I was able to trace the issue back to this location: blocks.php line 271 function filter_block_content();&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+If I update the function like so, &lt;br /&gt;
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;function filter_block_content( $text, $allowed_html = 'post', $allowed_protocols = array() ) {
+	$result = '';
+	if ( !is_array( $text ) ) {
+		$blocks = parse_blocks( $text );
+		foreach ( $blocks as $block ) {
+			$block  = filter_block_kses( $block, $allowed_html, $allowed_protocols );
+			$result .= serialize_block( $block );
+		}
+	}
+	return $result;
+}
+&lt;/pre&gt;&lt;p&gt;
+by adding the &lt;strong&gt;if !is_array()&lt;/strong&gt; condition the page works properly and warnings go away. I'm not 100% sure if this is the correct place for this fix but wanted to let you know about the issue, since I don't believe WP should be trying to parse qry params this way. &lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Hope this information is helpful.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #49091 (TwentyTwenty: name of svg icon "arrow-down-circled" not trimmed) closed</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Sun, 29 Dec 2019 20:43:06 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/49091#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/49091#comment:2/1577652186013860</guid>
+      <description>fixed: &lt;p&gt;
+In &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/47019" title="Twenty Twenty: Remove extra space from `arrow-down-circled` icon name ..."&gt;47019&lt;/a&gt;:&lt;br /&gt;
+&lt;/p&gt;
+&lt;div class="message"&gt;&lt;p&gt;
+Twenty Twenty: Remove extra space from &lt;code&gt;arrow-down-circled&lt;/code&gt; icon name in &lt;code&gt;TwentyTwenty_SVG_Icons::$ui_icons&lt;/code&gt;.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Props kitchin.&lt;br /&gt;
+Fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/49091" title="#49091: defect (bug): TwentyTwenty: name of svg icon &amp;#34;arrow-down-circled&amp;#34; not trimmed (closed: fixed)"&gt;#49091&lt;/a&gt;.&lt;br /&gt;
+&lt;/p&gt;
+&lt;/div&gt;</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Changeset [47019]: Twenty Twenty: Remove extra space from `arrow-down-circled` icon name ...</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Sun, 29 Dec 2019 20:43:04 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/47019</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/47019/1577652184883049</guid>
+      <description>&lt;p&gt;
+Twenty Twenty: Remove extra space from &lt;code&gt;arrow-down-circled&lt;/code&gt; icon name in &lt;code&gt;TwentyTwenty_SVG_Icons::$ui_icons&lt;/code&gt;.
+&lt;/p&gt;
+&lt;p&gt;
+Props kitchin.
+Fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/49091" title="#49091: defect (bug): TwentyTwenty: name of svg icon &amp;#34;arrow-down-circled&amp;#34; not trimmed (closed: fixed)"&gt;#49091&lt;/a&gt;.
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Ticket #49091 (TwentyTwenty: name of svg icon "arrow-down-circled" not trimmed) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Sun, 29 Dec 2019 20:39:34 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/49091#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/49091#comment:1/1577651974617852</guid>
+      <description>&lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #49093 (get_posts Some fields of the $args argument are not documented) updated</title>
+      
+        <dc:creator>sebastienserre</dc:creator>
+
+      <pubDate>Sun, 29 Dec 2019 20:33:03 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/49093#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/49093#comment:1/1577651583296934</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Hello Marcio and thank you for your ticket and contribution&lt;br /&gt;
+There's already a menion to the WP Query documentation pages:&lt;br /&gt;
+&lt;code&gt;See WP_Query::parse_query() for all available arguments.&lt;/code&gt;&lt;br /&gt;
+Too much doc should loose users I think&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #49093 (get_posts Some fields of the $args argument are not documented) created</title>
+      
+        <dc:creator>Marcio Zebedeu</dc:creator>
+
+      <pubDate>Sun, 29 Dec 2019 20:28:02 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/49093</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/49093/1577651282558625</guid>
+      <description>&lt;p&gt;
+Some fields of the $args argument are not documented in get_posts.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+I believe it is important to describe all the optional arguments for this function.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+&lt;a class="ext-link" href="https://developer.wordpress.org/reference/functions/get_posts/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://developer.wordpress.org/reference/functions/get_posts/&lt;/a&gt;&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>48223.2.diff attached to Ticket #48223</title>
+      
+        <dc:creator>apedog</dc:creator>
+
+      <pubDate>Sun, 29 Dec 2019 20:24:57 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/48223/48223.2.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/48223/48223.2.diff/1577651097950252</guid>
+      <description>&lt;p&gt;
+48223.2.diff fixes errors in 48223.diff and 48223.1.diff and replaces them
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>48223.1.diff attached to Ticket #48223</title>
+      
+        <dc:creator>apedog</dc:creator>
+
+      <pubDate>Sun, 29 Dec 2019 20:17:01 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/48223/48223.1.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/48223/48223.1.diff/1577650621552922</guid>
+      <description>&lt;p&gt;
+48223.1.diff fixes some errors in 48223.diff and replaces it
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #49090 (WordPress software editor is completely cut off) updated</title>
+      
+        <dc:creator>audrasjb</dc:creator>
+
+      <pubDate>Sun, 29 Dec 2019 20:04:04 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/49090#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/49090#comment:2/1577649844657640</guid>
+      <description>&lt;i&gt;Version&lt;/i&gt;, &lt;i&gt;Component&lt;/i&gt;, &lt;i&gt;Severity&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #49090 (WordPress software editor is completely cut off) closed</title>
+      
+        <dc:creator>audrasjb</dc:creator>
+
+      <pubDate>Sun, 29 Dec 2019 20:03:39 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/49090#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/49090#comment:1/1577649819314431</guid>
+      <description>invalid: &lt;p&gt;
+Hi @stacyiser thanks for your ticket and welcome to WordPress Trac!&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Sorry to hear you have issue with your WordPress installation.&lt;br /&gt;
+However, core.trac.wordpress.org is not meant for support and troubleshooting but for WordPress core development and bugfixes.&lt;br /&gt;
+You should try to ask for help in the WordPress general support forum: &lt;a class="ext-link" href="https://wordpress.org/support/forum/how-to-and-troubleshooting/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://wordpress.org/support/forum/how-to-and-troubleshooting/&lt;/a&gt;&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Given the screenshot you attached, your issue is not related to WordPress core but probably rather an issue with a plugin.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Closing this ticket as it's doesn't seems to be related to WP Core.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Ticket #49059 (Whitespace inside p element in wp-signup.php should be removed) updated</title>
+      
+        <dc:creator>azaozz</dc:creator>
+
+      <pubDate>Sun, 29 Dec 2019 19:59:43 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/49059#comment:26</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/49059#comment:26/1577649583114389</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Replying to &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/49059#comment:25" title="Comment 25"&gt;johnjamesjacoby&lt;/a&gt;:&lt;br /&gt;
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+You removed mine and added yours. You disagree with my opinion and I disagree with yours. Would you like it if I removed your keyword and put mine back? Of course not.&lt;br /&gt;
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+Uhhh, sorry I couldn't explain this better. There's no "yours" and "mine" keywords. I tried to review the changes in the patch and they looked "nice to have". But then while looking at the code noticed there were some "side effects" that I thought would need additional consideration. So I removed the "commit" keyword in order to allow for that consideration, nothing more :)&lt;br /&gt;
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+We assessed all of those sides ourselves, and came to a different conclusion.&lt;br /&gt;
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+Great. If you think the enhancement here is more important than the minor "loss" of source code highlighting, go ahead and commit this change. I don't mind, as long as we are "on the same page" and the change has been considered from all possible sides.&lt;br /&gt;
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+We all have good intentions, and we all are trying our best, even when we do not agree. I choose to believe that’s a baseline understanding, particularly for all of us in this conversation after all of our lovely years together. 🤝&lt;br /&gt;
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+Exactly, very well put :)&lt;br /&gt;
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+These are your opinions and are not representative of the coding standards or the opinions of others in this ticket.&lt;br /&gt;
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+Right. While looking at the patch I also looked at all of the WP source code and there are quite a few cases where this is inconsistent. Also looked at the coding standards and they seem a bit unclear. Best course of action (for the future) would be to clarify the coding standards and then apply them across all of the code base. Of course this cannot be done from this ticket, it's just a "side note" here.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+(Removing the "close" keyword as it will probably be a while before the coding standards can be clarified and "uniform" changes applied everywhere.)&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #49092 (Visibility Status) created</title>
+      
+        <dc:creator>arena</dc:creator>
+
+      <pubDate>Sun, 29 Dec 2019 17:56:45 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/49092</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/49092/1577642205035279</guid>
+      <description>&lt;p&gt;
+Using Gutenberg editor ...&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+When i save a new post with visibility status "Private"&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+I publish it with visibility status "Private"&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+When i re-save it as draft, the post visibility status goes automatically to Public.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+So if i publish it again a post that was intended to be Private becomes Public.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+... and i need to go back to modify the visibility status to Private.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #49091 (TwentyTwenty: name of svg icon "arrow-down-circled" not trimmed) created</title>
+      
+        <dc:creator>kitchin</dc:creator>
+
+      <pubDate>Sun, 29 Dec 2019 17:00:53 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/49091</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/49091/1577638853713170</guid>
+      <description>&lt;p&gt;
+In &lt;code&gt;twentytwenty/classes/class-twentytwenty-svg-icons.php&lt;/code&gt; version 1.0 line 80&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+&lt;code&gt;'arrow-down-circled ' =&amp;gt; ...&lt;/code&gt;&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+should be&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+&lt;code&gt;'arrow-down-circled' =&amp;gt; ...&lt;/code&gt;&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #48223 (parse_request(): When request has multiple matching rewrite rules, and ...) updated</title>
+      
+        <dc:creator>apedog</dc:creator>
+
+      <pubDate>Sun, 29 Dec 2019 16:59:25 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/48223#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/48223#comment:3/1577638765088761</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+I've written a rough patch that attempts to fix this issue.&lt;br /&gt;
+The following changes have been made to &lt;code&gt;class-wp.php&lt;/code&gt;:&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Added variable &lt;code&gt;$all_matched_rules&lt;/code&gt; - array of all possible rewrite rule matches. This is unused but persistent.&lt;br /&gt;
+Added variable &lt;code&gt;$matched_rules&lt;/code&gt; - array of matched rules to loop over.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Function &lt;code&gt;parse_request()&lt;/code&gt; creates array of all possible rewrite rule matches and pops first rule off &lt;code&gt;$this-&amp;gt;matched_rules&lt;/code&gt; array, populating &lt;code&gt;$this-&amp;gt;matched_rule&lt;/code&gt;.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+On filter &lt;code&gt;'pre_handle_404'&lt;/code&gt; added a function &lt;code&gt;maybe_try_another_matched_rule()&lt;/code&gt; that tests if other possible rewrite rules exist for this request. If so, function parses request and queries posts again for next matched rule available. It does so recursively until &lt;code&gt;$matched_rules&lt;/code&gt; array is empty. In which case it defaults to default 404 handling.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+This patch is more of a proof-of-concept. And would obviously need some iterations if accepted. The code is convoluted and is redundant in some areas. This can be fixed, with zero damage to logic, by making some additional changes to &lt;code&gt;parse_request()&lt;/code&gt;.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+@SergeyBiryukov @johnbillion &lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>48223.diff attached to Ticket #48223</title>
+      
+        <dc:creator>apedog</dc:creator>
+
+      <pubDate>Sun, 29 Dec 2019 16:57:47 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/48223/48223.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/48223/48223.diff/1577638667162278</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>wp.JPG attached to Ticket #49090</title>
+      
+        <dc:creator>stacyiser</dc:creator>
+
+      <pubDate>Sun, 29 Dec 2019 16:31:13 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/49090/wp.JPG</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/49090/wp.JPG/1577637073481419</guid>
+      <description>&lt;p&gt;
+Editing screen of my wordpress
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #49090 (WordPress software editor is completely cut off) created</title>
+      
+        <dc:creator>stacyiser</dc:creator>
+
+      <pubDate>Sun, 29 Dec 2019 16:30:41 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/49090</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/49090/1577637041296074</guid>
+      <description>&lt;p&gt;
+My WordPress software editor screen is completely cut off making working in WordPress near impossible. Please help! I haven't been able to find a fix on any forum.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #49089 (hook_suffix is undefined in WP_Screen class) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Sun, 29 Dec 2019 00:45:29 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/49089#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/49089#comment:1/1577580329354281</guid>
+      <description>&lt;i&gt;Component&lt;/i&gt;, &lt;i&gt;Description&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Related: &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/22039" title="#22039: defect (bug): Undefined index: hook_suffix notice on wp_ajax_get_comments (closed: fixed)"&gt;#22039&lt;/a&gt;, &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/29933" title="#29933: defect (bug): Undefined index: hook_suffix on WP_List_Table (closed: invalid)"&gt;#29933&lt;/a&gt;.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #49089 (hook_suffix is undefined in WP_Screen class) created</title>
+      
+        <dc:creator>splendorstudio</dc:creator>
+
+      <pubDate>Sat, 28 Dec 2019 23:16:33 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/49089</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/49089/1577574993788895</guid>
+      <description>&lt;p&gt;
+Hi There,&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+There is an bug in WP_Screen class in 213 line which we are getting via &lt;code&gt;$id = $GLOBALS['hook_suffix'];&lt;/code&gt; hook_suffix global, You can see this issue via some functions but,&lt;br /&gt;
+I encountered with this issue via &lt;code&gt;convert_to_screen()&lt;/code&gt; in ajax situation. Please let me know if there is any question.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #25939 (add_options_page(..., 'options.php') and 1000 vars limit) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Sat, 28 Dec 2019 22:16:46 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/25939#comment:4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/25939#comment:4/1577571406809518</guid>
+      <description>&lt;i&gt;Status&lt;/i&gt;, &lt;i&gt;Owner&lt;/i&gt;, &lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #47398 (Remove wp_favicon_request) closed</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Sat, 28 Dec 2019 21:18:04 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/47398#comment:21</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/47398#comment:21/1577567884627991</guid>
+      <description>fixed: &lt;p&gt;
+In &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/47018" title="Bootstrap/Load: Make handling the `/favicon.ico` requests more ..."&gt;47018&lt;/a&gt;:&lt;br /&gt;
+&lt;/p&gt;
+&lt;div class="message"&gt;&lt;p&gt;
+Bootstrap/Load: Make handling the &lt;code&gt;/favicon.ico&lt;/code&gt; requests more flexible.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Previously, &lt;code&gt;wp_favicon_request()&lt;/code&gt; was introduced in &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/13205" title="Bail early for favicon.ico requests so we don't load WP twice. Props ..."&gt;[13205]&lt;/a&gt; to avoid a performance hit of serving a full 404 page on every favicon request.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+While working as intended, that implementation did not provide a way for theme or plugin authors to manage the behavior of favicon requests.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+This changeset implements the following logic (only applied if WordPress is installed in the root directory):&lt;br /&gt;
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;If there is a Site Icon set in Customizer, redirect &lt;code&gt;/favicon.ico&lt;/code&gt; requests to that icon.
+&lt;/li&gt;&lt;li&gt;Otherwise, use the WordPress logo as a default icon.
+&lt;/li&gt;&lt;li&gt;If a physical &lt;code&gt;/favicon.ico&lt;/code&gt; file exists, do nothing, let the server handle the request.
+&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;
+Handling &lt;code&gt;/favicon.ico&lt;/code&gt; is now more consistent with handling &lt;code&gt;/robots.txt&lt;/code&gt; requests.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+New functions and hooks:&lt;br /&gt;
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;Introduce &lt;code&gt;is_favicon()&lt;/code&gt; conditional tag to complement &lt;code&gt;is_robots()&lt;/code&gt;.
+&lt;/li&gt;&lt;li&gt;Introduce &lt;code&gt;do_favicon&lt;/code&gt; action to complement &lt;code&gt;do_robots&lt;/code&gt; and use it in template loader.
+&lt;/li&gt;&lt;li&gt;Introduce &lt;code&gt;do_favicon()&lt;/code&gt; function, hooked to the above action by default, to complement &lt;code&gt;do_robots()&lt;/code&gt;.
+&lt;/li&gt;&lt;li&gt;Introduce &lt;code&gt;do_faviconico&lt;/code&gt; action to complement &lt;code&gt;do_robotstxt&lt;/code&gt;, for plugins to override the default behavior.
+&lt;/li&gt;&lt;li&gt;Mark &lt;code&gt;wp_favicon_request()&lt;/code&gt; as deprecated in favor of &lt;code&gt;do_favicon()&lt;/code&gt;.
+&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;
+Props jonoaldersonwp, birgire, joostdevalk, mukesh27, SergeyBiryukov.&lt;br /&gt;
+Fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/47398" title="#47398: enhancement: Remove wp_favicon_request (closed: fixed)"&gt;#47398&lt;/a&gt;.&lt;br /&gt;
+&lt;/p&gt;
+&lt;/div&gt;</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Changeset [47018]: Bootstrap/Load: Make handling the `/favicon.ico` requests more ...</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Sat, 28 Dec 2019 21:18:03 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/47018</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/47018/1577567883399560</guid>
+      <description>&lt;p&gt;
+Bootstrap/Load: Make handling the &lt;code&gt;/favicon.ico&lt;/code&gt; requests more flexible.
+&lt;/p&gt;
+&lt;p&gt;
+Previously, &lt;code&gt;wp_favicon_request()&lt;/code&gt; was introduced in &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/13205" title="Bail early for favicon.ico requests so we don't load WP twice. Props ..."&gt;[13205]&lt;/a&gt; to avoid a performance hit of serving a full 404 page on every favicon request.
+&lt;/p&gt;
+&lt;p&gt;
+While working as intended, that implementation did not provide a way for theme or plugin authors to manage the behavior of favicon requests.
+&lt;/p&gt;
+&lt;p&gt;
+This changeset implements the following logic (only applied if WordPress is installed in the root directory):
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;If there is a Site Icon set in Customizer, redirect &lt;code&gt;/favicon.ico&lt;/code&gt; requests to that icon.
+&lt;/li&gt;&lt;li&gt;Otherwise, use the WordPress logo as a default icon.
+&lt;/li&gt;&lt;li&gt;If a physical &lt;code&gt;/favicon.ico&lt;/code&gt; file exists, do nothing, let the server handle the request.
+&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;
+Handling &lt;code&gt;/favicon.ico&lt;/code&gt; is now more consistent with handling &lt;code&gt;/robots.txt&lt;/code&gt; requests.
+&lt;/p&gt;
+&lt;p&gt;
+New functions and hooks:
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;Introduce &lt;code&gt;is_favicon()&lt;/code&gt; conditional tag to complement &lt;code&gt;is_robots()&lt;/code&gt;.
+&lt;/li&gt;&lt;li&gt;Introduce &lt;code&gt;do_favicon&lt;/code&gt; action to complement &lt;code&gt;do_robots&lt;/code&gt; and use it in template loader.
+&lt;/li&gt;&lt;li&gt;Introduce &lt;code&gt;do_favicon()&lt;/code&gt; function, hooked to the above action by default, to complement &lt;code&gt;do_robots()&lt;/code&gt;.
+&lt;/li&gt;&lt;li&gt;Introduce &lt;code&gt;do_faviconico&lt;/code&gt; action to complement &lt;code&gt;do_robotstxt&lt;/code&gt;, for plugins to override the default behavior.
+&lt;/li&gt;&lt;li&gt;Mark &lt;code&gt;wp_favicon_request()&lt;/code&gt; as deprecated in favor of &lt;code&gt;do_favicon()&lt;/code&gt;.
+&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;
+Props jonoaldersonwp, birgire, joostdevalk, mukesh27, SergeyBiryukov.
+Fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/47398" title="#47398: enhancement: Remove wp_favicon_request (closed: fixed)"&gt;#47398&lt;/a&gt;.
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Ticket #49088 (Twenty Twenty: Add icon for g.page links (Google business profile)) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Sat, 28 Dec 2019 21:05:38 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/49088#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/49088#comment:1/1577567138559447</guid>
+      <description>&lt;i&gt;Component&lt;/i&gt;, &lt;i&gt;Summary&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #49087 (impossible to set show_admin_bar_front to false in wp_insert_user) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Sat, 28 Dec 2019 21:04:52 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/49087#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/49087#comment:1/1577567092332180</guid>
+      <description>&lt;i&gt;Component&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #48579 (Should we reconsider the External Libraries mentions on the ...) updated</title>
+      
+        <dc:creator>azaozz</dc:creator>
+
+      <pubDate>Sat, 28 Dec 2019 19:27:16 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/48579#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/48579#comment:2/1577561236032979</guid>
+      <description>&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+These days we have over a million npm dependencies.&lt;br /&gt;
+...&lt;br /&gt;
+Should we just highlight the big dependencies? How to decide if a dependency is big enough? Or maybe we can just remove it?&lt;br /&gt;
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+Been thinking about this for a while. Generally there are two types of dependencies: software used for "building", and software that is redistributed with WP. When redistributing open source software (afaik) it is considered best practice to "give credit where credit is due", even if that's not explicitly mentioned in the license.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Looking at the npm dependencies: most, if not all, are distributed under the MIT license which requires retainment of the copyright notices (if any). This is already the case, it happens "automatically" when building. See:&lt;br /&gt;
+&lt;a class="ext-link" href="https://build.trac.wordpress.org/browser/tags/5.3.2/wp-includes/js/dist/vendor/react.js#L1"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://build.trac.wordpress.org/browser/tags/5.3.2/wp-includes/js/dist/vendor/react.js#L1&lt;/a&gt;, &lt;br /&gt;
+&lt;a class="ext-link" href="https://build.trac.wordpress.org/browser/tags/5.3.2/wp-includes/js/dist/vendor/lodash.js#L2"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://build.trac.wordpress.org/browser/tags/5.3.2/wp-includes/js/dist/vendor/lodash.js#L2&lt;/a&gt;.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+This is also the case for the "non-npm" dependencies:&lt;br /&gt;
+&lt;a class="ext-link" href="https://build.trac.wordpress.org/browser/tags/5.3.2/wp-includes/js/jquery/jquery.js#L1"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://build.trac.wordpress.org/browser/tags/5.3.2/wp-includes/js/jquery/jquery.js#L1&lt;/a&gt; &lt;br /&gt;
+&lt;a class="ext-link" href="https://build.trac.wordpress.org/browser/tags/5.3.2/wp-includes/js/jquery/ui/core.min.js#L1"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://build.trac.wordpress.org/browser/tags/5.3.2/wp-includes/js/jquery/ui/core.min.js#L1&lt;/a&gt; &lt;br /&gt;
+&lt;a class="ext-link" href="https://build.trac.wordpress.org/browser/tags/5.3.2/wp-includes/js/mediaelement/mediaelement.js#L1"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://build.trac.wordpress.org/browser/tags/5.3.2/wp-includes/js/mediaelement/mediaelement.js#L1&lt;/a&gt; &lt;br /&gt;
+&lt;a class="ext-link" href="https://build.trac.wordpress.org/browser/tags/5.3.2/wp-includes/js/backbone.js#L1"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://build.trac.wordpress.org/browser/tags/5.3.2/wp-includes/js/backbone.js#L1&lt;/a&gt;.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+As far as I see there are three options:&lt;br /&gt;
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;Build and maintain a comprehensive list of all software that is redistributed with WP, and include it in the readme, or perhaps even in an "acknowledgement.txt" file which can be auto-generated at build time.
+&lt;/li&gt;&lt;li&gt;Mention only some of the "base" dependencies in the readme. That would probably be: jQuery, React, Backbone, TinyMCE, etc. and also some of the tools used to build WP like Node.js, Grunt, Webpack, etc.
+&lt;/li&gt;&lt;li&gt;Consider it "satisfactory" to have the copyright notices in the corresponding files.
+&lt;/li&gt;&lt;/ul&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #47056 (Add 'wp_nav_menu_item_custom_fields' hook in ...) updated</title>
+      
+        <dc:creator>adamsilverstein</dc:creator>
+
+      <pubDate>Sat, 28 Dec 2019 16:12:47 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/47056#comment:16</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/47056#comment:16/1577549567895609</guid>
+      <description>&lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Let's get this committed for 5.4 - it is a small, non destructive, helpful hook. &lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #49083 (Embeds: Add support for TikTok) updated</title>
+      
+        <dc:creator>jblz</dc:creator>
+
+      <pubDate>Sat, 28 Dec 2019 14:56:42 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/49083#comment:7</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/49083#comment:7/1577545002168237</guid>
+      <description>&lt;p&gt;
+Thanks for the elaboration on the requirements, @audrasjb.&lt;br /&gt;
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+I'm not sure to fully understand how to ensure the provider is a trusted provider. Maybe the above link to the Wikipedia page could help?&lt;br /&gt;
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
++1&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+I'm not sure how to fully establish trustworthiness in this sort of feature. Here's some points to consider:&lt;br /&gt;
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;They have a huge user base &amp;amp; have an interest in providing a trustworthy embedding service to maintain a positive public image (...though, their &lt;a class="ext-link" href="https://en.wikipedia.org/wiki/ByteDance"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;parent company&lt;/a&gt; is privately held &amp;amp; not directly beholden to shareholders)
+&lt;/li&gt;&lt;li&gt;They've been &lt;a class="ext-link" href="https://www.theverge.com/2019/2/27/18243510/tiktok-age-young-user-videos-ftc-settlement-13-childrens-privacy-law"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;reasonably responsive&lt;/a&gt; to COPA demands by the FTC
+&lt;/li&gt;&lt;li&gt;They &lt;a class="ext-link" href="https://www.tiktok.com/forgood"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;claim&lt;/a&gt; to "(want) to inspire and encourage a new generation to have a positive impact on the planet and those around them."
+&lt;/li&gt;&lt;li&gt;They publish docs like:
+&lt;ul&gt;&lt;li&gt;&lt;a class="ext-link" href="https://support.tiktok.com/en/privacy-safety/community-policy-en"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://support.tiktok.com/en/privacy-safety/community-policy-en&lt;/a&gt;
+&lt;/li&gt;&lt;li&gt;&lt;a class="ext-link" href="https://www.tiktok.com/legal/terms-of-use"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://www.tiktok.com/legal/terms-of-use&lt;/a&gt;
+&lt;/li&gt;&lt;li&gt;&lt;a class="ext-link" href="https://www.tiktok.com/legal/law-enforcement"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://www.tiktok.com/legal/law-enforcement&lt;/a&gt;
+&lt;/li&gt;&lt;/ul&gt;&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;
+I'm not sure that any of that qualifies them to provide unfiltered HTML, but it seems to have all the building blocks for a trustworthy service to me.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #49088 (Twenty Twenty: Add icon for g.page links (Google business profile)) created</title>
+      
+        <dc:creator>argentite</dc:creator>
+
+      <pubDate>Sat, 28 Dec 2019 12:19:35 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/49088</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/49088/1577535575300018</guid>
+      <description>&lt;p&gt;
+Google provides URLs at the domain &lt;code&gt;g.page&lt;/code&gt; for Google Business profiles. Example: &lt;a class="ext-link" href="https://g.page/sonajhuri-inn?gm"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://g.page/sonajhuri-inn?gm&lt;/a&gt;&lt;br /&gt;
+The Twenty Twenty theme includes a few icons for some popular sites and also a SVG "Google" icon at &lt;a href="https://core.trac.wordpress.org/browser/trunk/src/wp-content/themes/twentytwenty/classes/class-twentytwenty-svg-icons.php#L207"&gt;https://core.trac.wordpress.org/browser/trunk/src/wp-content/themes/twentytwenty/classes/class-twentytwenty-svg-icons.php#L207&lt;/a&gt;.&lt;br /&gt;
+This icon should be enabled by just adding a few lines at &lt;a href="https://core.trac.wordpress.org/browser/trunk/src/wp-content/themes/twentytwenty/classes/class-twentytwenty-svg-icons.php#L155"&gt;https://core.trac.wordpress.org/browser/trunk/src/wp-content/themes/twentytwenty/classes/class-twentytwenty-svg-icons.php#L155&lt;/a&gt; for g.page domain. I have successfully tested this on my site.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #39831 (Theme Tag Translation Ready) updated</title>
+      
+        <dc:creator>dingo_d</dc:creator>
+
+      <pubDate>Sat, 28 Dec 2019 11:32:13 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/39831#comment:12</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/39831#comment:12/1577532733639952</guid>
+      <description>&lt;p&gt;
+I've added the patch to remove the translation ready tag from the themes API. Once this is merged we can close the ticket.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>39831-themes-api.diff attached to Ticket #39831</title>
+      
+        <dc:creator>dingo_d</dc:creator>
+
+      <pubDate>Sat, 28 Dec 2019 11:31:32 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/39831/39831-themes-api.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/39831/39831-themes-api.diff/1577532692106349</guid>
+      <description>&lt;p&gt;
+Remove the translation ready tag from the themes API
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #49083 (Embeds: Add support for TikTok) updated</title>
+      
+        <dc:creator>audrasjb</dc:creator>
+
+      <pubDate>Sat, 28 Dec 2019 08:23:36 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/49083#comment:6</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/49083#comment:6/1577521416781815</guid>
+      <description>&lt;p&gt;
+Hi,&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+I'm not a user of the application, but here are some publicly available informations about this service:&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+✅ &lt;strong&gt;Be well-established, popular, and mainstream services&lt;/strong&gt;&lt;br /&gt;
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+As of 2018, TikTok is now available in over 150 markets, and in 75 languages. TikTok was downloaded more than 104 million times on Apple's App store during the full first half of 2018, according to data provided to CNBC by Sensor Tower, an app analytics platform based in San Francisco. It surpassed Facebook, YouTube and Instagram to become the world's most downloaded iOS app for that time period.&lt;br /&gt;
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+Source: &lt;a class="ext-link" href="https://en.wikipedia.org/wiki/TikTok#Evolution"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://en.wikipedia.org/wiki/TikTok#Evolution&lt;/a&gt;&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+✅ &lt;strong&gt;Properly and fully implement the oEmbed specification&lt;/strong&gt;&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Documentation about oEmbed can be found here: &lt;a class="ext-link" href="https://developers.tiktok.com/doc/Embed"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://developers.tiktok.com/doc/Embed&lt;/a&gt;&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+🔲 &lt;strong&gt;Clearly be a trusted provider&lt;/strong&gt;&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+I'm not sure to fully understand how to ensure the provider is a &lt;em&gt;trusted provider&lt;/em&gt;. Maybe the above link to the Wikipedia page could help?&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #49087 (impossible to set show_admin_bar_front to false in wp_insert_user) created</title>
+      
+        <dc:creator>bilgilabs</dc:creator>
+
+      <pubDate>Sat, 28 Dec 2019 02:57:44 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/49087</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/49087/1577501864977118</guid>
+      <description>&lt;p&gt;
+in wp-includes/user.php &lt;em&gt;line 1752&lt;/em&gt;&lt;br /&gt;
+&lt;/p&gt;
+&lt;div class="wiki-code"&gt;&lt;div class="code"&gt;&lt;pre&gt;&lt;span class="x"&gt;        $meta['show_admin_bar_front'] = empty( $userdata['show_admin_bar_front'] ) ? 'true' : $userdata['show_admin_bar_front'];
+&lt;/span&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;p&gt;
+with this expression it seems to me that setting &lt;em&gt;show_admin_bar_front&lt;/em&gt; to false is impossible. it should be&lt;br /&gt;
+&lt;/p&gt;
+&lt;div class="wiki-code"&gt;&lt;div class="code"&gt;&lt;pre&gt;&lt;span class="x"&gt;        $meta['show_admin_bar_front'] = !isset( $userdata['show_admin_bar_front'] ) ? 'true' : $userdata['show_admin_bar_front'];
+&lt;/span&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #48881 (Fix inline SVG error with wp_admin_css_color) updated</title>
+      
+        <dc:creator>KZeni</dc:creator>
+
+      <pubDate>Sat, 28 Dec 2019 01:13:31 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/48881#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/48881#comment:2/1577495611755597</guid>
+      <description>&lt;p&gt;
+&lt;a class="ext-link" href="https://github.com/helen/admin-color-schemer"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://github.com/helen/admin-color-schemer&lt;/a&gt; creates a copy of the &lt;code&gt;wp-admin/css/colors/_admin.scss&lt;/code&gt; file to generate its custom color schemes (it then uses its copy of this file at &lt;code&gt;wp-content/uploads/admin-color-schemer/_admin.scss&lt;/code&gt;.) This is where I encountered this issue (and confirmed just now that it is still an issue.) It shows the checked checkboxes as broken images instead of displaying the SVG as expected.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Again, just swapping out &lt;code&gt;@return '%23' + str-slice( '#{ $color }', 2, -1 );&lt;/code&gt; to instead be &lt;code&gt;@return '%23' + str-slice( %23{ $color }, 2, -1 );&lt;/code&gt; fixes the issue and doesn't appear to have any side-effects.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item>
+   </channel>
+</rss>

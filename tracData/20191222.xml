@@ -1,0 +1,1870 @@
+<?xml version="1.0"?>
+<rss xmlns:dc="http://purl.org/dc/elements/1.1/" version="2.0">
+  <channel>
+    <title>WordPress Trac</title>
+    <link>http://core.trac.wordpress.org/timeline</link>
+    <description>Trac Timeline</description>
+    <language>en-US</language>
+    <generator>Trac 1.2.2</generator>
+    <image>
+      <title>WordPress Trac</title>
+      <url>http://core.trac.wordpress.org/chrome/site/your_project_logo.png</url>
+      <link>http://core.trac.wordpress.org/timeline</link>
+    </image>
+    <item>
+      <title>Ticket #39768 (Incorrect image returned with attachment_url_to_postid()) updated</title>
+      
+        <dc:creator>archon810</dc:creator>
+
+      <pubDate>Sun, 22 Dec 2019 22:11:53 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/39768#comment:10</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/39768#comment:10/1577052713286409</guid>
+      <description>&lt;p&gt;
+@vsamoletov has a good point regarding the warning.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+But @SergeyBiryukov please consider the fact that while new cases may be resolved in 5.3.1, existing cases are still in the database and should be resolved properly.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+An alternate solution, and one we went with, is to get all the rows in PHP and if &amp;gt;1, go through them and do a case sensitive match in PHP.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #39768 (Incorrect image returned with attachment_url_to_postid()) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Sun, 22 Dec 2019 18:17:03 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/39768#comment:9</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/39768#comment:9/1577038623843808</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Replying to &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/39768#comment:8" title="Comment 8"&gt;vsamoletov&lt;/a&gt;:&lt;br /&gt;
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+I'm sure you saw this &lt;a class="ext-link" href="https://stackoverflow.com/a/56283818"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://stackoverflow.com/a/56283818&lt;/a&gt;, but just in case.&lt;br /&gt;
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+I missed that, thanks for bringing it to my attention.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+&lt;a class="attachment" href="http://core.trac.wordpress.org/attachment/ticket/39768/39768.diff" title="Attachment '39768.diff' in Ticket #39768"&gt;39768.diff&lt;/a&gt;&lt;a class="trac-rawlink" href="http://core.trac.wordpress.org/raw-attachment/ticket/39768/39768.diff" title="Download"&gt;​&lt;/a&gt; uses the &lt;code&gt;BINARY&lt;/code&gt; approach.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+It looks like that could introduce some unintended regressions when dealing with accented characters, or if the column charset doesn't match the session charset, e.g. &lt;code&gt;latin1&lt;/code&gt; vs. &lt;code&gt;utf8mb4&lt;/code&gt;.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Using &lt;code&gt;CONVERT()&lt;/code&gt; appears to be a better option. While &lt;code&gt;utf8mb4&lt;/code&gt; should be available on any modern install, that may not always be the case, so we have to check for it specifically, and fall back to the current query otherwise. This option also has a minor performance difference from the queries above in my testing:&lt;br /&gt;
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;SELECT post_id FROM wp_postmeta WHERE meta_key = '_wp_attached_file' AND meta_value = CONVERT( '2009/03/myimage.jpg' USING utf8mb4 ) COLLATE utf8mb4_bin
+Query took 0.0315 seconds
+&lt;/pre&gt;&lt;p&gt;
+&lt;a class="attachment" href="http://core.trac.wordpress.org/attachment/ticket/39768/39768.2.diff" title="Attachment '39768.2.diff' in Ticket #39768"&gt;39768.2.diff&lt;/a&gt;&lt;a class="trac-rawlink" href="http://core.trac.wordpress.org/raw-attachment/ticket/39768/39768.2.diff" title="Download"&gt;​&lt;/a&gt; uses the &lt;code&gt;CONVERT()&lt;/code&gt; approach.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Given that the main issue of &lt;code&gt;wp_unique_filename()&lt;/code&gt; being case-sensitive is fixed as of 5.3.1, I'm now a bit less convinced &lt;code&gt;attachment_url_to_postid()&lt;/code&gt; needs this change. That said, if &lt;a class="attachment" href="http://core.trac.wordpress.org/attachment/ticket/39768/39768.2.diff" title="Attachment '39768.2.diff' in Ticket #39768"&gt;39768.2.diff&lt;/a&gt;&lt;a class="trac-rawlink" href="http://core.trac.wordpress.org/raw-attachment/ticket/39768/39768.2.diff" title="Download"&gt;​&lt;/a&gt; looks sensible, I guess we could give it a go.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>39768.2.diff attached to Ticket #39768</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Sun, 22 Dec 2019 17:59:45 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/39768/39768.2.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/39768/39768.2.diff/1577037585501886</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>39768.diff attached to Ticket #39768</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Sun, 22 Dec 2019 17:59:37 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/39768/39768.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/39768/39768.diff/1577037577315765</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #49038 (Timezone setting does not display correct time of next DST transition) updated</title>
+      
+        <dc:creator>autotutorial</dc:creator>
+
+      <pubDate>Sun, 22 Dec 2019 17:37:37 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/49038#comment:19</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/49038#comment:19/1577036257954947</guid>
+      <description>&lt;p&gt;
+If you allow I express my idea of local time, however if it is a design choice I have nothing against it. The choice is yours.&lt;br /&gt;
+forget any Dayligth saving time or Standard time in context for output.&lt;br /&gt;
+In the past they tried to calculate the difference (wrongly), now if you always use an explicit timezone in DateTime all the data is safe.&lt;br /&gt;
+If you calculate the timestamp offset (always UTC) and do the arithmetic operation you can create with UTC timezone and display in the correct way (even in the past it was like that, but with your help wp_date and UTC defined there is no margin of error).&lt;br /&gt;
+Have you seen the bug if you select UTC?&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #39768 (Incorrect image returned with attachment_url_to_postid()) updated</title>
+      
+        <dc:creator>vsamoletov</dc:creator>
+
+      <pubDate>Sun, 22 Dec 2019 17:35:58 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/39768#comment:8</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/39768#comment:8/1577036158781627</guid>
+      <description>&lt;p&gt;
+I'm sure you saw this &lt;a class="ext-link" href="https://stackoverflow.com/a/56283818"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://stackoverflow.com/a/56283818&lt;/a&gt;, but just in case.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Replying to &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/39768#comment:7" title="Comment 7"&gt;SergeyBiryukov&lt;/a&gt;:&lt;br /&gt;
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+Replying to &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/39768#comment:6" title="Comment 6"&gt;SergeyBiryukov&lt;/a&gt;:&lt;br /&gt;
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+I'm up for updating the query in &lt;code&gt;attachment_url_to_postid()&lt;/code&gt; to be case-sensitive and handle already existing images, if that does not reduce performance.&lt;br /&gt;
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+On a site with ~32000 attachments, seeing no noticeable difference in performance&lt;br /&gt;
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;SELECT post_id FROM wp_postmeta WHERE meta_key = '_wp_attached_file' AND meta_value = '2009/03/myimage.jpg'
+Query took 0.0292 seconds.
+SELECT post_id FROM wp_postmeta WHERE meta_key = '_wp_attached_file' AND BINARY meta_value = '2009/03/myimage.jpg'
+Query took 0.0294 seconds
+&lt;/pre&gt;&lt;p&gt;
+Both queries use the index:&lt;br /&gt;
+&lt;/p&gt;
+&lt;table class="wiki"&gt;
+&lt;tr&gt;&lt;td&gt;id&lt;/td&gt;&lt;td&gt;select_type&lt;/td&gt;&lt;td&gt;table&lt;/td&gt;&lt;td&gt;type&lt;/td&gt;&lt;td&gt;possible_keys&lt;/td&gt;&lt;td&gt;key&lt;/td&gt;&lt;td&gt;key_len&lt;/td&gt;&lt;td&gt;ref&lt;/td&gt;&lt;td&gt;rows&lt;/td&gt;&lt;td&gt;Extra
+&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;1&lt;/td&gt;&lt;td&gt;SIMPLE&lt;/td&gt;&lt;td&gt;wp_postmeta&lt;/td&gt;&lt;td&gt;ref&lt;/td&gt;&lt;td&gt;meta_key&lt;/td&gt;&lt;td&gt;meta_key&lt;/td&gt;&lt;td&gt;768&lt;/td&gt;&lt;td&gt;const&lt;/td&gt;&lt;td&gt;30557&lt;/td&gt;&lt;td&gt;Using index condition; Using where
+&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;p&gt;
+Should be good to go.&lt;br /&gt;
+&lt;/p&gt;
+&lt;/blockquote&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #49038 (Timezone setting does not display correct time of next DST transition) updated</title>
+      
+        <dc:creator>Rarst</dc:creator>
+
+      <pubDate>Sun, 22 Dec 2019 17:30:54 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/49038#comment:18</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/49038#comment:18/1577035854690648</guid>
+      <description>&lt;p&gt;
+With the patch I suggested the current output for Europe/Rome is &lt;code&gt;Daylight saving time begins on: March 29, 2020 3:00 am&lt;/code&gt; which would be in CEST time zone.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+I don't follow what is confusing about it or in what way would UTC be preferable.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+This is a settings screen, not a clock. Personally I wouldn't even bother outputting time at all and only used date for this purpose here, but since it's in place already we are keeping it for consistency.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #39768 (Incorrect image returned with attachment_url_to_postid()) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Sun, 22 Dec 2019 17:17:36 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/39768#comment:7</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/39768#comment:7/1577035056232331</guid>
+      <description>&lt;p&gt;
+Replying to &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/39768#comment:6" title="Comment 6"&gt;SergeyBiryukov&lt;/a&gt;:&lt;br /&gt;
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+I'm up for updating the query in &lt;code&gt;attachment_url_to_postid()&lt;/code&gt; to be case-sensitive and handle already existing images, if that does not reduce performance.&lt;br /&gt;
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+On a site with ~32000 attachments, seeing no noticeable difference in performance:&lt;br /&gt;
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;SELECT post_id FROM wp_postmeta WHERE meta_key = '_wp_attached_file' AND meta_value = '2009/03/myimage.jpg'
+Query took 0.0292 seconds.
+SELECT post_id FROM wp_postmeta WHERE meta_key = '_wp_attached_file' AND BINARY meta_value = '2009/03/myimage.jpg'
+Query took 0.0294 seconds
+&lt;/pre&gt;&lt;p&gt;
+Both queries use the index:&lt;br /&gt;
+&lt;/p&gt;
+&lt;table class="wiki"&gt;
+&lt;tr&gt;&lt;td&gt;id&lt;/td&gt;&lt;td&gt;select_type&lt;/td&gt;&lt;td&gt;table&lt;/td&gt;&lt;td&gt;type&lt;/td&gt;&lt;td&gt;possible_keys&lt;/td&gt;&lt;td&gt;key&lt;/td&gt;&lt;td&gt;key_len&lt;/td&gt;&lt;td&gt;ref&lt;/td&gt;&lt;td&gt;rows&lt;/td&gt;&lt;td&gt;Extra
+&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;1&lt;/td&gt;&lt;td&gt;SIMPLE&lt;/td&gt;&lt;td&gt;wp_postmeta&lt;/td&gt;&lt;td&gt;ref&lt;/td&gt;&lt;td&gt;meta_key&lt;/td&gt;&lt;td&gt;meta_key&lt;/td&gt;&lt;td&gt;768&lt;/td&gt;&lt;td&gt;const&lt;/td&gt;&lt;td&gt;30557&lt;/td&gt;&lt;td&gt;Using index condition; Using where
+&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;p&gt;
+Should be good to go.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #49038 (Timezone setting does not display correct time of next DST transition) updated</title>
+      
+        <dc:creator>autotutorial</dc:creator>
+
+      <pubDate>Sun, 22 Dec 2019 17:15:06 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/49038#comment:17</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/49038#comment:17/1577034906641470</guid>
+      <description>&lt;p&gt;
+Do not choose UTC+0 but UTC this time zone cannot be evaluated for daylight saving time or Standard time. (Only Universal Cordinated Time).&lt;br /&gt;
+Europe/Rome Daylight saving time, Output UTC 2020-03-29 02:00:00&lt;br /&gt;
+Europe/Rome Standard time, OUTPUT UTC 2020-10-25 03:00:00.&lt;br /&gt;
+This is the only case of using arithmetic operations otherwise it creates confusion because it can be thought to be referred to before the change of Dayligth saving time or Standard time. also in the past they wanted to calculate the difference from local time (Dayligth saving time or Standard time) in arithmetic operation (I did the right arithmetic operation)&lt;br /&gt;
+If I don't create a container variable $allowed_zones it is not possible to free 1500 KB.&lt;br /&gt;
+wp_timezone_choiche + 1500 KB callback wp_timezone_choice + 1500 KB options-general.php + 1500 KB.&lt;br /&gt;
+I am for the opinion of releasing superfluous 5 megabytes but I understand other points of view.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+I edited the previous message, missing a function for the validity of a timezone string that uses an offset to 0.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #39768 (Incorrect image returned with attachment_url_to_postid()) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Sun, 22 Dec 2019 16:52:15 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/39768#comment:6</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/39768#comment:6/1577033535653600</guid>
+      <description>&lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Replying to &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/39768#comment:4" title="Comment 4"&gt;archon810&lt;/a&gt;:&lt;br /&gt;
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+I'm really not sure why &lt;code&gt;-1&lt;/code&gt; isn't appended, and in my test just now it did&lt;br /&gt;
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+Yes, it appears to be fixed with the introduction of &lt;code&gt;_wp_check_existing_file_names()&lt;/code&gt; in 5.3.1, &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/46822" title="Upload: fix `wp_unique_filename()` to prevent name collisions with ..."&gt;[46822]&lt;/a&gt; / &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/42437" title="#42437: defect (bug): Thumbnails can overwrite other uploads if filename matches (closed: fixed)"&gt;#42437&lt;/a&gt;, so should not be an issue going forward.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+I'm up for updating the query in &lt;code&gt;attachment_url_to_postid()&lt;/code&gt; to be case-sensitive and handle already existing images, if that does not reduce performance.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #24146 (Menu items with blank labels are removed on saving) updated</title>
+      
+        <dc:creator>ElectricFeet</dc:creator>
+
+      <pubDate>Sun, 22 Dec 2019 16:49:36 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/24146#comment:23</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/24146#comment:23/1577033376018941</guid>
+      <description>&lt;p&gt;
+Reminder to self: check Trac &lt;strong&gt;exhaustiveley&lt;/strong&gt; before writing out a bug report.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+I'll add my text here anyway, as it elaborates on some of the reasoning behind this issue -- specifically giving a scenario where this happens. Reading through the various comments above and noting that it's taking so long to fix, you might want to consider at least taking approach B (below) to the problem. That is, at least warn the user you're about to delete their work before deleting it. &lt;br /&gt;
+&lt;/p&gt;
+&lt;h2 id="Originalaim:"&gt;Original aim:&lt;/h2&gt;
+&lt;p&gt;
+To create menu items that shows icons with no text.&lt;br /&gt;
+&lt;/p&gt;
+&lt;h2 id="Problem:"&gt;Problem:&lt;/h2&gt;
+&lt;p&gt;
+Menu items can be deleted with no warning.&lt;br /&gt;
+&lt;/p&gt;
+&lt;h2 id="Stepstoreproduceproblem:"&gt;Steps to reproduce problem:&lt;/h2&gt;
+&lt;ol&gt;&lt;li&gt;Create new menu
+&lt;/li&gt;&lt;li&gt;Create two new custom links (for example to &lt;code&gt;https://example.com&lt;/code&gt;), with Link Text &lt;code&gt;test1&lt;/code&gt; and &lt;code&gt;test2&lt;/code&gt;, adding each to the menu
+&lt;/li&gt;&lt;li&gt;Save the menu.
+&lt;/li&gt;&lt;li&gt;On the Manage Locations tab, add this menu to a theme location you will be able to see and save your changes.
+&lt;/li&gt;&lt;li&gt;View site and check that the two menu items are there.
+&lt;/li&gt;&lt;li&gt;Go back to Edit Menus. If the CSS Classes box is not available, enable it from the Screen Options pull down (top right of screen)
+&lt;/li&gt;&lt;li&gt;Open the test1 menu item and add &lt;code&gt;fa fa-envelope&lt;/code&gt; to the CSS classes.
+&lt;/li&gt;&lt;li&gt;Delete the navigation label and save the menu.
+&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;
+The menu item &lt;code&gt;test1&lt;/code&gt; disappears and there is no way to get it back. The site does not display it. There was no warning or other indication to the user that the item was to be deleted. If this has been done for a lot of menu items, a lot of time/work is lost.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+I should point out that I know that I can add &lt;code&gt;&amp;lt;span class="fa fa-envelope"&amp;gt;&amp;lt;/span&amp;gt;&lt;/code&gt; to the navigation label to get the result I need; my issue is with no warning of impending deletion if a user tries to do this in the way described above.&lt;br /&gt;
+&lt;/p&gt;
+&lt;h2 id="Recommendation:"&gt;Recommendation:&lt;/h2&gt;
+&lt;ol class="upperalpha"&gt;&lt;li&gt;I recommend that &lt;em&gt;the menu item should remain, with no navigation label&lt;/em&gt; (similar to what happens if you add &lt;code&gt;&amp;amp;nbsp;&lt;/code&gt; to the menu). This allows the user to continue to modify it -- including to remove it, if that was the original intention. (It's very unlikely that users will want to delete menu items by removing the navigation label, when they have a red "Remove" link at the bottom.)
+&lt;/li&gt;&lt;/ol&gt;&lt;ol class="upperalpha" start="2"&gt;&lt;li&gt;If it isn't possible to implement A, then -- in the case that there are menu items without Navigation Labels when the user clicks Save Menu -- another approach would be to &lt;em&gt;warn the user&lt;/em&gt; that menu items without Navigation Labels will be deleted, and allow them to cancel the save. That way, they will be able to re-instate the navigation labels and not lose all their menu items.
+&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;
+Personally, I much prefer A. It gives the user more flexibility, behaviour is not unexpected, and allows more creative use of pseudo elements / classes etc.  &lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #49038 (Timezone setting does not display correct time of next DST transition) updated</title>
+      
+        <dc:creator>Rarst</dc:creator>
+
+      <pubDate>Sun, 22 Dec 2019 16:34:29 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/49038#comment:16</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/49038#comment:16/1577032469436277</guid>
+      <description>&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+The bug has changed from the DateTime component to the logic structured in options-general.php.&lt;br /&gt;
+the syntax UTC, Etc/GMT or any other synonym that has an offset 0 is considered a manual offset and in this case a manual offset regardless of its value does not have a Daylight saving time&lt;br /&gt;
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+I don't follow what do you consider a bug at this point. Please talk in specific examples of settings state, actual output, and output you think should be correct instead.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Etc/GMT (and other deprecated zones) are not supported by core and cannot be selected in settings.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Adding things to Unix timestamps - no, we are done doing that and &lt;code&gt;wp_date()&lt;/code&gt; is written to work with real timestamps as is. I don't follow what output are you trying to achieve there.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Memory thing doesn't seem relevant, this is one-off page execution and it hardly matters if we try to release small amount of memory early.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #49038 (Timezone setting does not display correct time of next DST transition) updated</title>
+      
+        <dc:creator>autotutorial</dc:creator>
+
+      <pubDate>Sun, 22 Dec 2019 16:13:45 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/49038#comment:15</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/49038#comment:15/1577031225562577</guid>
+      <description>&lt;p&gt;
+The bug has changed from the DateTime component to the logic structured in options-general.php.&lt;br /&gt;
+the syntax UTC, Etc/GMT or any other synonym that has an offset 0 is considered a manual offset and in this case a manual offset regardless of its value does not have a Daylight saving time (old list timezone &lt;a class="ext-link" href="https://www.php.net/manual/en/timezones.others.php"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://www.php.net/manual/en/timezones.others.php&lt;/a&gt; ).&lt;br /&gt;
+I converted the page to a WordPress 5.3 syntax, where thanks to the creator of wp_timezone it was possible to apply other improvements.&lt;br /&gt;
+In this example I removed the redundant calls to timezone_string and stored the value in a container variable since the value is the one previously recovered from general settings it is useful to keep the value for later use if the context remains to the WordPress core, more specifically it works only in that page context and will not be used for other pages.&lt;br /&gt;
+I added wp_date with the timezone object created by wp_timezone or UTC, or UTC arithmetic operation, set UTC if $tzstring has an offset equal to 0, I added two unset to the wp_timezone_choice function ( use timezone_identifiers_list ),  if possible I would like to avoid timezone_identifiers_list() if the timezone is in the list you should retrieve the value set from the menu, added restore array in $allowed_zones to free up php memory&lt;br /&gt;
+&lt;/p&gt;
+&lt;div class="wiki-code"&gt;&lt;div class="code"&gt;&lt;pre&gt;&lt;span class="cp"&gt;&amp;lt;?php&lt;/span&gt;
+&lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="k"&gt;empty&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="nv"&gt;$tzstring&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt; &lt;span class="c1"&gt;// Create a UTC+- zone if no timezone string exists
+&lt;/span&gt;        &lt;span class="nv"&gt;$check_zone_info&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="k"&gt;false&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+        &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="nv"&gt;$current_offset&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+                &lt;span class="nv"&gt;$tzstring&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s1"&gt;'UTC+0'&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+        &lt;span class="p"&gt;}&lt;/span&gt; &lt;span class="k"&gt;elseif&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="nv"&gt;$current_offset&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+                &lt;span class="nv"&gt;$tzstring&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s1"&gt;'UTC'&lt;/span&gt; &lt;span class="o"&gt;.&lt;/span&gt; &lt;span class="nv"&gt;$current_offset&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+        &lt;span class="p"&gt;}&lt;/span&gt; &lt;span class="k"&gt;else&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+                &lt;span class="nv"&gt;$tzstring&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s1"&gt;'UTC+'&lt;/span&gt; &lt;span class="o"&gt;.&lt;/span&gt; &lt;span class="nv"&gt;$current_offset&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+        &lt;span class="p"&gt;}&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt; &lt;span class="k"&gt;elseif&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="s1"&gt;'UTC'&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="nv"&gt;$tzstring&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="nv"&gt;$check_zone_info&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="k"&gt;false&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;span class="cp"&gt;?&amp;gt;&lt;/span&gt;&lt;span class="x"&gt;
+&amp;lt;th scope="row"&amp;gt;&amp;lt;label for="timezone_string"&amp;gt;&lt;/span&gt;&lt;span class="cp"&gt;&amp;lt;?php&lt;/span&gt; &lt;span class="nx"&gt;_e&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="s1"&gt;'Timezone'&lt;/span&gt; &lt;span class="p"&gt;);&lt;/span&gt; &lt;span class="cp"&gt;?&amp;gt;&lt;/span&gt;&lt;span class="x"&gt;&amp;lt;/label&amp;gt;&amp;lt;/th&amp;gt;
+&amp;lt;td&amp;gt;
+&amp;lt;select id="timezone_string" name="timezone_string" aria-describedby="timezone-description"&amp;gt;
+        &lt;/span&gt;&lt;span class="cp"&gt;&amp;lt;?php&lt;/span&gt; &lt;span class="k"&gt;echo&lt;/span&gt; &lt;span class="nx"&gt;wp_timezone_choice&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="nv"&gt;$tzstring&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;get_user_locale&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="p"&gt;);&lt;/span&gt; &lt;span class="cp"&gt;?&amp;gt;&lt;/span&gt;&lt;span class="x"&gt;
+&amp;lt;/select&amp;gt;
+&amp;lt;p class="description" id="timezone-description"&amp;gt;
+&lt;/span&gt;&lt;span class="cp"&gt;&amp;lt;?php&lt;/span&gt;
+        &lt;span class="nb"&gt;printf&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;
+                &lt;span class="cm"&gt;/* translators: %s: UTC abbreviation */&lt;/span&gt;
+                &lt;span class="nx"&gt;__&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="s1"&gt;'Choose either a city in the same timezone as you or a %s (Coordinated Universal Time) time offset.'&lt;/span&gt; &lt;span class="p"&gt;),&lt;/span&gt;
+                &lt;span class="s1"&gt;'&amp;lt;abbr&amp;gt;UTC&amp;lt;/abbr&amp;gt;'&lt;/span&gt;
+        &lt;span class="p"&gt;);&lt;/span&gt;
+        &lt;span class="cp"&gt;?&amp;gt;&lt;/span&gt;&lt;span class="x"&gt;
+&amp;lt;/p&amp;gt;
+&amp;lt;p class="timezone-info"&amp;gt;
+        &amp;lt;span id="utc-time"&amp;gt;
+        &lt;/span&gt;&lt;span class="cp"&gt;&amp;lt;?php&lt;/span&gt;
+                &lt;span class="nb"&gt;printf&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;
+                        &lt;span class="cm"&gt;/* translators: %s: UTC time. */&lt;/span&gt;
+                        &lt;span class="nx"&gt;__&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="s1"&gt;'Universal time is %s.'&lt;/span&gt; &lt;span class="p"&gt;),&lt;/span&gt;
+                        &lt;span class="s1"&gt;'&amp;lt;code&amp;gt;'&lt;/span&gt; &lt;span class="o"&gt;.&lt;/span&gt; &lt;span class="nx"&gt;wp_date&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="nv"&gt;$timezone_format&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="k"&gt;null&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="k"&gt;new&lt;/span&gt; &lt;span class="nx"&gt;DateTimeZone&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="s1"&gt;'UTC'&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;.&lt;/span&gt; &lt;span class="s1"&gt;'&amp;lt;/code&amp;gt;'&lt;/span&gt;
+                &lt;span class="p"&gt;);&lt;/span&gt;
+                &lt;span class="cp"&gt;?&amp;gt;&lt;/span&gt;&lt;span class="x"&gt;
+        &amp;lt;/span&amp;gt;
+&lt;/span&gt;&lt;span class="cp"&gt;&amp;lt;?php&lt;/span&gt; &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="nv"&gt;$current_offset&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="cp"&gt;?&amp;gt;&lt;/span&gt;&lt;span class="x"&gt;
+        &amp;lt;span id="local-time"&amp;gt;
+        &lt;/span&gt;&lt;span class="cp"&gt;&amp;lt;?php&lt;/span&gt;
+        &lt;span class="nv"&gt;$timezone&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nx"&gt;wp_timezone&lt;/span&gt;&lt;span class="p"&gt;();&lt;/span&gt;
+                &lt;span class="nb"&gt;printf&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;
+                        &lt;span class="cm"&gt;/* translators: %s: Local time. */&lt;/span&gt;
+                        &lt;span class="nx"&gt;__&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="s1"&gt;'Local time is %s.'&lt;/span&gt; &lt;span class="p"&gt;),&lt;/span&gt;
+                        &lt;span class="s1"&gt;'&amp;lt;code&amp;gt;'&lt;/span&gt; &lt;span class="o"&gt;.&lt;/span&gt; &lt;span class="nx"&gt;wp_date&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="nv"&gt;$timezone_format&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="k"&gt;null&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nv"&gt;$timezone&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;.&lt;/span&gt; &lt;span class="s1"&gt;'&amp;lt;/code&amp;gt;'&lt;/span&gt;
+                &lt;span class="p"&gt;);&lt;/span&gt;
+        &lt;span class="cp"&gt;?&amp;gt;&lt;/span&gt;&lt;span class="x"&gt;
+        &amp;lt;/span&amp;gt;
+&amp;lt;/p&amp;gt;
+&lt;/span&gt;&lt;span class="cp"&gt;&amp;lt;?php&lt;/span&gt; &lt;span class="k"&gt;endif&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="cp"&gt;?&amp;gt;&lt;/span&gt;&lt;span class="x"&gt;
+&lt;/span&gt;&lt;span class="cp"&gt;&amp;lt;?php&lt;/span&gt; &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="nv"&gt;$check_zone_info&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class="nv"&gt;$tz_string&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="cp"&gt;?&amp;gt;&lt;/span&gt;&lt;span class="x"&gt;
+&amp;lt;p class="timezone-info"&amp;gt;
+&amp;lt;span&amp;gt;
+        &lt;/span&gt;&lt;span class="cp"&gt;&amp;lt;?php&lt;/span&gt;
+        &lt;span class="nv"&gt;$now&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="k"&gt;new&lt;/span&gt; &lt;span class="nx"&gt;DateTime&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="s1"&gt;'now'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nv"&gt;$timezone&lt;/span&gt; &lt;span class="p"&gt;);&lt;/span&gt;
+        &lt;span class="nv"&gt;$dst&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;bool&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="nv"&gt;$now&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="na"&gt;format&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="s1"&gt;'I'&lt;/span&gt; &lt;span class="p"&gt;);&lt;/span&gt;
+        &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="nv"&gt;$dst&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+                &lt;span class="nx"&gt;_e&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="s1"&gt;'This timezone is currently in daylight saving time.'&lt;/span&gt; &lt;span class="p"&gt;);&lt;/span&gt;
+        &lt;span class="p"&gt;}&lt;/span&gt; &lt;span class="k"&gt;else&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+                &lt;span class="nx"&gt;_e&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="s1"&gt;'This timezone is currently in standard time.'&lt;/span&gt; &lt;span class="p"&gt;);&lt;/span&gt;
+        &lt;span class="p"&gt;}&lt;/span&gt;
+        &lt;span class="cp"&gt;?&amp;gt;&lt;/span&gt;&lt;span class="x"&gt;
+        &amp;lt;br /&amp;gt;
+        &lt;/span&gt;&lt;span class="cp"&gt;&amp;lt;?php&lt;/span&gt;
+    &lt;span class="c1"&gt;//timezone_identifiers_list Avoid if possible
+&lt;/span&gt;        &lt;span class="nv"&gt;$allowed_zones&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nb"&gt;timezone_identifiers_list&lt;/span&gt;&lt;span class="p"&gt;();&lt;/span&gt;
+        &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="nb"&gt;in_array&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="nv"&gt;$tzstring&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nv"&gt;$allowed_zones&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+                                &lt;span class="nv"&gt;$transitions&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nv"&gt;$timezone&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="na"&gt;getTransitions&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="nb"&gt;time&lt;/span&gt;&lt;span class="p"&gt;(),&lt;/span&gt; &lt;span class="nb"&gt;time&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="nx"&gt;YEAR_IN_SECONDS&lt;/span&gt; &lt;span class="p"&gt;);&lt;/span&gt;
+                                &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="o"&gt;!&lt;/span&gt; &lt;span class="k"&gt;empty&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="nv"&gt;$transitions&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+                &lt;span class="k"&gt;echo&lt;/span&gt; &lt;span class="s1"&gt;' '&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+                            &lt;span class="c1"&gt;// Create timestamp UTC +- ( ex. 2+-1=1 or 2++1=3 ) for display Daylight saving time or Standard time.
+&lt;/span&gt;                            &lt;span class="nv"&gt;$utc&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nv"&gt;$transitions&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;][&lt;/span&gt;&lt;span class="s1"&gt;'ts'&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="nv"&gt;$transitions&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;][&lt;/span&gt;&lt;span class="s1"&gt;'offset'&lt;/span&gt;&lt;span class="p"&gt;];&lt;/span&gt;
+                                &lt;span class="nv"&gt;$message&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nv"&gt;$transitions&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;][&lt;/span&gt;&lt;span class="s1"&gt;'isdst'&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;?&lt;/span&gt;
+                                &lt;span class="cm"&gt;/* translators: %s: Date and time. */&lt;/span&gt;
+                                &lt;span class="nx"&gt;__&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="s1"&gt;'Daylight saving time begins on: %s.'&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;:&lt;/span&gt;
+                                &lt;span class="cm"&gt;/* translators: %s: Date and time. */&lt;/span&gt;
+                                &lt;span class="nx"&gt;__&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="s1"&gt;'Standard time begins on: %s.'&lt;/span&gt; &lt;span class="p"&gt;);&lt;/span&gt;
+                        &lt;span class="nb"&gt;printf&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;
+                                &lt;span class="nv"&gt;$message&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+                                                                &lt;span class="s1"&gt;'&amp;lt;code&amp;gt;'&lt;/span&gt; &lt;span class="o"&gt;.&lt;/span&gt; &lt;span class="nx"&gt;wp_date&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="nx"&gt;__&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="s1"&gt;'F j, Y'&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;.&lt;/span&gt; &lt;span class="s1"&gt;' '&lt;/span&gt; &lt;span class="o"&gt;.&lt;/span&gt; &lt;span class="nx"&gt;__&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="s1"&gt;'g:i a'&lt;/span&gt; &lt;span class="p"&gt;),&lt;/span&gt; &lt;span class="nv"&gt;$utc&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="k"&gt;new&lt;/span&gt; &lt;span class="nx"&gt;DateTimeZone&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="s1"&gt;'UTC'&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;.&lt;/span&gt; &lt;span class="s1"&gt;'&amp;lt;/code&amp;gt;'&lt;/span&gt;
+                        &lt;span class="p"&gt;);&lt;/span&gt;
+                &lt;span class="p"&gt;}&lt;/span&gt; &lt;span class="k"&gt;elseif&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="nv"&gt;$current_offset&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+                        &lt;span class="nx"&gt;_e&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="s1"&gt;'This timezone does not observe daylight saving time.'&lt;/span&gt; &lt;span class="p"&gt;);&lt;/span&gt;
+                &lt;span class="p"&gt;}&lt;/span&gt;
+        &lt;span class="p"&gt;}&lt;/span&gt;
+&lt;span class="c1"&gt;//You now, not have 467 array in memory
+&lt;/span&gt;&lt;span class="nv"&gt;$allowed_zones&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="k"&gt;array&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="nv"&gt;$tzstring&lt;/span&gt; &lt;span class="p"&gt;);&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;p&gt;
+You need to create a list for UTC synonyms versions and avoid getting a valid offset on 0, otherwise it is ambiguous, the code requires further changes&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #39768 (Incorrect image returned with attachment_url_to_postid()) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Sun, 22 Dec 2019 16:12:48 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/39768#comment:5</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/39768#comment:5/1577031168479994</guid>
+      <description>&lt;i&gt;Component&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>39768-binary.jpg attached to Ticket #39768</title>
+      
+        <dc:creator>vsamoletov</dc:creator>
+
+      <pubDate>Sun, 22 Dec 2019 15:51:04 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/39768/39768-binary.jpg</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/39768/39768-binary.jpg/1577029864161603</guid>
+      <description>&lt;p&gt;
+Issue &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/39768" title="#39768: defect (bug): Incorrect image returned with attachment_url_to_postid() (closed: fixed)"&gt;#39768&lt;/a&gt; fixed demo
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>39768.jpg attached to Ticket #39768</title>
+      
+        <dc:creator>vsamoletov</dc:creator>
+
+      <pubDate>Sun, 22 Dec 2019 15:50:41 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/39768/39768.jpg</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/39768/39768.jpg/1577029841100665</guid>
+      <description>&lt;p&gt;
+Issue &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/39768" title="#39768: defect (bug): Incorrect image returned with attachment_url_to_postid() (closed: fixed)"&gt;#39768&lt;/a&gt; demo
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #12009 (Add support for HTML 5 "async" and "defer" attributes) updated</title>
+      
+        <dc:creator>apedog</dc:creator>
+
+      <pubDate>Sun, 22 Dec 2019 13:28:43 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/12009#comment:64</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/12009#comment:64/1577021323028810</guid>
+      <description>&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+&lt;strong&gt;New &lt;code&gt;wp_enqueue_script()&lt;/code&gt; signature&lt;/strong&gt;&lt;br /&gt;
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+This comment is about &lt;code&gt;wp_enqueue_script()&lt;/code&gt; signature. Not about implementation.&lt;br /&gt;
+I might be late to the party, but I've not seen any serious discussion on this.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+I believe &lt;code&gt;wp_enqueue_script()&lt;/code&gt; should get an additional &lt;code&gt;$parsing_attr&lt;/code&gt; parameter. Like so:&lt;br /&gt;
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;wp_enqueue_script( $handle, $src, $deps, $ver, $in_footer, $parsing_attr=null )
+&lt;/pre&gt;&lt;p&gt;
+Where &lt;code&gt;parsing_attr&lt;/code&gt; defaults to &lt;code&gt;null&lt;/code&gt; but can be set to &lt;code&gt;'defer'&lt;/code&gt; or &lt;code&gt;'async'&lt;/code&gt;. No need to allow for both. &lt;code&gt;defer&lt;/code&gt; and &lt;code&gt;async&lt;/code&gt; can be mutually exclusive IMO.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Ideally &lt;code&gt;in_footer&lt;/code&gt; could have been overloaded, but since a truth-y &lt;code&gt;in_footer&lt;/code&gt; value prints the script in the footer, this would invalidate the use of &lt;code&gt;defer&lt;/code&gt; and &lt;code&gt;async&lt;/code&gt; (which are also truth-y, but useless on scripts loaded in the footer).&lt;br /&gt;
+So a separate parameter is, alas, the safer way to go.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+This seems to me to be the least likely candidate to break old plugins. At the cost of a long, convoluted signature.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Does anything need to happen outside of this ticket in order to change the signature of such a widely-used function?&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #48964 (version 5.3.1 - Critical Errors Updating Plugins &amp; Themes) updated</title>
+      
+        <dc:creator>airamerica</dc:creator>
+
+      <pubDate>Sun, 22 Dec 2019 13:21:55 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/48964#comment:7</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/48964#comment:7/1577020915609318</guid>
+      <description>&lt;p&gt;
+Replying to &lt;a class="new ticket" href="http://core.trac.wordpress.org/ticket/48964" title="#48964: defect (bug): version 5.3.1 - Critical Errors Updating Plugins &amp;amp; Themes (new)"&gt;airamerica&lt;/a&gt;:&lt;br /&gt;
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+Discovered last night 9pm est after updating client site. Thought it was an individual plugin or custom setting. After debugging and other automatic core updates performed on other sites with same issue thought it was best to open ticket straight away.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Sites do function but updates fail leaving .maintenance file to be deleted. &lt;br /&gt;
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+&lt;strong&gt; All Issues Resolved with 5.3.2 &lt;/strong&gt; &lt;br /&gt;
+Site updated to 5.2.1 would not allow automatic update to dot 2 however manual file over-write works!&lt;br /&gt;
+Many Thanks - Happy Holidays &lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #49059 (Whitespace inside p element in wp-signup.php should be removed) updated</title>
+      
+        <dc:creator>henry.wright</dc:creator>
+
+      <pubDate>Sun, 22 Dec 2019 12:59:08 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/49059#comment:16</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/49059#comment:16/1577019548193809</guid>
+      <description>&lt;p&gt;
+If we are discussing readability in general, in my opinion having logic and HTML in the same file isn’t nice. Twig helps solve that problem by separating the controller and template. I do understand that isn’t how WordPress does things. Finding a suitable pattern that works for us and then being consistent is the important thing&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #49064 (Storefront bug with Elementor) closed</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Sun, 22 Dec 2019 12:49:43 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/49064#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/49064#comment:2/1577018983674028</guid>
+      <description>invalid: &lt;p&gt;
+Hi there, welcome to WordPress Trac!&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Please note that this Trac is used for enhancements and bug reporting for the WordPress core software, not for third-party themes or plugins.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+As noted above, please report the issue on the Storefront GitHub repository, or on the support forums here: &lt;a class="ext-link" href="https://wordpress.org/support/theme/storefront/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://wordpress.org/support/theme/storefront/&lt;/a&gt;&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Ticket #49063 (Media Upload: -1 appended to brand new filename) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Sun, 22 Dec 2019 12:45:54 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/49063#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/49063#comment:1/1577018754938564</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt;, &lt;i&gt;Component&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Hi there, welcome to WordPress Trac! Thanks for the report.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+This is done intentionally in &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/46822" title="Upload: fix `wp_unique_filename()` to prevent name collisions with ..."&gt;[46822]&lt;/a&gt; / &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/42437" title="#42437: defect (bug): Thumbnails can overwrite other uploads if filename matches (closed: fixed)"&gt;#42437&lt;/a&gt;, to prevent name collisions with existing or future image sub-size file names.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #49059 (Whitespace inside p element in wp-signup.php should be removed) updated</title>
+      
+        <dc:creator>henry.wright</dc:creator>
+
+      <pubDate>Sun, 22 Dec 2019 12:40:09 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/49059#comment:15</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/49059#comment:15/1577018409708346</guid>
+      <description>&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+I've looked at quite a few of these tickets and pretty much all I've seen seem to miss the PHP side of things. They usually only talk about "prettifying" HTML output but don't consider source code readability.&lt;br /&gt;
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+That isn’t the case with this ticket :)&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Conscious use of whitespace in the PHP part of the source file for improved readability is fantastic but this ticket isn’t about that. Instead it refers to the use of whitespace not inside the PHP tags. This results in unintended whitespace output and that is what should be avoided. I think the approach used in the patch is a nice improvement.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #49064 (Storefront bug with Elementor) updated</title>
+      
+        <dc:creator>hometowntrailers</dc:creator>
+
+      <pubDate>Sun, 22 Dec 2019 12:11:55 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/49064#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/49064#comment:1/1577016715086236</guid>
+      <description>&lt;p&gt;
+Storefront issues are to be reported here: &lt;a class="ext-link" href="https://github.com/woocommerce/storefront/issues/new/choose"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://github.com/woocommerce/storefront/issues/new/choose&lt;/a&gt;&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>margin-bottom.png attached to Ticket #49064</title>
+      
+        <dc:creator>javierr</dc:creator>
+
+      <pubDate>Sun, 22 Dec 2019 11:55:22 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/49064/margin-bottom.png</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/49064/margin-bottom.png/1577015722282544</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #49064 (Storefront bug with Elementor) created</title>
+      
+        <dc:creator>javierr</dc:creator>
+
+      <pubDate>Sun, 22 Dec 2019 11:54:40 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/49064</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/49064/1577015680849764</guid>
+      <description>&lt;p&gt;
+Using Storefront theme, it seems that the element Search Form has a 1.618 em margin-bottom, so I can not get it centered vertically as the rest of elements. There is no problem with Twenty Sixteen theme, or Twenty Twenty, only with Storefront.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+I using last versions of everything.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Thank you!&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>librarary-filename--1.png attached to Ticket #49063</title>
+      
+        <dc:creator>eri32s98</dc:creator>
+
+      <pubDate>Sun, 22 Dec 2019 07:20:38 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/49063/librarary-filename--1.png</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/49063/librarary-filename--1.png/1576999238759521</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #49063 (Media Upload: -1 appended to brand new filename) created</title>
+      
+        <dc:creator>eri32s98</dc:creator>
+
+      <pubDate>Sun, 22 Dec 2019 07:20:17 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/49063</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/49063/1576999217817965</guid>
+      <description>&lt;p&gt;
+There appears to be an edge case where when a new filename ends with a pattern like &lt;code&gt;-NUMBERxNUMBER&lt;/code&gt; (e.g. &lt;code&gt;-9x9&lt;/code&gt;), a &lt;code&gt;-1&lt;/code&gt; will get appended to the filename as it was a duplicate.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+To reproduce:&lt;br /&gt;
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;name a file something like &lt;code&gt;unique-filename-3x3&lt;/code&gt;
+&lt;/li&gt;&lt;li&gt;upload it to the Library
+&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;
+Tested on a fresh install:&lt;br /&gt;
+&lt;a style="padding:0; border:none" href="http://core.trac.wordpress.org/attachment/ticket/49063/librarary-filename--1.png"&gt;&lt;img width="100%" crossorigin="anonymous" src="http://core.trac.wordpress.org/raw-attachment/ticket/49063/librarary-filename--1.png" /&gt;&lt;/a&gt;&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #40572 (.htaccess has incorrect permissions after installation) closed</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Sun, 22 Dec 2019 02:43:31 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/40572#comment:9</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/40572#comment:9/1576982611663997</guid>
+      <description>fixed: &lt;p&gt;
+In &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/47005" title="Upgrade/Install: When creating the `.htaccess` file in ..."&gt;47005&lt;/a&gt;:&lt;br /&gt;
+&lt;/p&gt;
+&lt;div class="message"&gt;&lt;p&gt;
+Upgrade/Install: When creating the &lt;code&gt;.htaccess&lt;/code&gt; file in &lt;code&gt;insert_with_markers()&lt;/code&gt;, make sure it has &lt;code&gt;0644&lt;/code&gt; as a minimum set of permissions.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Props rcutmore, dd32, i3anaan.&lt;br /&gt;
+Fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/40572" title="#40572: defect (bug): .htaccess has incorrect permissions after installation (closed: fixed)"&gt;#40572&lt;/a&gt;.&lt;br /&gt;
+&lt;/p&gt;
+&lt;/div&gt;</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Changeset [47005]: Upgrade/Install: When creating the `.htaccess` file in ...</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Sun, 22 Dec 2019 02:43:30 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/47005</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/47005/1576982610524872</guid>
+      <description>&lt;p&gt;
+Upgrade/Install: When creating the &lt;code&gt;.htaccess&lt;/code&gt; file in &lt;code&gt;insert_with_markers()&lt;/code&gt;, make sure it has &lt;code&gt;0644&lt;/code&gt; as a minimum set of permissions.
+&lt;/p&gt;
+&lt;p&gt;
+Props rcutmore, dd32, i3anaan.
+Fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/40572" title="#40572: defect (bug): .htaccess has incorrect permissions after installation (closed: fixed)"&gt;#40572&lt;/a&gt;.
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Ticket #48223 (parse_request(): When request has multiple matching rewrite rules, and ...) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Sun, 22 Dec 2019 00:26:48 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/48223#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/48223#comment:2/1576974408771495</guid>
+      <description>&lt;i&gt;Component&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44471 (Theme Editor: Modern CSS is marked as errors by CodeMirror) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Sun, 22 Dec 2019 00:03:49 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44471#comment:14</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44471#comment:14/1576973029131109</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt;, &lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+As &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/49062" title="#49062: defect (bug): Twenty Twenty Style sheet Showing Error (closed: invalid)"&gt;#49062&lt;/a&gt; shows, the CSS linting is not very reliable, displaying an error for Twenty Twenty default stylesheet with no particular error message.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Let's disable the linting be default, and perhaps make it a configurable setting that plugin authors could enable.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #48289 (wp_normalize_path() breaks path_is_absolute() in Windows.) updated</title>
+      
+        <dc:creator>apedog</dc:creator>
+
+      <pubDate>Sat, 21 Dec 2019 22:48:21 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/48289#comment:9</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/48289#comment:9/1576968501846006</guid>
+      <description>&lt;p&gt;
+Function &lt;code&gt;path_is_absolute()&lt;/code&gt; should handle paths with mixed slashes when installed on Windows.&lt;br /&gt;
+PHP constant &lt;code&gt;DIRECTORY_SEPARATOR&lt;/code&gt; is not relevant to this issue.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #49048 (Add unit tests for v5.3.1 block serialization functions) reopened</title>
+      
+        <dc:creator>johnbillion</dc:creator>
+
+      <pubDate>Sat, 21 Dec 2019 22:14:55 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/49048#comment:4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/49048#comment:4/1576966495343657</guid>
+      <description>&lt;p&gt;
+Let's port this to the 5.3 branch.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>reopenedticket</category>
+    </item><item>
+      <title>Ticket #49060 (wp_die() to accept text_direction = 'ltr') updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Sat, 21 Dec 2019 20:50:04 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/49060#comment:4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/49060#comment:4/1576961404604309</guid>
+      <description>&lt;i&gt;Status&lt;/i&gt;, &lt;i&gt;Owner&lt;/i&gt;, &lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #37422 (do_shortcode() weakens semantics) closed</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Sat, 21 Dec 2019 20:10:26 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/37422#comment:10</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/37422#comment:10/1576959026238693</guid>
+      <description>fixed: &lt;p&gt;
+In &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/47004" title="Shortcodes: Introduce `apply_shortcodes()` as an alias for ..."&gt;47004&lt;/a&gt;:&lt;br /&gt;
+&lt;/p&gt;
+&lt;div class="message"&gt;&lt;p&gt;
+Shortcodes: Introduce &lt;code&gt;apply_shortcodes()&lt;/code&gt; as an alias for &lt;code&gt;do_shortcode()&lt;/code&gt;.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+This better aligns with the semantics of applying filters to the input and returning a result, rather than performing an action and outputting to the current buffer.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Props ljasinskipl, thefarlilacfield.&lt;br /&gt;
+Fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/37422" title="#37422: enhancement: do_shortcode() weakens semantics (closed: fixed)"&gt;#37422&lt;/a&gt;.&lt;br /&gt;
+&lt;/p&gt;
+&lt;/div&gt;</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Changeset [47004]: Shortcodes: Introduce `apply_shortcodes()` as an alias for ...</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Sat, 21 Dec 2019 20:10:25 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/47004</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/47004/1576959025117867</guid>
+      <description>&lt;p&gt;
+Shortcodes: Introduce &lt;code&gt;apply_shortcodes()&lt;/code&gt; as an alias for &lt;code&gt;do_shortcode()&lt;/code&gt;.
+&lt;/p&gt;
+&lt;p&gt;
+This better aligns with the semantics of applying filters to the input and returning a result, rather than performing an action and outputting to the current buffer.
+&lt;/p&gt;
+&lt;p&gt;
+Props ljasinskipl, thefarlilacfield.
+Fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/37422" title="#37422: enhancement: do_shortcode() weakens semantics (closed: fixed)"&gt;#37422&lt;/a&gt;.
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Ticket #44516 (Unable to edit theme's file on multisite from default editor) updated</title>
+      
+        <dc:creator>prashantvatsh</dc:creator>
+
+      <pubDate>Sat, 21 Dec 2019 19:50:24 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44516#comment:4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44516#comment:4/1576957824561646</guid>
+      <description>&lt;p&gt;
+Replying to &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/44516#comment:3" title="Comment 3"&gt;jeremyfelt&lt;/a&gt;:&lt;br /&gt;
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+Thanks for opening a ticket @prashantvatsh, sorry for the delayed response.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Is this still an issue in WordPress 5.3.2?&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+If so, it would be helpful to know a few things that may help in reproducing the issue:&lt;br /&gt;
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;Is this a subdomain or subdirectory configuration?
+&lt;/li&gt;&lt;li&gt;Does the issue occur when all plugins are disabled and when a default theme is activated?
+&lt;/li&gt;&lt;li&gt;Are you able to upload media files or plugins manually?
+&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;
+I've changed the component from Editor to Administration as I'm not sure we really have a component that covers the file editor. I'm also going to attach the screen shot directly so that the link to it is unnecessary.&lt;br /&gt;
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;ol&gt;&lt;li&gt;I tried this on the subdirectory configuration.
+&lt;/li&gt;&lt;li&gt;Yes, all the plugins were disabled and Twenty Twenty theme was active during my latest test.
+&lt;/li&gt;&lt;li&gt;Yes, I am able to upload plugins manually in the plugins folder and then could easily activate them.
+&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;
+Please check the latest error screenshot: &lt;a class="ext-link" href="https://prnt.sc/qe2l7x"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://prnt.sc/qe2l7x&lt;/a&gt; &lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+The error is coming in the latest version of WordPress as well.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #49059 (Whitespace inside p element in wp-signup.php should be removed) updated</title>
+      
+        <dc:creator>azaozz</dc:creator>
+
+      <pubDate>Sat, 21 Dec 2019 19:42:42 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/49059#comment:14</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/49059#comment:14/1576957362465679</guid>
+      <description>&lt;p&gt;
+As a side note: perhaps have a look at the proposed changes to the JS coding standards that (I hope) will also be synced with the PHP coding standards: &lt;a class="ext-link" href="https://make.wordpress.org/core/2019/12/09/proposed-javascript-coding-standards-revisions-for-prettier-compatibility/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://make.wordpress.org/core/2019/12/09/proposed-javascript-coding-standards-revisions-for-prettier-compatibility/&lt;/a&gt;.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+There concatenation "expands" vertically so things like:&lt;br /&gt;
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;echo '&amp;lt;p&amp;gt;' . sprintf(
+    /* translators: %s: Current user's display name. */
+     __( 'Welcome back, %s. By filling out the form below, you can &amp;lt;strong&amp;gt;add another site to your account&amp;lt;/strong&amp;gt;. There is no limit to the number of sites you can have, so create to your heart&amp;amp;#8217;s content, but write responsibly!' ),
+        $current_user-&amp;gt;display_name
+) . '&amp;lt;/p&amp;gt;';
+&lt;/pre&gt;&lt;p&gt;
+will eventually have to be written most likely like this:&lt;br /&gt;
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;echo (
+    '&amp;lt;p&amp;gt;' .
+    sprintf(
+        /* translators: %s: Current user's display name. */
+        __( 'Welcome back, %s. By filling out the form below, you can &amp;lt;strong&amp;gt;add another site to your account&amp;lt;/strong&amp;gt;. There is no limit to the number of sites you can have, so create to your heart&amp;amp;#8217;s content, but write responsibly!' ),
+        $current_user-&amp;gt;display_name
+    ) .
+    '&amp;lt;/p&amp;gt;'
+);
+&lt;/pre&gt;&lt;p&gt;
+(Which, I agree, is a bit more readable.)&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #49059 (Whitespace inside p element in wp-signup.php should be removed) updated</title>
+      
+        <dc:creator>azaozz</dc:creator>
+
+      <pubDate>Sat, 21 Dec 2019 19:32:54 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/49059#comment:13</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/49059#comment:13/1576956774589140</guid>
+      <description>&lt;p&gt;
+Replying to &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/49059#comment:12" title="Comment 12"&gt;SergeyBiryukov&lt;/a&gt;:&lt;br /&gt;
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+&lt;code&gt;phpcbf&lt;/code&gt; shows zero issues with them :)&lt;br /&gt;
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+Yeah, not sure it can "fix" this type of concatenation.&lt;br /&gt;
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+Even looking at only &lt;code&gt;&amp;lt;h2&amp;gt;&lt;/code&gt; tags here, &lt;code&gt;echo '&amp;lt;h2&amp;gt;' ... '&amp;lt;/h2&amp;gt;'&lt;/code&gt; in &lt;code&gt;signup_another_blog()&lt;/code&gt; seems inconsistent with jumping in and out of &lt;code&gt;&amp;lt;?php&lt;/code&gt; tags in similar instances in the rest of the file. I would think it should be one way or the other.&lt;br /&gt;
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+Perhaps we should be "fixing" that instead of adding more and more &lt;code&gt;echo '&amp;lt;HTML&amp;gt;'&lt;/code&gt;? :)&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Or if &lt;code&gt;echo '&amp;lt;HTML&amp;gt;'&lt;/code&gt; is the "better way", lets add it everywhere? Having this inconsistency throughout the source code seems to be the bigger problem here imho :)&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #49059 (Whitespace inside p element in wp-signup.php should be removed) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Sat, 21 Dec 2019 19:23:40 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/49059#comment:12</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/49059#comment:12/1576956220416622</guid>
+      <description>&lt;p&gt;
+Replying to &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/49059#comment:7" title="Comment 7"&gt;azaozz&lt;/a&gt;:&lt;br /&gt;
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+Looking at the patches here, it seems they are not 100% compatible with the coding standards?&lt;br /&gt;
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+&lt;code&gt;phpcbf&lt;/code&gt; shows zero issues with them :)&lt;br /&gt;
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+I've looked at quite a few of these tickets and pretty much all I've seen seem to miss the PHP side of things. They usually only talk about "prettifying" HTML output but don't consider source code readability.&lt;br /&gt;
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+In my opinion, &lt;a class="attachment" href="http://core.trac.wordpress.org/attachment/ticket/49059/49059.2.diff" title="Attachment '49059.2.diff' in Ticket #49059"&gt;49059.2.diff&lt;/a&gt;&lt;a class="trac-rawlink" href="http://core.trac.wordpress.org/raw-attachment/ticket/49059/49059.2.diff" title="Download"&gt;​&lt;/a&gt; aims to improve the consistency of PHP, not so much the resulting HTML. &lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Even looking at only &lt;code&gt;&amp;lt;h2&amp;gt;&lt;/code&gt; tags here, &lt;code&gt;echo '&amp;lt;h2&amp;gt;' ... '&amp;lt;/h2&amp;gt;'&lt;/code&gt; in &lt;code&gt;signup_another_blog()&lt;/code&gt; seems inconsistent with jumping in and out of &lt;code&gt;&amp;lt;?php&lt;/code&gt; tags in similar instances in the rest of the file. I would think it should be one way or the other.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #49059 (Whitespace inside p element in wp-signup.php should be removed) updated</title>
+      
+        <dc:creator>azaozz</dc:creator>
+
+      <pubDate>Sat, 21 Dec 2019 19:15:02 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/49059#comment:11</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/49059#comment:11/1576955702543233</guid>
+      <description>&lt;p&gt;
+Replying to &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/49059#comment:10" title="Comment 10"&gt;johnjamesjacoby&lt;/a&gt;:&lt;br /&gt;
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+Which standard? 😁&lt;br /&gt;
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+The use of &lt;code&gt;echo '&amp;lt;p&amp;gt;' . function(...)&lt;/code&gt;  vs. &lt;code&gt;?&amp;gt;&amp;lt;p&amp;gt;&amp;lt;?php&lt;/code&gt; for HTML tags. Generally the former is not preferred (see the examples)?&lt;br /&gt;
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+Define “better readability.”&lt;br /&gt;
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+In this case being able to quickly figure out what is HTML and what is PHP? Of course that depends on the IDE you're using, code highlighting, etc. but generally &lt;code&gt;echo '&amp;lt;this is HTML&amp;gt;';&lt;/code&gt; is worse? :)&lt;br /&gt;
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+I’m recommending we make these changes here without the need to call a formal Slack meeting...&lt;br /&gt;
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+Hehe, that wasn't my intention.&lt;br /&gt;
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+Case in point are the number of times tickets like this get opened through the years. There is clearly an audience of contributors that does not find the current approach to be “better” nor even correct.&lt;br /&gt;
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+I've looked at quite a few of these tickets and pretty much all I've seen seem to miss the PHP side of things. They usually only talk about "prettifying" HTML output but don't consider source code readability.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+OK, which approach is better? Changing this will add more inconsistently formatted/concatenated code. Should changes be made to try to make the outputted HTML as readable as possible and ignore/diminish readability in PHP? I see at least few hundred places that need such changes.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Or should the practice to patch some places to improve HTML "white space" and other places to improve PHP code (adding HTML white space in the process) continue? :) &lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #37422 (do_shortcode() weakens semantics) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Sat, 21 Dec 2019 19:12:01 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/37422#comment:9</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/37422#comment:9/1576955521549323</guid>
+      <description>&lt;p&gt;
+Introducing an &lt;code&gt;apply_shortcodes()&lt;/code&gt; alias for &lt;code&gt;do_shortcode()&lt;/code&gt; for better semantics in the same way &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/27409" title="Introduce get_the_permalink() as an alias for get_permalink().
+This ..."&gt;[27409]&lt;/a&gt; did for &lt;code&gt;get_the_permalink()&lt;/code&gt;/&lt;code&gt;get_permalink()&lt;/code&gt; makes sense to me.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Deprecating &lt;code&gt;do_shortcode()&lt;/code&gt; is probably not an option due to high usage numbers in plugins and themes, however having an alias could also be a first step towards its eventual deprecation if there is consensus it's worth the effort.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #49021 (Misaligned rows in Plugins list table on mobile after deleting some plugins) updated</title>
+      
+        <dc:creator>sumitsingh</dc:creator>
+
+      <pubDate>Sat, 21 Dec 2019 18:42:48 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/49021#comment:5</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/49021#comment:5/1576953768072990</guid>
+      <description>&lt;p&gt;
+Hi @mukesh27 , &lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Thank for information,now working fine  for me.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Thanks again 😊&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #49059 (Whitespace inside p element in wp-signup.php should be removed) updated</title>
+      
+        <dc:creator>johnjamesjacoby</dc:creator>
+
+      <pubDate>Sat, 21 Dec 2019 18:39:36 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/49059#comment:10</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/49059#comment:10/1576953576170424</guid>
+      <description>&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+Looking at the patches here, it seems they are not 100% compatible with the coding standards&lt;br /&gt;
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+Which standard? 😁&lt;br /&gt;
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+Better readability in PHP is preferable to some white space in HTML as the latter is reformatted by the browser tools when viewed.&lt;br /&gt;
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+Define “better readability.” The patches attached to this ticket look better to me, which is why I’m suggesting them. They are more uniform. They match the surrounding code. They are less syntactically complicated. They are more obvious than breaking in and out of PHP a dozen times if the opposite approach were suggested instead.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Your better is worse for me.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+I’m recommending we make these changes here without the need to call a formal Slack meeting to re-discuss what a committee-of-everyone else thinks is best everywhere else, because this shouldn’t be a design-by-committee decision; it’s a tiny quality-of-life improvement in a multisite file.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Case in point are the number of times tickets like this get opened through the years. There is clearly an audience of contributors that does not find the current approach to be “better” nor even correct. It is easily corrected with zero fear of breakage or regression.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #36263 (When building a shortcode with `wp.shortcode.string()` the `attrs` ...) closed</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Sat, 21 Dec 2019 18:32:46 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/36263#comment:15</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/36263#comment:15/1576953166458677</guid>
+      <description>fixed: &lt;p&gt;
+In &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/47003" title="Shortcodes: Make sure `wp.shortcode.string()` accepts the `attrs` ..."&gt;47003&lt;/a&gt;:&lt;br /&gt;
+&lt;/p&gt;
+&lt;div class="message"&gt;&lt;p&gt;
+Shortcodes: Make sure &lt;code&gt;wp.shortcode.string()&lt;/code&gt; accepts the &lt;code&gt;attrs&lt;/code&gt; array keys in any order.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Props yale01, georgestephanis, adamsilverstein, zsusag, mircoraffinetti, SergeyBiryukov.&lt;br /&gt;
+Fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/36263" title="#36263: defect (bug): When building a shortcode with `wp.shortcode.string()` the `attrs` ... (closed: fixed)"&gt;#36263&lt;/a&gt;.&lt;br /&gt;
+&lt;/p&gt;
+&lt;/div&gt;</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Changeset [47003]: Shortcodes: Make sure `wp.shortcode.string()` accepts the `attrs` ...</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Sat, 21 Dec 2019 18:32:45 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/47003</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/47003/1576953165363705</guid>
+      <description>&lt;p&gt;
+Shortcodes: Make sure &lt;code&gt;wp.shortcode.string()&lt;/code&gt; accepts the &lt;code&gt;attrs&lt;/code&gt; array keys in any order.
+&lt;/p&gt;
+&lt;p&gt;
+Props yale01, georgestephanis, adamsilverstein, zsusag, mircoraffinetti, SergeyBiryukov.
+Fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/36263" title="#36263: defect (bug): When building a shortcode with `wp.shortcode.string()` the `attrs` ... (closed: fixed)"&gt;#36263&lt;/a&gt;.
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Ticket #49062 (Twenty Twenty Style sheet Showing Error) updated</title>
+      
+        <dc:creator>prashantvatsh</dc:creator>
+
+      <pubDate>Sat, 21 Dec 2019 18:32:24 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/49062#comment:4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/49062#comment:4/1576953144431448</guid>
+      <description>&lt;p&gt;
+Replying to &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/49062#comment:3" title="Comment 3"&gt;SergeyBiryukov&lt;/a&gt;:&lt;br /&gt;
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+Replying to &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/49062#comment:2" title="Comment 2"&gt;SergeyBiryukov&lt;/a&gt;:&lt;br /&gt;
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+It's not quite clear what exactly the error is, since there's no error message, and in my testing when trying to find out which CSS rules cause the error I got different results every time.&lt;br /&gt;
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+As an example, this CSS file displays the same "There is 1 error" message without showing the exact error:&lt;br /&gt;
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;/*
+Theme Name: Twenty Twenty
+*/
+body.template-full-width .entry-content &amp;gt; .alignright {
+	margin-right: calc(( 100vw - 120rem ) / 2);
+}
+&lt;/pre&gt;&lt;p&gt;
+Removing the spaces around the inner brackets &lt;code&gt;(100vw - 120rem)&lt;/code&gt; appears to somehow "resolve" it.&lt;br /&gt;
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+Just now I tried this in the editor but for me, it did not resolve it and still, it is showing there is 1 error.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #49059 (Whitespace inside p element in wp-signup.php should be removed) updated</title>
+      
+        <dc:creator>azaozz</dc:creator>
+
+      <pubDate>Sat, 21 Dec 2019 18:29:22 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/49059#comment:9</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/49059#comment:9/1576952962126748</guid>
+      <description>&lt;p&gt;
+Replying to &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/49059#comment:3" title="Comment 3"&gt;johnjamesjacoby&lt;/a&gt;:&lt;br /&gt;
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+The problem I have always seen with them is the markup they produce is oddly difficult to follow when viewing source.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+While modern tooling and browser inspectors have helped improve that experience...&lt;br /&gt;
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+Right. There was a big discussion many years ago whether the PHP or the HTML should be "more readable". Since then the general tendency has been to make the PHP more readable as the HTML is usually "seen" in the browser console and white space is ignored.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+I personally don't mind revisiting this discussion, but thinking that nothing has changed there. Better readability in PHP is preferable to some white space in HTML as the latter is reformatted by the browser tools when viewed.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #49060 (wp_die() to accept text_direction = 'ltr') updated</title>
+      
+        <dc:creator>apedog</dc:creator>
+
+      <pubDate>Sat, 21 Dec 2019 18:22:52 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/49060#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/49060#comment:3/1576952572072627</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>49060.diff attached to Ticket #49060</title>
+      
+        <dc:creator>apedog</dc:creator>
+
+      <pubDate>Sat, 21 Dec 2019 18:22:04 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/49060/49060.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/49060/49060.diff/1576952524197005</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #49059 (Whitespace inside p element in wp-signup.php should be removed) updated</title>
+      
+        <dc:creator>azaozz</dc:creator>
+
+      <pubDate>Sat, 21 Dec 2019 18:20:52 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/49059#comment:8</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/49059#comment:8/1576952452788627</guid>
+      <description>&lt;i&gt;Focuses&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #49059 (Whitespace inside p element in wp-signup.php should be removed) updated</title>
+      
+        <dc:creator>azaozz</dc:creator>
+
+      <pubDate>Sat, 21 Dec 2019 18:20:20 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/49059#comment:7</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/49059#comment:7/1576952420955888</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+We should remove the whitespace because it isn't necessary.&lt;br /&gt;
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+That's not entirely true :)&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+White space in HTML is ignored. White space in the PHP code is used for formatting and better readability. Looking at the patches here, it seems they are not 100% compatible with the coding standards?&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Also, consistency-wise, there are many many similar places in WP, do we convert them all to &lt;code&gt;echo '&amp;lt;string ...' . sprintf( .... ) . 'more strings';&lt;/code&gt;? Don't think that's better readability, and if indeed it's needed, seems it will have to be added to the coding standards (the written standard, perhaps also to WPCS)?&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #49059 (Whitespace inside p element in wp-signup.php should be removed) updated</title>
+      
+        <dc:creator>henry.wright</dc:creator>
+
+      <pubDate>Sat, 21 Dec 2019 18:11:22 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/49059#comment:6</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/49059#comment:6/1576951882089413</guid>
+      <description>&lt;p&gt;
+@SergeyBiryukov it felt strange to see it. I wondered if there was a reason for it and then realised it is there purely because if indenting in the file source. That didn't feel right so I thought I'd open a ticket&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+@johnjamesjacoby thanks and agreed&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #49062 (Twenty Twenty Style sheet Showing Error) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Sat, 21 Dec 2019 18:08:26 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/49062#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/49062#comment:3/1576951706893159</guid>
+      <description>&lt;p&gt;
+Replying to &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/49062#comment:2" title="Comment 2"&gt;SergeyBiryukov&lt;/a&gt;:&lt;br /&gt;
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+It's not quite clear what exactly the error is, since there's no error message, and in my testing when trying to find out which CSS rules cause the error I got different results every time.&lt;br /&gt;
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+As an example, this CSS file displays the same "There is 1 error" message without showing the exact error:&lt;br /&gt;
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;/*
+Theme Name: Twenty Twenty
+*/
+body.template-full-width .entry-content &amp;gt; .alignright {
+	margin-right: calc(( 100vw - 120rem ) / 2);
+}
+&lt;/pre&gt;&lt;p&gt;
+Removing the spaces around the inner brackets &lt;code&gt;(100vw - 120rem)&lt;/code&gt; appears to somehow "resolve" it.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #49062 (Twenty Twenty Style sheet Showing Error) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Sat, 21 Dec 2019 18:03:12 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/49062#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/49062#comment:2/1576951392434405</guid>
+      <description>&lt;p&gt;
+Hi there, thanks for the ticket!&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+I was able to reproduce the issue. It's not quite clear what exactly the error is, since there's no error message, and in my testing when trying to find out which CSS rules cause the error I got different results every time.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+In general, the theme editor's CSS linting appears to be not very reliable and should probably be disabled by default. There is some consensus on doing that in &lt;a class="new ticket" href="http://core.trac.wordpress.org/ticket/44471" title="#44471: defect (bug): Theme Editor: Modern CSS is marked as errors by CodeMirror (new)"&gt;#44471&lt;/a&gt;.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #49062 (Twenty Twenty Style sheet Showing Error) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Sat, 21 Dec 2019 17:57:56 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/49062#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/49062#comment:1/1576951076550766</guid>
+      <description>&lt;i&gt;Component&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #49021 (Misaligned rows in Plugins list table on mobile after deleting some plugins) updated</title>
+      
+        <dc:creator>mukesh27</dc:creator>
+
+      <pubDate>Sat, 21 Dec 2019 17:45:31 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/49021#comment:4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/49021#comment:4/1576950331120284</guid>
+      <description>&lt;p&gt;
+@sumitsingh System automatically generates the min and RTL version of the CSS files when it will build so no need to add changes on those files.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #49062 (Twenty Twenty Style sheet Showing Error) created</title>
+      
+        <dc:creator>prashantvatsh</dc:creator>
+
+      <pubDate>Sat, 21 Dec 2019 17:07:48 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/49062</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/49062/1576948068998617</guid>
+      <description>&lt;p&gt;
+I have the latest WordPress installation with the twenty-twenty theme and no active plugin on my localhost. As soon as I have opened the theme editor I saw this error. Please see: &lt;a class="ext-link" href="https://prnt.sc/qe0vmk"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://prnt.sc/qe0vmk&lt;/a&gt;&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #49060 (wp_die() to accept text_direction = 'ltr') updated</title>
+      
+        <dc:creator>apedog</dc:creator>
+
+      <pubDate>Sat, 21 Dec 2019 16:49:50 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/49060#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/49060#comment:2/1576946990850920</guid>
+      <description>&lt;p&gt;
+I see.&lt;br /&gt;
+The way I read this the problem is two-fold&lt;br /&gt;
+&lt;/p&gt;
+&lt;ol&gt;&lt;li&gt;&lt;code&gt;_default_wp_die_handler()&lt;/code&gt; prefers language_attributes over explicitly passed &lt;code&gt;text_direction&lt;/code&gt;. ie. the argument is only a fallback. This is a design issue and is the main problem IMO.
+&lt;/li&gt;&lt;/ol&gt;&lt;ol start="2"&gt;&lt;li&gt;&lt;code&gt;_default_wp_die_handler()&lt;/code&gt; cannot even know if &lt;code&gt;text_direction&lt;/code&gt; was explicitly set in &lt;code&gt;$args&lt;/code&gt; or was implicitly set by &lt;code&gt;_wp_die_process_input()&lt;/code&gt; in &lt;code&gt;$parsed_args&lt;/code&gt;. This is a minor technical issue.
+&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;
+Filtering &lt;code&gt;language_attributes&lt;/code&gt; seems like overkill to me.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+The way I see it, explicitly passed argument should be paramount. Followed by the current handling.&lt;br /&gt;
+in &lt;code&gt;_default_wp_die_handler()&lt;/code&gt; it should look something like this:&lt;br /&gt;
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;$text_direction = $parsed_args['text_direction'];
+if ( ! empty( $args['text_direction'] ) &amp;amp;&amp;amp; in_array( $args['text_direction'], array( 'ltr', 'rtl' ), true ) ){
+    $dir_attr = "dir='$text_direction'";
+} else if ( function_exists( 'language_attributes' ) &amp;amp;&amp;amp; function_exists( 'is_rtl' ) ) {
+    $dir_attr = get_language_attributes();
+} else {
+    $dir_attr = "dir='$text_direction'";
+}
+&lt;/pre&gt;&lt;p&gt;
+Note: the &lt;code&gt;if&lt;/code&gt; condition is tested against &lt;code&gt;$args&lt;/code&gt; - not &lt;code&gt;$parsed_args&lt;/code&gt;&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #48765 (Twenty Twenty: Disable Gutenberg Editor Issue) updated</title>
+      
+        <dc:creator>utsav72640</dc:creator>
+
+      <pubDate>Sat, 21 Dec 2019 16:45:11 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/48765#comment:6</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/48765#comment:6/1576946711621897</guid>
+      <description>&lt;p&gt;
+@SergeyBiryukov and @joyously &lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Thanks for the Reply..&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Why is the text written in center?.It always starts right from left.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+If the user will write some text.And then if you want to do it in a text center, it will see in the editor that the text is in the center.so users will be confused&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Tickets #48680,​49061 batch updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Sat, 21 Dec 2019 16:42:45 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/query?id=48680%2C49061</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/query?id=48680%2C49061/1576946565698836</guid>
+      <description>duplicate: &lt;p&gt;
+Hi there, welcome to WordPress Trac! Thanks for the ticket.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+This is already fixed in &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/46740" title="Docs: Replace Codex URLs with corresponding HelpHub articles in ..."&gt;[46740]&lt;/a&gt; / &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/48680" title="#48680: enhancement: Change link to Doc in wp-config.php (closed: fixed)"&gt;#48680&lt;/a&gt;.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>batchmodify</category>
+    </item><item>
+      <title>Ticket #49061 (Link to moved page in wp-config.php/wp-config-sample.php) created</title>
+      
+        <dc:creator>bugnumber9</dc:creator>
+
+      <pubDate>Sat, 21 Dec 2019 16:39:50 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/49061</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/49061/1576946390854607</guid>
+      <description>&lt;p&gt;
+Comment for &lt;br /&gt;
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;define( 'WP_DEBUG', false );
+&lt;/pre&gt;&lt;p&gt;
+contains link to &lt;a class="ext-link" href="https://codex.wordpress.org/Debugging_in_WordPress"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://codex.wordpress.org/Debugging_in_WordPress&lt;/a&gt; while it should link to the new location - &lt;a class="ext-link" href="https://wordpress.org/support/article/debugging-in-wordpress/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://wordpress.org/support/article/debugging-in-wordpress/&lt;/a&gt;&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #48765 (Twenty Twenty: Disable Gutenberg Editor Issue) closed</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Sat, 21 Dec 2019 16:38:49 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/48765#comment:5</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/48765#comment:5/1576946329451042</guid>
+      <description>wontfix: &lt;p&gt;
+Hi there, thanks for the ticket!&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+As noted above, this is working as expected, to make sure the layout is consistent between the editor and the front end.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+See previous discussions in &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/21536" title="#21536: enhancement: Better editor background (closed: wontfix)"&gt;#21536&lt;/a&gt;, &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/27667" title="#27667: defect (bug): CSS problem in editor screen (closed: worksforme)"&gt;#27667&lt;/a&gt;, &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/31967" title="#31967: enhancement: Editable area in post content editor is unclear (closed: duplicate)"&gt;#31967&lt;/a&gt;, &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/32384" title="#32384: defect (bug): Twenty Fifteen : TinyMCE Editor do not use full width (closed: worksforme)"&gt;#32384&lt;/a&gt; for some history and context.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Ticket #49059 (Whitespace inside p element in wp-signup.php should be removed) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Sat, 21 Dec 2019 16:32:38 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/49059#comment:5</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/49059#comment:5/1576945958115556</guid>
+      <description>&lt;p&gt;
+&lt;a class="attachment" href="http://core.trac.wordpress.org/attachment/ticket/49059/49059.2.diff" title="Attachment '49059.2.diff' in Ticket #49059"&gt;49059.2.diff&lt;/a&gt;&lt;a class="trac-rawlink" href="http://core.trac.wordpress.org/raw-attachment/ticket/49059/49059.2.diff" title="Download"&gt;​&lt;/a&gt; addresses the other instances mentioned in &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/49059#comment:2" title="Comment 2"&gt;comment:2&lt;/a&gt;.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>49059.2.diff attached to Ticket #49059</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Sat, 21 Dec 2019 16:32:15 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/49059/49059.2.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/49059/49059.2.diff/1576945935554338</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #49059 (Whitespace inside p element in wp-signup.php should be removed) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Sat, 21 Dec 2019 16:17:40 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/49059#comment:4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/49059#comment:4/1576945060570331</guid>
+      <description>&lt;p&gt;
+Replying to &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/49059#comment:3" title="Comment 3"&gt;johnjamesjacoby&lt;/a&gt;:&lt;br /&gt;
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+What do you think?&lt;br /&gt;
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+Ah, I have no objections to fixing this jumping in and out of &lt;code&gt;&amp;lt;?php&lt;/code&gt; tags, was just wondering about the consistency of it at least for this file.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Let's go ahead then :)&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>49059.diff attached to Ticket #49059</title>
+      
+        <dc:creator>johnjamesjacoby</dc:creator>
+
+      <pubDate>Sat, 21 Dec 2019 16:17:25 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/49059/49059.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/49059/49059.diff/1576945045403998</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #49059 (Whitespace inside p element in wp-signup.php should be removed) updated</title>
+      
+        <dc:creator>johnjamesjacoby</dc:creator>
+
+      <pubDate>Sat, 21 Dec 2019 16:12:38 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/49059#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/49059#comment:3/1576944758384477</guid>
+      <description>&lt;p&gt;
+@SergeyBiryukov you are correct there are other instances in core where this happens. Although minor, I have for years always thought them to be worth correcting.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+The problem I have always seen with them is the markup they produce is oddly difficult to follow when viewing source.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+While modern tooling and browser inspectors have helped improve that experience, I see no harm in removing some instances of jumping in and out of &lt;code&gt;&amp;lt;?php&lt;/code&gt; simply to output a wrapping HTML Tag when so many other places in the same file are already concatenating them.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+I'd prefer to clean this part of the house up, rather than sweep it under the rug.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+I don't think every instance you've brought up needs a separate ticket. I/we could normalize all of them here.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+The hidden added benefit that I have not tested, is simpler code sniffing of this file simply from having less complicated PHP &amp;amp; HTML intermingled.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+What do you think?&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #49017 (Administration: Add `doing_wp_cron` to `wp_removable_query_args()`) closed</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Sat, 21 Dec 2019 16:12:16 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/49017#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/49017#comment:2/1576944736877016</guid>
+      <description>fixed: &lt;p&gt;
+In &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/47002" title="Administration: Add `doing_wp_cron` to `wp_removable_query_args()`.
+ ..."&gt;47002&lt;/a&gt;:&lt;br /&gt;
+&lt;/p&gt;
+&lt;div class="message"&gt;&lt;p&gt;
+Administration: Add &lt;code&gt;doing_wp_cron&lt;/code&gt; to &lt;code&gt;wp_removable_query_args()&lt;/code&gt;.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+It's a single-use URL parameter that does not need to be passed to canonical URLs in the admin.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Props dlh.&lt;br /&gt;
+Fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/49017" title="#49017: enhancement: Administration: Add `doing_wp_cron` to `wp_removable_query_args()` (closed: fixed)"&gt;#49017&lt;/a&gt;.&lt;br /&gt;
+&lt;/p&gt;
+&lt;/div&gt;</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Changeset [47002]: Administration: Add `doing_wp_cron` to `wp_removable_query_args()`.  ...</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Sat, 21 Dec 2019 16:12:15 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/47002</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/47002/1576944735751398</guid>
+      <description>&lt;p&gt;
+Administration: Add &lt;code&gt;doing_wp_cron&lt;/code&gt; to &lt;code&gt;wp_removable_query_args()&lt;/code&gt;.
+&lt;/p&gt;
+&lt;p&gt;
+It's a single-use URL parameter that does not need to be passed to canonical URLs in the admin.
+&lt;/p&gt;
+&lt;p&gt;
+Props dlh.
+Fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/49017" title="#49017: enhancement: Administration: Add `doing_wp_cron` to `wp_removable_query_args()` (closed: fixed)"&gt;#49017&lt;/a&gt;.
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Ticket #49059 (Whitespace inside p element in wp-signup.php should be removed) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Sat, 21 Dec 2019 16:04:14 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/49059#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/49059#comment:2/1576944254390597</guid>
+      <description>&lt;p&gt;
+Hi there, thanks for the ticket!&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+This whitespace in &lt;a class="source" href="http://core.trac.wordpress.org/browser/tags/5.3.2/src/wp-signup.php?marks=348-356#L341"&gt;signup_another_blog()&lt;/a&gt;&lt;a class="trac-rawlink" href="http://core.trac.wordpress.org/export/HEAD/tags/5.3.2/src/wp-signup.php#L341" title="Download"&gt;​&lt;/a&gt; doesn't seem much different from similar &lt;code&gt;&amp;lt;h2&amp;gt;&lt;/code&gt; and &lt;code&gt;&amp;lt;p&amp;gt;&lt;/code&gt; tags in &lt;code&gt;confirm_another_blog_signup()&lt;/code&gt;, &lt;code&gt;signup_user()&lt;/code&gt;, &lt;code&gt;confirm_user_signup()&lt;/code&gt;, &lt;code&gt;confirm_blog_signup()&lt;/code&gt; in the same file, and probably a lot other files in core.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+We could move some of it inside the PHP tags, but I'm not sure it's worth the effort.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Is there a problem this particular instance is causing? Browsers should ignore the extra whitespace.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #49059 (Whitespace inside p element in wp-signup.php should be removed) updated</title>
+      
+        <dc:creator>johnjamesjacoby</dc:creator>
+
+      <pubDate>Sat, 21 Dec 2019 16:01:40 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/49059#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/49059#comment:1/1576944100779518</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt;, &lt;i&gt;Status&lt;/i&gt;, &lt;i&gt;Version&lt;/i&gt;, &lt;i&gt;Owner&lt;/i&gt;, &lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Thanks @henrywright. Will get this cleaned up imminently. &lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #48765 (Twenty Twenty: Disable Gutenberg Editor Issue) updated</title>
+      
+        <dc:creator>joyously</dc:creator>
+
+      <pubDate>Sat, 21 Dec 2019 15:55:08 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/48765#comment:4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/48765#comment:4/1576943708744066</guid>
+      <description>&lt;i&gt;Focuses&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Twenty Twenty has a narrow content area, which is centered. The visual mode is showing what will show on the front end.&lt;br /&gt;
+It is working as expected.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #49060 (wp_die() to accept text_direction = 'ltr') updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Sat, 21 Dec 2019 15:45:46 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/49060#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/49060#comment:1/1576943146845384</guid>
+      <description>&lt;p&gt;
+Hi there, thanks for the ticket.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+This appears to be a bit trickier than I thought.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+&lt;code&gt;_wp_die_process_input()&lt;/code&gt; actually &lt;a class="source" href="http://core.trac.wordpress.org/browser/tags/5.3.2/src/wp-includes/functions.php?marks=3793-3798#L3790"&gt;supports both `rtl` and `ltr`&lt;/a&gt;&lt;a class="trac-rawlink" href="http://core.trac.wordpress.org/export/HEAD/tags/5.3.2/src/wp-includes/functions.php#L3790" title="Download"&gt;​&lt;/a&gt;, however &lt;code&gt;_default_wp_die_handler()&lt;/code&gt; only uses that value &lt;a class="source" href="http://core.trac.wordpress.org/browser/tags/5.3.2/src/wp-includes/functions.php?marks=3348-3353#L3341"&gt;if `language_attributes()` and `is_rtl()` are not available yet&lt;/a&gt;&lt;a class="trac-rawlink" href="http://core.trac.wordpress.org/export/HEAD/tags/5.3.2/src/wp-includes/functions.php#L3341" title="Download"&gt;​&lt;/a&gt;, otherwise it just uses &lt;code&gt;get_language_attributes()&lt;/code&gt;.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Introduced in &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/16392" title="Fallback to only RTL attributes in wp_die()'s HTML tag if it's very ..."&gt;[16392]&lt;/a&gt;.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+The passed &lt;code&gt;text_direction&lt;/code&gt; argument would need to overwrite the one from &lt;code&gt;get_language_attributes()&lt;/code&gt;.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Some potential solutions:&lt;br /&gt;
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;Use &lt;code&gt;str_replace()&lt;/code&gt; to overwrite &lt;code&gt;dir="rtl"&lt;/code&gt; with &lt;code&gt;dir="ltr"&lt;/code&gt; if &lt;code&gt;$parsed_args['text_direction']&lt;/code&gt; is &lt;code&gt;ltr&lt;/code&gt;.
+&lt;/li&gt;&lt;li&gt;Add a new parameter to &lt;code&gt;get_language_attributes()&lt;/code&gt; with an array of default arguments.
+&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;
+A workaround would be to use the &lt;code&gt;language_attributes&lt;/code&gt; filter before calling &lt;code&gt;wp_die()&lt;/code&gt;:&lt;br /&gt;
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;add_filter(
+	'language_attributes',
+	function( $output ) {
+		return str_replace( 'dir="rtl"', 'dir="ltr"', $output );
+	}
+);
+wp_die( 'Message', 'Title' );
+&lt;/pre&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #48223 (parse_request(): When request has multiple matching rewrite rules, and ...) updated</title>
+      
+        <dc:creator>apedog</dc:creator>
+
+      <pubDate>Sat, 21 Dec 2019 15:15:13 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/48223#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/48223#comment:1/1576941313358093</guid>
+      <description>&lt;p&gt;
+Case in point:&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+A database was created before custom post types existed, has the following hierarchical pages published: &lt;code&gt;recipes&lt;/code&gt; and &lt;code&gt;recipes/chocolate-cake&lt;/code&gt;&lt;br /&gt;
+At a later point a &lt;code&gt;Recipe&lt;/code&gt; custom post type was registered with archive/front slug &lt;code&gt;'recipes'&lt;/code&gt; and used for all new recipes. However the old pages were not converted to the new custom post types, and are still regular WP pages.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+As it stands, the published page &lt;code&gt;recipes/chocolate-cake&lt;/code&gt; cannot be reached, neither through the permalink nor using &lt;code&gt;?p=123&lt;/code&gt; notation. Instead returning a 404 page.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #49060 (wp_die() to accept text_direction = 'ltr') created</title>
+      
+        <dc:creator>apedog</dc:creator>
+
+      <pubDate>Sat, 21 Dec 2019 14:59:37 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/49060</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/49060/1576940377040372</guid>
+      <description>&lt;p&gt;
+&lt;code&gt;wp_die()&lt;/code&gt; only accepts &lt;code&gt;text_direction='rtl'&lt;/code&gt;. It should accept &lt;code&gt;'ltr'&lt;/code&gt; as well.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+If site language/locale is set to an rtl language, but a plugin produces a message that does not have a translation text to that rtl language, there is no way to make wp_die() style that message correctly.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #49059 (Whitespace inside p element in wp-signup.php should be removed) created</title>
+      
+        <dc:creator>henry.wright</dc:creator>
+
+      <pubDate>Sat, 21 Dec 2019 14:49:34 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/49059</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/49059/1576939774898607</guid>
+      <description>&lt;p&gt;
+In wp-signup.php there is a paragraph of text with a lot of left and right whitespace.&lt;br /&gt;
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;&amp;lt;p&amp;gt;
+		Welcome back, Peter. By filling out the form below, you can &amp;lt;strong&amp;gt;add another site to your account&amp;lt;/strong&amp;gt;. There is no limit to the number of sites you can have, so create to your heart's content, but write responsibly!.	&amp;lt;/p&amp;gt;
+&lt;/pre&gt;&lt;p&gt;
+We should remove the whitespace because it isn't necessary.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #49058 (Twenty Twenty: Comments report) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Sat, 21 Dec 2019 14:41:08 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/49058#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/49058#comment:1/1576939268826681</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Hi there, welcome to WordPress Trac! Thanks for the report.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+That condition is correct as is, since &lt;code&gt;get_comments_number()&lt;/code&gt; returns a numeric string, not an integer. It's also the same in other bundled themes (except for Twenty Nineteen). See &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/38369" title="#38369: defect (bug): Docs: Incorrect return type for get_comments_number() (closed: fixed)"&gt;#38369&lt;/a&gt; for more details.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Could you clarify what exactly is the problem with translations?&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #49058 (Twenty Twenty: Comments report) created</title>
+      
+        <dc:creator>Parvand</dc:creator>
+
+      <pubDate>Sat, 21 Dec 2019 14:31:06 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/49058</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/49058/1576938666507437</guid>
+      <description>&lt;p&gt;
+problem in comments.php&lt;br /&gt;
+at line 35 where it starts:&lt;br /&gt;
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;} elseif ( '1' === $comments_number ) {
+&lt;/pre&gt;&lt;p&gt;
+its not work for translate. I think it should be as follows:&lt;br /&gt;
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;} elseif ( '1' == $comments_number ) {
+&lt;/pre&gt;&lt;p&gt;
+i change and it work now.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+in twentynineteen its :&lt;br /&gt;
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;if ( '1' == $discussion-&amp;gt;responses ) {
+&lt;/pre&gt;&lt;p&gt;
+is that problem or not?&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #48765 (Twenty Twenty: Disable Gutenberg Editor Issue) updated</title>
+      
+        <dc:creator>slackbot</dc:creator>
+
+      <pubDate>Sat, 21 Dec 2019 12:30:26 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/48765#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/48765#comment:3/1576931426870145</guid>
+      <description>&lt;p&gt;
+&lt;em&gt;This ticket was mentioned in &lt;a class="ext-link" href="https://make.wordpress.org/chat/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;Slack&lt;/a&gt; in #core by utsav72640. &lt;a class="ext-link" href="https://wordpress.slack.com/archives/core/p1576931424104100"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;View the logs&lt;/a&gt;.&lt;/em&gt;&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #49046 (Add filter to send_confirmation_on_profile_email()) updated</title>
+      
+        <dc:creator>wpamitkumar</dc:creator>
+
+      <pubDate>Sat, 21 Dec 2019 10:16:57 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/49046#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/49046#comment:2/1576923417085913</guid>
+      <description>&lt;p&gt;
+@jfarthing84 I think you should use apply_filters hook as &lt;code&gt;wp_new_user_notification_email&lt;/code&gt; instead of &lt;code&gt;new_user_email_notification&lt;/code&gt; in your 49046.patch .&lt;br /&gt;
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+$new_user_email_notification = apply_filters( 'wp_new_user_notification_email', $new_user_email_notification, $current_user, $sitename );&lt;br /&gt;
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+$new_user_email_notification = apply_filters( 'new_user_email_notification', $new_user_email_notification, $current_user, $sitename );&lt;br /&gt;
+&lt;/p&gt;
+&lt;/blockquote&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #33863 (uksort takes a lot of time with large number of cron events) closed</title>
+      
+        <dc:creator>peterwilsoncc</dc:creator>
+
+      <pubDate>Sat, 21 Dec 2019 06:55:09 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/33863#comment:8</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/33863#comment:8/1576911309213720</guid>
+      <description>wontfix: &lt;p&gt;
+Resetting this to closed: the status change appears to have got lost on the comment above.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Ticket #23133 (Display a warning in the admin if cron tasks fail due to blocked HTTP ...) closed</title>
+      
+        <dc:creator>peterwilsoncc</dc:creator>
+
+      <pubDate>Sat, 21 Dec 2019 06:43:31 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/23133#comment:20</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/23133#comment:20/1576910611846172</guid>
+      <description>wontfix: &lt;p&gt;
+I'm closing this off as the site health check includes checks both to confirm scheduled tasks are running and to confirm loopback requests are working.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Ticket #49057 (Add tag for any WP_Query for simple access in pre_get_post action) created</title>
+      
+        <dc:creator>hamedmoodi</dc:creator>
+
+      <pubDate>Sat, 21 Dec 2019 04:54:24 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/49057</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/49057/1576904064266925</guid>
+      <description>&lt;p&gt;
+At current time it is difficult for find out which query is running at pre_get_post action&lt;br /&gt;
+I offer add extra property to WP_Query as tag-name.&lt;br /&gt;
+by this way i simply find out which query is running just by custom tag that added in any WP_Query object&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #49034 (Twenty Twenty: Add filter for social icons regex map to facilitate ...) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Sat, 21 Dec 2019 00:18:56 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/49034#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/49034#comment:1/1576887536733333</guid>
+      <description>&lt;p&gt;
+Related: &lt;a class="new ticket" href="http://core.trac.wordpress.org/ticket/48713" title="#48713: enhancement: Twenty Twenty: Social Icons Filter (new)"&gt;#48713&lt;/a&gt;&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #48713 (Twenty Twenty: Social Icons Filter) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Sat, 21 Dec 2019 00:18:50 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/48713#comment:6</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/48713#comment:6/1576887530588250</guid>
+      <description>&lt;p&gt;
+Related: &lt;a class="new ticket" href="http://core.trac.wordpress.org/ticket/49034" title="#49034: enhancement: Twenty Twenty: Add filter for social icons regex map to facilitate ... (new)"&gt;#49034&lt;/a&gt;&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item>
+   </channel>
+</rss>

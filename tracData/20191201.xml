@@ -1,0 +1,1456 @@
+<?xml version="1.0"?>
+<rss xmlns:dc="http://purl.org/dc/elements/1.1/" version="2.0">
+  <channel>
+    <title>WordPress Trac</title>
+    <link>http://core.trac.wordpress.org/timeline</link>
+    <description>Trac Timeline</description>
+    <language>en-US</language>
+    <generator>Trac 1.2.2</generator>
+    <image>
+      <title>WordPress Trac</title>
+      <url>http://core.trac.wordpress.org/chrome/site/your_project_logo.png</url>
+      <link>http://core.trac.wordpress.org/timeline</link>
+    </image>
+    <item>
+      <title>Ticket #42437 (Thumbnails can overwrite other uploads if filename matches) updated</title>
+      
+        <dc:creator>azaozz</dc:creator>
+
+      <pubDate>Sun, 01 Dec 2019 23:49:03 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/42437#comment:31</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/42437#comment:31/1575244143831786</guid>
+      <description>&lt;p&gt;
+Replying to &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/42437#comment:30" title="Comment 30"&gt;pbiron&lt;/a&gt;:&lt;br /&gt;
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+@azaozz I'm working on a revised patch for this.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Where do you think is the best place to do this "extra" collision detection?&lt;br /&gt;
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+Been thinking about this for a while. Not sure it can use &lt;code&gt;glob()&lt;/code&gt; as the PHP manual warns that:&lt;br /&gt;
+&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;
+Note: This function will not work on remote files as the file to be examined must be accessible via the server's filesystem.&lt;br /&gt;
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+Can try to generate a list of "reserved parts" of image file names. For that it will need access to the actual file, then it can use &lt;code&gt;getimagesize( $file )&lt;/code&gt; to get the image dimensions, &lt;code&gt;wp_get_registered_image_subsizes()&lt;/code&gt;, and &lt;code&gt;image_resize_dimensions()&lt;/code&gt; to get the exact &lt;code&gt;123x456&lt;/code&gt; part. Then we can still use &lt;code&gt;file_exists()&lt;/code&gt; or &lt;code&gt;is_file()&lt;/code&gt; that support remote files.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Looks like that will work, but may be a bit fragile? May also result in some false positives.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+I like the idea @joemcgill described in &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/42437#comment:21" title="#42437: defect (bug): Thumbnails can overwrite other uploads if filename matches (closed: fixed)"&gt;comment 21&lt;/a&gt;. But appending a hash only to sub-sizes will prevent the possibility to "get" the attachment ID from an image URL, see &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/48453" title="#48453: defect (bug): Regression: Implied contract between image sub-size filenames and ... (closed: fixed)"&gt;#48453&lt;/a&gt;. Perhaps a short hash (6-8 letters/numbers) could be added to the original file name instead of the &lt;code&gt;-1&lt;/code&gt;, &lt;code&gt;-2&lt;/code&gt;, etc?&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+For where/how to do this, there seem to be couple of possibilities:&lt;br /&gt;
+&lt;/p&gt;
+&lt;ol&gt;&lt;li&gt;Use the existing mechanism to pass &lt;code&gt;$unique_filename_callback&lt;/code&gt; to &lt;code&gt;wp_unique_filename()&lt;/code&gt;. This will work for the default uploading functions, for example &lt;code&gt;media_handle_upload()&lt;/code&gt;, but will require some changes to them (5-6 places as far as I see). The downside is that it will not work for plugins using the same functions.
+&lt;/li&gt;&lt;/ol&gt;&lt;ol start="2"&gt;&lt;li&gt;Include it in &lt;code&gt;wp_unique_filename()&lt;/code&gt;. This may result in "false positives" when generating file names, but generally will have better backwards compatibility.
+&lt;/li&gt;&lt;/ol&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #43113 (Multiple custom item classes are returned as single string when using ...) updated</title>
+      
+        <dc:creator>dlh</dc:creator>
+
+      <pubDate>Sun, 01 Dec 2019 23:41:35 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43113#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43113#comment:3/1575243695134073</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt;, &lt;i&gt;Version&lt;/i&gt;, &lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Storing the classes as a string in the setting value seems right to me because &lt;code&gt;wp_update_nav_menu_item()&lt;/code&gt; expects to receive a string for &lt;code&gt;menu-item-classes&lt;/code&gt;.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+The problem occurs (I think) when the nav menu item's properties are overwritten with the customized state in &lt;code&gt;\WP_Customize_Nav_Menu_Item_Setting::filter_wp_get_nav_menu_items()&lt;/code&gt;. The string setting value for &lt;code&gt;classes&lt;/code&gt; overwrites the array value set by &lt;code&gt;wp_setup_nav_menu_item()&lt;/code&gt;.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+&lt;a class="attachment" href="http://core.trac.wordpress.org/attachment/ticket/43113/43113.diff" title="Attachment '43113.diff' in Ticket #43113"&gt;43113.diff&lt;/a&gt;&lt;a class="trac-rawlink" href="http://core.trac.wordpress.org/raw-attachment/ticket/43113/43113.diff" title="Download"&gt;​&lt;/a&gt; attempts to fix this in &lt;code&gt;\WP_Customize_Nav_Menu_Item_Setting::value_as_wp_post_nav_menu_item()&lt;/code&gt; by ensuring that a string &lt;code&gt;classes&lt;/code&gt; is exploded into an array before it's used to overwrite the property.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+@lrdn, would you be able to refresh your memory about this issue and test the patch?&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Marking this as a potential small fix to get into 5.4 if it can be tested.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>43113.diff attached to Ticket #43113</title>
+      
+        <dc:creator>dlh</dc:creator>
+
+      <pubDate>Sun, 01 Dec 2019 23:33:03 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/43113/43113.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/43113/43113.diff/1575243183145862</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #39487 (Default to 'transport'=&gt;'postMessage' for a setting associated with a ...) updated</title>
+      
+        <dc:creator>dlh</dc:creator>
+
+      <pubDate>Sun, 01 Dec 2019 22:56:14 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/39487#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/39487#comment:3/1575240974573130</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+&lt;a class="attachment" href="http://core.trac.wordpress.org/attachment/ticket/39487/39487.2.diff" title="Attachment '39487.2.diff' in Ticket #39487"&gt;39487.2.diff&lt;/a&gt;&lt;a class="trac-rawlink" href="http://core.trac.wordpress.org/raw-attachment/ticket/39487/39487.2.diff" title="Download"&gt;​&lt;/a&gt; adds tests.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>39487.2.diff attached to Ticket #39487</title>
+      
+        <dc:creator>dlh</dc:creator>
+
+      <pubDate>Sun, 01 Dec 2019 22:55:47 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/39487/39487.2.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/39487/39487.2.diff/1575240947860945</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #48785 (REST API: WP_REST_Controller::get_public_item_schema() assumes that ...) updated</title>
+      
+        <dc:creator>TimothyBlynJacobs</dc:creator>
+
+      <pubDate>Sun, 01 Dec 2019 21:52:53 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/48785#comment:4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/48785#comment:4/1575237173598561</guid>
+      <description>&lt;p&gt;
+Thanks for working on a patch for this @dhavalkasvala! Do you want to try tackling a &lt;a class="ext-link" href="https://make.wordpress.org/core/handbook/testing/automated-testing/writing-phpunit-tests/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;unit test&lt;/a&gt; for this? Coding standards wise, we should also have &lt;a class="ext-link" href="https://make.wordpress.org/core/handbook/best-practices/coding-standards/php/#space-usage"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;spaces around the parentheses&lt;/a&gt;.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #42961 (REST API: Cannot pass empty object url encoded data) updated</title>
+      
+        <dc:creator>TimothyBlynJacobs</dc:creator>
+
+      <pubDate>Sun, 01 Dec 2019 21:39:35 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/42961#comment:8</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/42961#comment:8/1575236375198465</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt;, &lt;i&gt;Focuses&lt;/i&gt;, &lt;i&gt;Summary&lt;/i&gt;, &lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Thanks for providing that context @steffanhalv! A couple of things to untangle here.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+The REST API does send CORS headers. As far as I know, the intention is that any WordPress with the REST API enabled would be able to accept JSON by default: &lt;a class="ext-link" href="https://github.com/WordPress/wordpress-develop/blob/bf3295d10f066ef6bf670bb272aae9db400e8be5/src/wp-includes/rest-api/class-wp-rest-server.php#L239"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://github.com/WordPress/wordpress-develop/blob/bf3295d10f066ef6bf670bb272aae9db400e8be5/src/wp-includes/rest-api/class-wp-rest-server.php#L239&lt;/a&gt; Is there a specific deficiency you noticed in the CORS setup that WordPress Core could address?&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+If you were not aware, the REST API accepts form url encoded data as post data.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+For the actual issue, I'm not able to replicate if the schema is setup properly. Given the following REST API route:&lt;br /&gt;
+&lt;/p&gt;
+&lt;div class="wiki-code"&gt;&lt;div class="code"&gt;&lt;pre&gt;&lt;span class="cp"&gt;&amp;lt;?php&lt;/span&gt;
+&lt;span class="nx"&gt;add_action&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="s1"&gt;'rest_api_init'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="k"&gt;function&lt;/span&gt; &lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+        &lt;span class="nx"&gt;register_rest_route&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;
+                &lt;span class="s1"&gt;'my-ns'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+                &lt;span class="s1"&gt;'my-route'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+                &lt;span class="p"&gt;[&lt;/span&gt;
+                        &lt;span class="s1"&gt;'methods'&lt;/span&gt;  &lt;span class="o"&gt;=&amp;gt;&lt;/span&gt; &lt;span class="nx"&gt;WP_REST_Server&lt;/span&gt;&lt;span class="o"&gt;::&lt;/span&gt;&lt;span class="na"&gt;EDITABLE&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+                        &lt;span class="s1"&gt;'args'&lt;/span&gt;     &lt;span class="o"&gt;=&amp;gt;&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;
+                                &lt;span class="s1"&gt;'array'&lt;/span&gt; &lt;span class="o"&gt;=&amp;gt;&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;
+                                        &lt;span class="s1"&gt;'type'&lt;/span&gt;              &lt;span class="o"&gt;=&amp;gt;&lt;/span&gt; &lt;span class="s1"&gt;'array'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+                                        &lt;span class="s1"&gt;'items'&lt;/span&gt;             &lt;span class="o"&gt;=&amp;gt;&lt;/span&gt; &lt;span class="k"&gt;array&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;
+                                                &lt;span class="s1"&gt;'type'&lt;/span&gt; &lt;span class="o"&gt;=&amp;gt;&lt;/span&gt; &lt;span class="s1"&gt;'string'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+                                        &lt;span class="p"&gt;),&lt;/span&gt;
+                                        &lt;span class="s1"&gt;'validate_callback'&lt;/span&gt; &lt;span class="o"&gt;=&amp;gt;&lt;/span&gt; &lt;span class="s1"&gt;'rest_validate_request_arg'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+                                        &lt;span class="s1"&gt;'sanitize_callback'&lt;/span&gt; &lt;span class="o"&gt;=&amp;gt;&lt;/span&gt; &lt;span class="s1"&gt;'rest_sanitize_request_arg'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+                                &lt;span class="p"&gt;],&lt;/span&gt;
+                        &lt;span class="p"&gt;],&lt;/span&gt;
+                        &lt;span class="s1"&gt;'callback'&lt;/span&gt; &lt;span class="o"&gt;=&amp;gt;&lt;/span&gt; &lt;span class="k"&gt;function&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="nx"&gt;WP_REST_Request&lt;/span&gt; &lt;span class="nv"&gt;$request&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+                                &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="k"&gt;new&lt;/span&gt; &lt;span class="nx"&gt;WP_REST_Response&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="nv"&gt;$request&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="na"&gt;get_params&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="p"&gt;);&lt;/span&gt;
+                        &lt;span class="p"&gt;},&lt;/span&gt;
+                &lt;span class="p"&gt;]&lt;/span&gt;
+        &lt;span class="p"&gt;);&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt; &lt;span class="p"&gt;);&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;p&gt;
+And the given request:&lt;br /&gt;
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;curl --request POST \
+  --url http://trunk.test/wp-json/my-ns/my-route \
+  --header 'accept: application/json' \
+  --header 'content-type: application/x-www-form-urlencoded' \
+  --data array=
+&lt;/pre&gt;&lt;p&gt;
+I receive the following response:&lt;br /&gt;
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;{
+  "array": []
+}
+&lt;/pre&gt;&lt;p&gt;
+If there is not items schema set, then &lt;code&gt;rest_sanitize_value_from_schema()&lt;/code&gt; will bail by just casting the value to an array and you'll get an array of a single string.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Taking a look at your error message, though, it looks like you are trying to set an empty &lt;em&gt;object&lt;/em&gt; not an &lt;em&gt;array&lt;/em&gt;. Doing a bit of research, it doesn't look like there is an RFC about how this should work, if anyone knows of one, please mention it. Languages also aren't consistent about it. For example, in nodejs.&lt;br /&gt;
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;&amp;gt; const qs = require( 'querystring' );
+&amp;gt; qs.stringify( { obj: {} } );
+'obj='
+&amp;gt; qs.parse( 'obj=' );
+{ obj: '' }
+&lt;/pre&gt;&lt;p&gt;
+In the REST API currently, &lt;code&gt;obj=&lt;/code&gt; fails because it is not an object. And given that you can create an empty array with &lt;code&gt;arr=&lt;/code&gt;. I think we can allow &lt;code&gt;obj=&lt;/code&gt; as an empty object. There shouldn't be any BC concerns because that value is currently blocked by &lt;code&gt;rest_validate_value_from_schema&lt;/code&gt;, so we wouldn't be transforming a previously valid value into a different value. &lt;code&gt;rest_sanitize_value_from_schema&lt;/code&gt; will already convert anything invalid into an empty array so we should be good on that side as well.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+I've uploaded a patch that does that for review. I'm provisionally marking this for 5.4, but again this needs review before being committed.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>42961.diff attached to Ticket #42961</title>
+      
+        <dc:creator>TimothyBlynJacobs</dc:creator>
+
+      <pubDate>Sun, 01 Dec 2019 21:37:42 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/42961/42961.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/42961/42961.diff/1575236262287462</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Screenshot 2019-12-01 at 19.51.06.png attached to Ticket #48847</title>
+      
+        <dc:creator>jaapmarcus</dc:creator>
+
+      <pubDate>Sun, 01 Dec 2019 19:09:04 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/48847/Screenshot%202019-12-01%20at%2019.51.06.png</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/48847/Screenshot%202019-12-01%20at%2019.51.06.png/1575227344986783</guid>
+      <description>&lt;p&gt;
+mov is selectable how ever the other file not.
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #48847 (Gutenberg Editor Safari/OSX Unable to upload video files) created</title>
+      
+        <dc:creator>jaapmarcus</dc:creator>
+
+      <pubDate>Sun, 01 Dec 2019 19:08:19 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/48847</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/48847/1575227299319523</guid>
+      <description>&lt;p&gt;
+In Safari 13.0.3 OSX 10.15.1 when uploading a new file I am only allowed to select mov files. &lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+I know from the past probally WordPress limits Video by video/* due to a bug in this get only allowed *.mov instead any type else. The default / normal upload function works fine.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+&lt;a style="padding:0; border:none" href="https://paste.pics/3c9ed32bc2fe09063ffe9a5da7908cee"&gt;&lt;img src="https://paste.pics/3c9ed32bc2fe09063ffe9a5da7908cee" alt="https://paste.pics/3c9ed32bc2fe09063ffe9a5da7908cee" crossorigin="anonymous" title="https://paste.pics/3c9ed32bc2fe09063ffe9a5da7908cee" /&gt;&lt;/a&gt;&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #48736 (Exclude PNG images from scaling after upload) reopened</title>
+      
+        <dc:creator>azaozz</dc:creator>
+
+      <pubDate>Sun, 01 Dec 2019 18:25:24 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/48736#comment:11</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/48736#comment:11/1575224724633368</guid>
+      <description>&lt;p&gt;
+Reopen for 5.3.1.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>reopenedticket</category>
+    </item><item>
+      <title>Ticket #48736 (Exclude PNG images from scaling after upload) closed</title>
+      
+        <dc:creator>azaozz</dc:creator>
+
+      <pubDate>Sun, 01 Dec 2019 18:24:32 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/48736#comment:10</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/48736#comment:10/1575224672007905</guid>
+      <description>fixed: &lt;p&gt;
+In &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/46809" title="Upload: Exclude PNG images from scaling after uploading. Fixes a case ..."&gt;46809&lt;/a&gt;:&lt;br /&gt;
+&lt;/p&gt;
+&lt;div class="message"&gt;&lt;p&gt;
+Upload: Exclude PNG images from scaling after uploading. Fixes a case where resizing a very large PNG may create a scaled image that has smaller dimensions but larger file size than the original.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/48736" title="#48736: defect (bug): Exclude PNG images from scaling after upload (closed: fixed)"&gt;#48736&lt;/a&gt;.&lt;br /&gt;
+&lt;/p&gt;
+&lt;/div&gt;</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Changeset [46809]: Upload: Exclude PNG images from scaling after uploading. Fixes a case ...</title>
+      
+        <dc:creator>azaozz</dc:creator>
+
+      <pubDate>Sun, 01 Dec 2019 18:24:30 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/46809</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/46809/1575224670913043</guid>
+      <description>&lt;p&gt;
+Upload: Exclude PNG images from scaling after uploading. Fixes a case where resizing a very large PNG may create a scaled image that has smaller dimensions but larger file size than the original.
+&lt;/p&gt;
+&lt;p&gt;
+Fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/48736" title="#48736: defect (bug): Exclude PNG images from scaling after upload (closed: fixed)"&gt;#48736&lt;/a&gt;.
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Ticket #48736 (Exclude PNG images from scaling after upload) updated</title>
+      
+        <dc:creator>azaozz</dc:creator>
+
+      <pubDate>Sun, 01 Dec 2019 17:54:51 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/48736#comment:9</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/48736#comment:9/1575222891395265</guid>
+      <description>&lt;p&gt;
+Replying to &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/48736#comment:7" title="Comment 7"&gt;rmens&lt;/a&gt;:&lt;br /&gt;
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+On the front-end cluster the CPU load did not increase. This seems to be directly related to post-processing uploaded images. I wonder about the impact on large shared hosting platforms.&lt;br /&gt;
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+IMHO it is a good idea to open another ticket with these concerns. True, in 5.3 there are two or three new large image sub-sizes being generated when the user uploads a (very) large image. This is done to prepare the image for "web use", and to better support large and high-density screens. Frankly I don't see a good workaround for now, the images need to be generated if we want the websites to look good.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+It may be possible to use other command-line tools (on the server) to post-process images that are somewhat more efficient, but image processing is always very CPU and memory intense. It may eventually be possible to use js in the browser to "pre-process" images. That still needs better support and is in the planning stages.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+In any case, having a place to explore more options and "compare notes" is a good idea :)&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #48736 (Exclude PNG images from scaling after upload) updated</title>
+      
+        <dc:creator>azaozz</dc:creator>
+
+      <pubDate>Sun, 01 Dec 2019 17:41:32 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/48736#comment:8</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/48736#comment:8/1575222092205460</guid>
+      <description>&lt;p&gt;
+Replying to &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/48736#comment:7" title="Comment 7"&gt;rmens&lt;/a&gt;:&lt;br /&gt;
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+Disabling this for PNG seems like the right move. I however don't see a path ahead to ever make this work reliably for PNG.&lt;br /&gt;
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+Right. Disabling the scaling of big PNGs is about all we can do in 5.3.1.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Apart from trying to enhance the actual post-processing, a possible enhancement in the future may be to further extend the context of how an image is going to be used when the user uploads it. This is currently done for "custom backgrounds" and "custom header", but perhaps a more general UI would be better.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #48845 (unittest for wp_remote_fopen()) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Sun, 01 Dec 2019 17:27:05 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/48845#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/48845#comment:1/1575221225769476</guid>
+      <description>&lt;i&gt;Status&lt;/i&gt;, &lt;i&gt;Owner&lt;/i&gt;, &lt;i&gt;Component&lt;/i&gt;, &lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #48844 (Unit test for wp()) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Sun, 01 Dec 2019 17:26:20 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/48844#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/48844#comment:1/1575221180290857</guid>
+      <description>&lt;i&gt;Status&lt;/i&gt;, &lt;i&gt;Owner&lt;/i&gt;, &lt;i&gt;Component&lt;/i&gt;, &lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Tickets #47430,​48843 batch updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Sun, 01 Dec 2019 17:25:10 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/query?id=47430%2C48843</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/query?id=47430%2C48843/1575221110611830</guid>
+      <description>duplicate: &lt;p&gt;
+Thanks for the report, this was fixed in &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/45707" title="Database: Use a strict comparison for `has_filter()` check in ..."&gt;[45707]&lt;/a&gt; / &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/47430" title="#47430: defect (bug): wp-db: Always adds a filter on every query (closed: fixed)"&gt;#47430&lt;/a&gt; for WordPress 5.3.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>batchmodify</category>
+    </item><item>
+      <title>Tickets #26577,​48846 batch updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Sun, 01 Dec 2019 17:23:17 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/query?id=26577%2C48846</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/query?id=26577%2C48846/1575220997285184</guid>
+      <description>duplicate: &lt;p&gt;
+Hi there, welcome to WordPress Trac!&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Thanks for the report, we're already tracking this issue in &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/26577" title="#26577: defect (bug): Unable to compare post with single revision (closed: wontfix)"&gt;#26577&lt;/a&gt;.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>batchmodify</category>
+    </item><item>
+      <title>Ticket #48841 (Add missing doc and refactor code for REST API: ...) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Sun, 01 Dec 2019 17:20:24 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/48841#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/48841#comment:1/1575220824330878</guid>
+      <description>&lt;i&gt;Status&lt;/i&gt;, &lt;i&gt;Owner&lt;/i&gt;, &lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #48074 (Remove work-arounds for unsupported PHP versions) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Sun, 01 Dec 2019 12:11:59 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/48074#comment:17</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/48074#comment:17/1575202319088835</guid>
+      <description>&lt;p&gt;
+In &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/46808" title="Widgets: Remove `WP_Widget_Factory::$hashed_class_counts` property, ..."&gt;46808&lt;/a&gt;:&lt;br /&gt;
+&lt;/p&gt;
+&lt;div class="message"&gt;&lt;p&gt;
+Widgets: Remove &lt;code&gt;WP_Widget_Factory::$hashed_class_counts&lt;/code&gt; property, unused since &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/46220" title="Code Modernization: Remove workarounds for `spl_object_hash()`.
+The ..."&gt;[46220]&lt;/a&gt;.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+The &lt;code&gt;spl_object_hash()&lt;/code&gt; function was introduced in PHP 5.2.0. As of PHP 5.3, the PHP SPL extension can no longer be disabled, so the &lt;code&gt;WP_Widget_Factory::hash_object()&lt;/code&gt; workaround was removed in &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/46220" title="Code Modernization: Remove workarounds for `spl_object_hash()`.
+The ..."&gt;[46220]&lt;/a&gt;.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+See &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/48074" title="#48074: task (blessed): Remove work-arounds for unsupported PHP versions (closed: fixed)"&gt;#48074&lt;/a&gt;.&lt;br /&gt;
+&lt;/p&gt;
+&lt;/div&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Changeset [46808]: Widgets: Remove `WP_Widget_Factory::$hashed_class_counts` property, ...</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Sun, 01 Dec 2019 12:11:57 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/46808</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/46808/1575202317907844</guid>
+      <description>&lt;p&gt;
+Widgets: Remove &lt;code&gt;WP_Widget_Factory::$hashed_class_counts&lt;/code&gt; property, unused since &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/46220" title="Code Modernization: Remove workarounds for `spl_object_hash()`.
+The ..."&gt;[46220]&lt;/a&gt;.
+&lt;/p&gt;
+&lt;p&gt;
+The &lt;code&gt;spl_object_hash()&lt;/code&gt; function was introduced in PHP 5.2.0. As of PHP 5.3, the PHP SPL extension can no longer be disabled, so the &lt;code&gt;WP_Widget_Factory::hash_object()&lt;/code&gt; workaround was removed in &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/46220" title="Code Modernization: Remove workarounds for `spl_object_hash()`.
+The ..."&gt;[46220]&lt;/a&gt;.
+&lt;/p&gt;
+&lt;p&gt;
+See &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/48074" title="#48074: task (blessed): Remove work-arounds for unsupported PHP versions (closed: fixed)"&gt;#48074&lt;/a&gt;.
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Ticket #40694 (dbDelta uses suppressed errors to detect table absence) updated</title>
+      
+        <dc:creator>gaupoit</dc:creator>
+
+      <pubDate>Sun, 01 Dec 2019 08:38:14 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/40694#comment:5</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/40694#comment:5/1575189494894270</guid>
+      <description>&lt;p&gt;
+Query Monitor tool will collect this errors and showing them while the plugin creates custom tables using dbDelta function. &lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #48846 (Revision meta box is hidden when one revision) created</title>
+      
+        <dc:creator>ecairol</dc:creator>
+
+      <pubDate>Sun, 01 Dec 2019 04:57:55 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/48846</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/48846/1575176275818841</guid>
+      <description>&lt;p&gt;
+When editing a post, if there's only 1 revision associated with the post, the meta box will be hidden. The cause of this is the condition being &amp;gt; instead of &amp;gt;=&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+On file: wp-admin/includes/meta-boxes.php&lt;br /&gt;
+&lt;/p&gt;
+&lt;div class="wiki-code"&gt;&lt;div class="code"&gt;&lt;pre&gt;&lt;span class="cp"&gt;&amp;lt;?php&lt;/span&gt;
+&lt;span class="c1"&gt;// We should aim to show the revisions meta box only when there are revisions.
+&lt;/span&gt;&lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="nb"&gt;count&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="nv"&gt;$revisions&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;&amp;gt;&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;p&gt;
+If the aim is to show the box when there are revisions, even one, then the condition should have been $revisions &amp;gt;= 1.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+If you set your wp-config to store only 1 single revision per post, the meta-box won't display.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+I read the first step is opening this ticket, however I'm more than happy to open a PR with a fix. &lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>48845.patch attached to Ticket #48845</title>
+      
+        <dc:creator>pbearne</dc:creator>
+
+      <pubDate>Sun, 01 Dec 2019 01:43:08 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/48845/48845.patch</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/48845/48845.patch/1575164588222104</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #48845 (unittest for wp_remote_fopen()) created</title>
+      
+        <dc:creator>pbearne</dc:creator>
+
+      <pubDate>Sun, 01 Dec 2019 01:42:14 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/48845</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/48845/1575164534400718</guid>
+      <description>&lt;p&gt;
+just a missing unii test&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>48844.patch attached to Ticket #48844</title>
+      
+        <dc:creator>pbearne</dc:creator>
+
+      <pubDate>Sun, 01 Dec 2019 00:41:52 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/48844/48844.patch</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/48844/48844.patch/1575160912843723</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #48844 (Unit test for wp()) created</title>
+      
+        <dc:creator>pbearne</dc:creator>
+
+      <pubDate>Sun, 01 Dec 2019 00:41:19 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/48844</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/48844/1575160879392383</guid>
+      <description>&lt;p&gt;
+Just a simple test for the wp() function in functions.php&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+It not posable to test fully as the WP object has already been created by the test framework &lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>- وورد تراك attached to Ticket #34814</title>
+      
+        <dc:creator>rtyui091276</dc:creator>
+
+      <pubDate>Sat, 30 Nov 2019 23:47:08 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/34814/-%20%D9%88%D9%88%D8%B1%D8%AF%20%D8%AA%D8%B1%D8%A7%D9%83</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/34814/-%20%D9%88%D9%88%D8%B1%D8%AF%20%D8%AA%D8%B1%D8%A7%D9%83/1575157628514527</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #48843 (wpdb::placeholder_escape fails to conditionally add a ...) updated</title>
+      
+        <dc:creator>pcfreak30</dc:creator>
+
+      <pubDate>Sat, 30 Nov 2019 23:33:56 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/48843#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/48843#comment:1/1575156836081542</guid>
+      <description>&lt;p&gt;
+Woops, I mean &lt;br /&gt;
+&lt;/p&gt;
+&lt;div class="wiki-code"&gt;&lt;div class="code"&gt;&lt;pre&gt;&lt;span class="x"&gt;false ===
+&lt;/span&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #48843 (wpdb::placeholder_escape fails to conditionally add a ...) created</title>
+      
+        <dc:creator>pcfreak30</dc:creator>
+
+      <pubDate>Sat, 30 Nov 2019 23:31:44 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/48843</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/48843/1575156704476128</guid>
+      <description>&lt;p&gt;
+Found this edge case issue while doing some hacking around the wp hook structures/API.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+You have:&lt;br /&gt;
+&lt;/p&gt;
+&lt;div class="wiki-code"&gt;&lt;div class="code"&gt;&lt;pre&gt;&lt;span class="cp"&gt;&amp;lt;?php&lt;/span&gt;
+&lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="o"&gt;!&lt;/span&gt; &lt;span class="nx"&gt;has_filter&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="s1"&gt;'query'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="k"&gt;array&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="nv"&gt;$this&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;'remove_placeholder_escape'&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+                        &lt;span class="nx"&gt;add_filter&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="s1"&gt;'query'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="k"&gt;array&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="nv"&gt;$this&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;'remove_placeholder_escape'&lt;/span&gt; &lt;span class="p"&gt;),&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt; &lt;span class="p"&gt;);&lt;/span&gt;
+                &lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;p&gt;
+However, has_filter returns the priority of hook if it exists, which happens to be 0... 0 is falsely in PHP, so every call to placeholder_escape re-sets the array hook ad add_filter doesn't do an exists check, and not sure it even should?&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Since we are adding to a priority 0, we need to do a strict &lt;code&gt;#!php false !== &lt;/code&gt;.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+I will probably submit a patch shortly.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+The function in question was committed with the bug in ticket &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/41925" title="#41925: defect (bug): Bring back, support and document %1$s support in wpdb-&amp;gt;prepare (closed: fixed)"&gt;#41925&lt;/a&gt;.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Tickets #24169,​43043 batch updated</title>
+      
+        <dc:creator>dlh</dc:creator>
+
+      <pubDate>Sat, 30 Nov 2019 22:11:49 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/query?id=24169%2C43043</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/query?id=24169%2C43043/1575151909083572</guid>
+      <description>duplicate: &lt;p&gt;
+Having re-read both tickets, I think it would be fair to mark this ticket as a duplicate of &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/24169" title="#24169: defect (bug): WP_Customize_Manager loads the current user too early (closed: wontfix)"&gt;#24169&lt;/a&gt;. As I understand it, the security concern described in &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/24169#comment:4" title="#24169: defect (bug): WP_Customize_Manager loads the current user too early (closed: wontfix)"&gt;ticket:24169#comment:4&lt;/a&gt; that necessitates capability checks before &lt;code&gt;after_setup_theme&lt;/code&gt; also applies in the VIP scenario described here. &lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+If an approach becomes available to soften the blow of this limitation, as was sought after in &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/24169" title="#24169: defect (bug): WP_Customize_Manager loads the current user too early (closed: wontfix)"&gt;#24169&lt;/a&gt;, I would move that it be added there so as to continue the previous discussion.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>batchmodify</category>
+    </item><item>
+      <title>Ticket #47692 (Optgroup in Customizer Select Control) updated</title>
+      
+        <dc:creator>dlh</dc:creator>
+
+      <pubDate>Sat, 30 Nov 2019 21:46:33 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/47692#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/47692#comment:3/1575150393033592</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt;, &lt;i&gt;Version&lt;/i&gt;, &lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Support for &lt;code&gt;optgroup&lt;/code&gt; would also needed to be added to the JavaScript control template, I think, not just the PHP template.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+I also wonder about the &lt;code&gt;$optgroup&lt;/code&gt; property in &lt;a class="attachment" href="http://core.trac.wordpress.org/attachment/ticket/47692/47692.diff" title="Attachment '47692.diff' in Ticket #47692"&gt;47692.diff&lt;/a&gt;&lt;a class="trac-rawlink" href="http://core.trac.wordpress.org/raw-attachment/ticket/47692/47692.diff" title="Download"&gt;​&lt;/a&gt;. What happens if a multidimensional array is used for &lt;code&gt;$choices&lt;/code&gt; but &lt;code&gt;$optgroup&lt;/code&gt; is &lt;code&gt;false&lt;/code&gt;, or vice versa?&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #48522 (Attachment size not generated when large images uploaded) updated</title>
+      
+        <dc:creator>slackbot</dc:creator>
+
+      <pubDate>Sat, 30 Nov 2019 21:04:56 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/48522#comment:25</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/48522#comment:25/1575147896733242</guid>
+      <description>&lt;p&gt;
+&lt;em&gt;This ticket was mentioned in &lt;a class="ext-link" href="https://make.wordpress.org/chat/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;Slack&lt;/a&gt; in #core-media by azaozz. &lt;a class="ext-link" href="https://wordpress.slack.com/archives/core-media/p1575147895048900"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;View the logs&lt;/a&gt;.&lt;/em&gt;&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #48522 (Attachment size not generated when large images uploaded) updated</title>
+      
+        <dc:creator>azaozz</dc:creator>
+
+      <pubDate>Sat, 30 Nov 2019 20:56:45 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/48522#comment:24</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/48522#comment:24/1575147405755322</guid>
+      <description>&lt;p&gt;
+Related: &lt;a class="new ticket" href="http://core.trac.wordpress.org/ticket/48842" title="#48842: defect (bug): Fix calculation error when resampling images before resizing in ... (new)"&gt;#48842&lt;/a&gt;.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Found an error in the calculations when resampling the original image while making a much smaller sub-size. This affects large images and (likely) causes some of the errors in ImageMagick.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+@vanyukov could you test the patch on &lt;a class="new ticket" href="http://core.trac.wordpress.org/ticket/48842" title="#48842: defect (bug): Fix calculation error when resampling images before resizing in ... (new)"&gt;#48842&lt;/a&gt; please. Seems it was up-scaling the original image (10315px to 12800px) before resizing it to 2560px.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #48833 (WordPress core updated automatically) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Sat, 30 Nov 2019 20:44:47 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/48833#comment:5</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/48833#comment:5/1575146687694713</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt;, &lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+No worries, thanks for the follow-up!&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #48842 (Fix calculation error when resampling images before resizing in ...) updated</title>
+      
+        <dc:creator>azaozz</dc:creator>
+
+      <pubDate>Sat, 30 Nov 2019 20:34:20 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/48842#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/48842#comment:2/1575146060663798</guid>
+      <description>&lt;i&gt;Priority&lt;/i&gt;, &lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+In 48842.diff: fix the calculation in &lt;code&gt;WP_Image_Editor_Imagick::thumbnail_image()&lt;/code&gt; when resampling an image source before resizing it to a much smaller size.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+With this change:&lt;br /&gt;
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;Resizing a 1000x500 image to 300x150 doesn't resample the source. The resampled image would be larger than the original: 1500x750, &lt;code&gt;$resize_ratio&lt;/code&gt; is &lt;code&gt;2.25&lt;/code&gt;.
+&lt;/li&gt;&lt;li&gt;Resizing a 3000x1500 image to 300x150 doesn't resample the source. The resampled image would be half the size of the original, &lt;code&gt;$resize_ratio&lt;/code&gt; is &lt;code&gt;0.25&lt;/code&gt;.
+&lt;/li&gt;&lt;li&gt;Resizing a 4800x2400 image to 300x150 resamples the source. The resampled image is less than 1/3 the size of the original, &lt;code&gt;$resize_ratio&lt;/code&gt; is &lt;code&gt;0.09765625&lt;/code&gt;.
+&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;
+This seems like the cause for &lt;a class="new ticket" href="http://core.trac.wordpress.org/ticket/48522" title="#48522: defect (bug): Attachment size not generated when large images uploaded (new)"&gt;#48522&lt;/a&gt; where the sample image (10315px) is up-scaled to 12800px before resizing it to 2560px.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Setting to high priority as this needs to be reviewed and committed asap :)&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>48842.diff attached to Ticket #48842</title>
+      
+        <dc:creator>azaozz</dc:creator>
+
+      <pubDate>Sat, 30 Nov 2019 20:14:17 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/48842/48842.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/48842/48842.diff/1575144857637545</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #48747 (WP_Customize_Setting doesn't clean up after itself) updated</title>
+      
+        <dc:creator>dlh</dc:creator>
+
+      <pubDate>Sat, 30 Nov 2019 19:38:49 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/48747#comment:8</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/48747#comment:8/1575142729155530</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt;, &lt;i&gt;Status&lt;/i&gt;, &lt;i&gt;Owner&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Since the focus of this ticket for the time being is the docs update, marking this as a &lt;code&gt;good-first-bug&lt;/code&gt; and assigning it as "claimed."&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+@jon81, if it turns out you don't think you'll be able to upload a patch here, no worries at all. Just reply back and you'll be un-assigned.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #36640 (Customize: get_custom_logo should allow the image tag to be filtered ...) updated</title>
+      
+        <dc:creator>dlh</dc:creator>
+
+      <pubDate>Sat, 30 Nov 2019 19:29:44 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/36640#comment:7</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/36640#comment:7/1575142184094475</guid>
+      <description>&lt;p&gt;
+Filtering the image attributes was suggested by the reporter in &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/36640#comment:2" title="Comment 2"&gt;comment:2&lt;/a&gt; as a simpler approach to apply the modifications they were looking for. &lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+The title, description, and &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/36640#comment:1" title="Comment 1"&gt;comment:1&lt;/a&gt; also referenced the image tag specifically, so I took it to be the focus of the request, but perhaps that was mistaken.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+For the &lt;code&gt;itemprop&lt;/code&gt; example, at least, being able to modify the attributes array seems to me like it would be simpler than modifying the HTML content within the &lt;code&gt;&amp;lt;a&amp;gt;&lt;/code&gt;.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #48842 (Fix calculation error when resampling images before resizing in ...) updated</title>
+      
+        <dc:creator>azaozz</dc:creator>
+
+      <pubDate>Sat, 30 Nov 2019 19:28:22 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/48842#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/48842#comment:1/1575142102634032</guid>
+      <description>&lt;p&gt;
+Looking at:&lt;br /&gt;
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;/*
+ * To be more efficient, resample large images to 5x the destination size before resizing
+ * whenever the output size is less that 1/3 of the original image size (1/3^2 ~= .111),
+ * unless we would be resampling to a scale smaller than 128x128.
+ */
+if ( is_callable( array( $this-&amp;gt;image, 'sampleImage' ) ) ) {
+	$resize_ratio  = ( $dst_w / $this-&amp;gt;size['width'] ) * ( $dst_h / $this-&amp;gt;size['height'] );
+	$sample_factor = 5;
+	if ( $resize_ratio &amp;lt; .111 &amp;amp;&amp;amp; ( $dst_w * $sample_factor &amp;gt; 128 &amp;amp;&amp;amp; $dst_h * $sample_factor &amp;gt; 128 ) ) {
+		$this-&amp;gt;image-&amp;gt;sampleImage( $dst_w * $sample_factor, $dst_h * $sample_factor );
+	}
+}
+&lt;/pre&gt;&lt;p&gt;
+The reason the resampling is done is to make creating much smaller sub-sizes more efficient. It is still another "operation" on the source that takes time and server resources to do. If I understand the initial intentions correctly, &lt;br /&gt;
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;whenever the output size is less that 1/3 of the original image size
+&lt;/pre&gt;&lt;p&gt;
+should be &lt;br /&gt;
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;whenever the resampled source size is less that 1/3 of the original image size
+&lt;/pre&gt;&lt;p&gt;
+Then the &lt;code&gt;$resize_ratio&lt;/code&gt; calculation should be done with &lt;code&gt;$dst_w * $sample_factor&lt;/code&gt; and &lt;code&gt;$dst_h * $sample_factor&lt;/code&gt;. This will also be inline with &lt;code&gt;...unless we would be resampling to a scale smaller than 128x128&lt;/code&gt;.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #42961 (REST API: Cannot pass empty object url encoded data) updated</title>
+      
+        <dc:creator>steffanhalv</dc:creator>
+
+      <pubDate>Sat, 30 Nov 2019 19:11:46 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/42961#comment:7</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/42961#comment:7/1575141106843097</guid>
+      <description>&lt;p&gt;
+@TimothyBlynJacobs I already did here &lt;a class="ext-link" href="https://github.com/woocommerce/woocommerce/issues/18249"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://github.com/woocommerce/woocommerce/issues/18249&lt;/a&gt;.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+But here is some other examples:&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+If you have a post with the id &amp;lt;id&amp;gt; it is not possible to delete the last category or tag or role or any other 'last item of an array' using the rest api with queryparams.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+&lt;strong&gt;This works (replacing or adding to an array ):&lt;/strong&gt;&lt;br /&gt;
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;POST /wp/v2/posts/&amp;lt;id&amp;gt;?categories[0]=...&amp;amp;categories[1]=...&amp;amp;...
+POST /wp/v2/posts/&amp;lt;id&amp;gt;?tags[0]=...&amp;amp;...
+POST /wp/v2/users/&amp;lt;id&amp;gt;?roles[0]=...&amp;amp;...
+&lt;/pre&gt;&lt;p&gt;
+Response = success&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+&lt;strong&gt;None of these works (trying to remove the last item of an array):&lt;/strong&gt;&lt;br /&gt;
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;POST /wp/v2/posts/&amp;lt;id&amp;gt;?categories[]=&amp;amp;...
+POST /wp/v2/posts/&amp;lt;id&amp;gt;?tags=null&amp;amp;...
+POST /wp/v2/users/&amp;lt;id&amp;gt;?roles[]=null&amp;amp;...
+POST /wp/v2/users/&amp;lt;id&amp;gt;?roles[]=0&amp;amp;...
+POST /wp/v2/users/&amp;lt;id&amp;gt;?roles=0&amp;amp;...
+POST /wp/v2/users/&amp;lt;id&amp;gt;?roles=&amp;amp;...
+POST /wc/v2/products?attributes[0]=...&amp;amp;...
+&lt;/pre&gt;&lt;p&gt;
+Response = &lt;br /&gt;
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;code:"rest_invalid_param"
+data:{status: 400, params: {attributes: "attributes[0] is not of type object."}}
+message:"Invalid parameter: attributes"
+&lt;/pre&gt;&lt;p&gt;
+A post request to any of this endpoints has no possible ways to clear the arrays using queryparams.&lt;br /&gt;
+Yes, JSON works but JSON is not accepted in POST requests for many servers as it has CORS restrictions which is not the case for queryparams. So the conclusion is that empty arrays is not handled correctly by the WP core.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Also please notice that I have not URL Encoded the strings in this example, but it is when Im doing the actual request.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #48842 (Fix calculation error when resampling images before resizing in ...) created</title>
+      
+        <dc:creator>azaozz</dc:creator>
+
+      <pubDate>Sat, 30 Nov 2019 18:34:34 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/48842</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/48842/1575138874950785</guid>
+      <description>&lt;p&gt;
+Seems there is a calculation error when resampling large images before resizing them to a much smaller sub-size. Looking at &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/33642" title="#33642: task (blessed): Improve default Imagick compression settings (closed: fixed)"&gt;#33642&lt;/a&gt; and &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/36700" title="Media: Optimize Imagick settings for quality and filesize
+- Resamples ..."&gt;[36700]&lt;/a&gt;, the idea is to efficiently reduce the size of the original image before resizing by using ImageMagick's &lt;code&gt;sampleImage()&lt;/code&gt;. &lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+However in some cases the resampled image may be larger than the original. Caused by doing the resampling when the destination image is about 1/3 of the size of the original, and using a (hard-coded) &lt;code&gt;$sample_factor = 5&lt;/code&gt;, see &lt;a href="https://core.trac.wordpress.org/browser/tags/5.3/src/wp-includes/class-wp-image-editor-imagick.php#L333"&gt;https://core.trac.wordpress.org/browser/tags/5.3/src/wp-includes/class-wp-image-editor-imagick.php#L333&lt;/a&gt;.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Example: for an original image of 1000x500 and destination image of 300x150, the resampled source image will be 1500x750 (the &lt;code&gt;$resize_ratio&lt;/code&gt; in this case is &lt;code&gt;0.09&lt;/code&gt;).&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #36640 (Customize: get_custom_logo should allow the image tag to be filtered ...) updated</title>
+      
+        <dc:creator>joyously</dc:creator>
+
+      <pubDate>Sat, 30 Nov 2019 18:27:28 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/36640#comment:6</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/36640#comment:6/1575138448716670</guid>
+      <description>&lt;p&gt;
+The description says&lt;br /&gt;
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+This will allow for cleaner modification of the &lt;code&gt;a&lt;/code&gt; tag content.&lt;br /&gt;
+...other content within the home link&lt;br /&gt;
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+So why is the filter on the image attributes?&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #48831 (WP Admin Bar doesn't display on wp-login.php page) updated</title>
+      
+        <dc:creator>henry.wright</dc:creator>
+
+      <pubDate>Sat, 30 Nov 2019 15:08:09 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/48831#comment:8</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/48831#comment:8/1575126489521333</guid>
+      <description>&lt;p&gt;
+@donmhico I think you are right to set this to an enhancement. It isn't really a bug&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Thanks @SergeyBiryukov&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #4696 (Comment feeds need to be noindex by default) updated</title>
+      
+        <dc:creator>slackbot</dc:creator>
+
+      <pubDate>Sat, 30 Nov 2019 14:11:05 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/4696#comment:5</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/4696#comment:5/1575123065445931</guid>
+      <description>&lt;p&gt;
+&lt;em&gt;This ticket was mentioned in &lt;a class="ext-link" href="https://make.wordpress.org/chat/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;Slack&lt;/a&gt; in #forums by jonoaldersonwp. &lt;a class="ext-link" href="https://wordpress.slack.com/archives/forums/p1575123064425700"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;View the logs&lt;/a&gt;.&lt;/em&gt;&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>48841.patch attached to Ticket #48841</title>
+      
+        <dc:creator>dkarfa</dc:creator>
+
+      <pubDate>Sat, 30 Nov 2019 14:02:04 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/48841/48841.patch</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/48841/48841.patch/1575122524765482</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #48841 (Add missing doc and refactor code for REST API: ...) created</title>
+      
+        <dc:creator>dkarfa</dc:creator>
+
+      <pubDate>Sat, 30 Nov 2019 14:01:47 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/48841</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/48841/1575122507760076</guid>
+      <description></description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #48722 (Twenty Sixteen shows redundant borders for table in 5.3) updated</title>
+      
+        <dc:creator>noyle</dc:creator>
+
+      <pubDate>Sat, 30 Nov 2019 11:23:36 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/48722#comment:5</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/48722#comment:5/1575113016507441</guid>
+      <description>&lt;p&gt;
+Thanks for looking into it and sorry for a separated reply.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+I've applied patches for the two CSS files in my local site that is upgraded from 5.2. The block editor now shows correctly for strips style table. However in the front end, default style table now shows extra borders. Firefox calculates the border width as 3px for that &amp;lt;figure&amp;gt; block.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44610 (Allow Youtube-Player to use youtube-nocookie.com URLS to avoid setting ...) updated</title>
+      
+        <dc:creator>jepperask</dc:creator>
+
+      <pubDate>Sat, 30 Nov 2019 11:23:17 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44610#comment:16</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44610#comment:16/1575112997209923</guid>
+      <description>&lt;p&gt;
+Replying to &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/44610#comment:14" title="Comment 14"&gt;williampatton&lt;/a&gt;:&lt;br /&gt;
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+I'm gonna pick this one up as I'd like to see some movement on it. I'll do some testing on the patch when I am able.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+@jepperask thank you for providing the initial patches for this approach. On a scan it seems like an ok way to handle it, do we need those changes to the packages.lock file though to make this happen?&lt;br /&gt;
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+No, feel free to change/remove anything. :-P&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Post 47 – A WordPress Site.png attached to Ticket #48722</title>
+      
+        <dc:creator>noyle</dc:creator>
+
+      <pubDate>Sat, 30 Nov 2019 11:15:48 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/48722/Post%2047%20%E2%80%93%20A%20WordPress%20Site.png</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/48722/Post%2047%20%E2%80%93%20A%20WordPress%20Site.png/1575112548806148</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #38813 (REST API: Test schema registration for required fields.) updated</title>
+      
+        <dc:creator>slackbot</dc:creator>
+
+      <pubDate>Sat, 30 Nov 2019 10:53:13 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/38813#comment:5</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/38813#comment:5/1575111193410889</guid>
+      <description>&lt;p&gt;
+&lt;em&gt;This ticket was mentioned in &lt;a class="ext-link" href="https://make.wordpress.org/chat/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;Slack&lt;/a&gt; in #core-restapi by gaupoit. &lt;a class="ext-link" href="https://wordpress.slack.com/archives/core-restapi/p1575111192373800"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;View the logs&lt;/a&gt;.&lt;/em&gt;&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #48833 (WordPress core updated automatically) closed</title>
+      
+        <dc:creator>Presskopp</dc:creator>
+
+      <pubDate>Sat, 30 Nov 2019 10:27:43 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/48833#comment:4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/48833#comment:4/1575109663868461</guid>
+      <description>invalid</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Ticket #48833 (WordPress core updated automatically) updated</title>
+      
+        <dc:creator>mobby2561</dc:creator>
+
+      <pubDate>Sat, 30 Nov 2019 09:38:42 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/48833#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/48833#comment:3/1575106722113930</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Sorry, everything is fine. There was no upgrade.&lt;br /&gt;
+Obviously I just cannot read.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #48814 (Comment marked as spam displays poorly in mobile view) updated</title>
+      
+        <dc:creator>lorenzof</dc:creator>
+
+      <pubDate>Sat, 30 Nov 2019 09:25:53 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/48814#comment:7</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/48814#comment:7/1575105953992405</guid>
+      <description>&lt;p&gt;
+@razamalik The .2 version of the patch submitted by @mukesh27 was fine and it's the best one since it's redundant to only change the value, so why you added a new version creating a patch that's the same one I submitted as .1 version, reverting his changes? .2 is fine, that's the one that need testing&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #48703 (Update compressed images for 5.4) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Sat, 30 Nov 2019 09:08:49 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/48703#comment:4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/48703#comment:4/1575104929410444</guid>
+      <description>&lt;p&gt;
+It gets weirder :)&lt;br /&gt;
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;The initial list from the ticket description is what I get after running the &lt;code&gt;precommit:image&lt;/code&gt; task on Windows 10.
+&lt;/li&gt;&lt;li&gt;Despite SVN reporting binary file differences, there are actually no differences when comparing the file contents.
+&lt;/li&gt;&lt;li&gt;The only actual difference for me is &lt;code&gt;src/wp-admin/images/loading.gif&lt;/code&gt;, which keeps changing size between 1373 and 1369 bytes.
+&lt;/li&gt;&lt;li&gt;At one point I also got differences in &lt;code&gt;src/wp-includes/images/smilies/icon_redface.gif&lt;/code&gt; changing between 645 and 641 bytes, but it's not as consistent as &lt;code&gt;loading.gif&lt;/code&gt;. This is still on Windows 10.
+&lt;/li&gt;&lt;li&gt;When running &lt;code&gt;npm run grunt precommit:image&lt;/code&gt; on a Git checkout on Ubuntu 18.04 LTS, this is the list I get:
+&lt;pre class="wiki"&gt;src/wp-admin/images/loading.gif
+src/wp-admin/images/media-button-image.gif
+src/wp-admin/images/media-button-video.gif
+src/wp-admin/images/wpspin_light-2x.gif
+src/wp-admin/images/wpspin_light.gif
+src/wp-includes/images/smilies/icon_redface.gif
+src/wp-includes/images/wpspin-2x.gif
+src/wp-includes/images/wpspin.gif
+&lt;/pre&gt;Again, no actual differences in file contents, just Git reporting binary file changes.
+&lt;/li&gt;&lt;/ul&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #48798 (REST API: Expose editor-color-palette theme support in /themes endpoint) updated</title>
+      
+        <dc:creator>koke</dc:creator>
+
+      <pubDate>Sat, 30 Nov 2019 08:58:04 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/48798#comment:8</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/48798#comment:8/1575104284726947</guid>
+      <description>&lt;p&gt;
+Added an updated patch, here's the API output for quick reference:&lt;br /&gt;
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;$ http -ba admin:password http://localhost:8889/wp-json/wp/v2/themes status==active
+[
+    {
+        "theme_supports": {
+            "disable-custom-colors": false,
+            "disable-custom-font-sizes": false,
+            "editor-color-palette": [
+                {
+                    "color": "#cd2653",
+                    "name": "Accent Color",
+                    "slug": "accent"
+                },
+                {
+                    "color": "#000000",
+                    "name": "Primary",
+                    "slug": "primary"
+                },
+                {
+                    "color": "#6d6d6d",
+                    "name": "Secondary",
+                    "slug": "secondary"
+                },
+                {
+                    "color": "#dcd7ca",
+                    "name": "Subtle Background",
+                    "slug": "subtle-background"
+                },
+                {
+                    "color": "#f5efe0",
+                    "name": "Background Color",
+                    "slug": "background"
+                }
+            ],
+            "editor-font-sizes": [
+                {
+                    "name": "Small",
+                    "shortName": "S",
+                    "size": 18,
+                    "slug": "small"
+                },
+                {
+                    "name": "Regular",
+                    "shortName": "M",
+                    "size": 21,
+                    "slug": "normal"
+                },
+                {
+                    "name": "Large",
+                    "shortName": "L",
+                    "size": 26.25,
+                    "slug": "large"
+                },
+                {
+                    "name": "Larger",
+                    "shortName": "XL",
+                    "size": 32,
+                    "slug": "larger"
+                }
+            ],
+            "formats": [
+                "standard"
+            ],
+            "post-thumbnails": true,
+            "responsive-embeds": false
+        }
+    }
+]
+&lt;/pre&gt;&lt;p&gt;
+It looks like twenty nineteen adds a &lt;code&gt;shortName&lt;/code&gt; field when registering the font sizes, which is not part of the schema. I'm not sure if I should filter the output to only those properties defined in the schema or it's fine to leave that in the response.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>48814.3.2.patch attached to Ticket #48814</title>
+      
+        <dc:creator>razamalik</dc:creator>
+
+      <pubDate>Sat, 30 Nov 2019 08:54:33 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/48814/48814.3.2.patch</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/48814/48814.3.2.patch/1575104073866610</guid>
+      <description>&lt;p&gt;
+display:block  change changed with display:table-cell and i have tested in different browsers working fine! @lorenzof
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>48814.3.patch attached to Ticket #48814</title>
+      
+        <dc:creator>razamalik</dc:creator>
+
+      <pubDate>Sat, 30 Nov 2019 08:51:17 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/48814/48814.3.patch</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/48814/48814.3.patch/1575103877031943</guid>
+      <description>&lt;p&gt;
+display:block  change changed with display:table-cell
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>48799-2.diff attached to Ticket #48798</title>
+      
+        <dc:creator>koke</dc:creator>
+
+      <pubDate>Sat, 30 Nov 2019 08:49:41 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/48798/48799-2.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/48798/48799-2.diff/1575103781095815</guid>
+      <description>&lt;p&gt;
+Exposes editor-color-palette, editor-font-sizes, disable-custom-colors, disable-custom-font-sizes
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #48840 (Stored Xss on WordPress) closed</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Sat, 30 Nov 2019 08:34:17 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/48840#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/48840#comment:1/1575102857821849</guid>
+      <description>invalid: &lt;p&gt;
+Hi there, welcome to WordPress Trac!&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+When writing the ticket you should have seen this notice:&lt;br /&gt;
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+&lt;strong&gt;Do not report potential security vulnerabilities here.&lt;/strong&gt;&lt;br /&gt;
+See the &lt;a class="ext-link" href="https://make.wordpress.org/core/handbook/reporting-security-vulnerabilities/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;Security FAQ&lt;/a&gt; and visit the &lt;a class="ext-link" href="https://hackerone.com/wordpress"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;WordPress HackerOne program&lt;/a&gt;.&lt;br /&gt;
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+Worth noting this is not a real security issue since administrators or editors are able to &lt;a class="ext-link" href="https://make.wordpress.org/core/handbook/testing/reporting-security-vulnerabilities/#why-are-some-users-allowed-to-post-unfiltered-html"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;post arbitrary JavaScript&lt;/a&gt;.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+If you think you have found a real security vulnerability, please head over to HackerOne, and do not post it here.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Thanks for your cooperation.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Screenshot_2019-11-30-16-20-30-114_org.mozilla.firefox.jpg attached to Ticket #48840</title>
+      
+        <dc:creator>mousecybersec</dc:creator>
+
+      <pubDate>Sat, 30 Nov 2019 08:26:13 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/48840/Screenshot_2019-11-30-16-20-30-114_org.mozilla.firefox.jpg</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/48840/Screenshot_2019-11-30-16-20-30-114_org.mozilla.firefox.jpg/1575102373730903</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #48449 (Parameters differ between instances of widget_comments_args filter) updated</title>
+      
+        <dc:creator>fahdi</dc:creator>
+
+      <pubDate>Sat, 30 Nov 2019 08:25:14 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/48449#comment:4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/48449#comment:4/1575102314993862</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+@SergeyBiryukov Makes sense. Going to send  another patch. &lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #48840 (Stored Xss on WordPress) created</title>
+      
+        <dc:creator>mousecybersec</dc:creator>
+
+      <pubDate>Sat, 30 Nov 2019 08:24:53 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/48840</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/48840/1575102293504993</guid>
+      <description>&lt;p&gt;
+I tried to make a block in the post editor with an html block, then put a payload on the block, after I post and click it will appear an alert on the wordpress website.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #48449 (Parameters differ between instances of widget_comments_args filter) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Sat, 30 Nov 2019 08:21:12 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/48449#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/48449#comment:3/1575102072113242</guid>
+      <description>&lt;p&gt;
+Thanks for the patch!&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+I don't think we can just remove the &lt;code&gt;$instance&lt;/code&gt; parameter from the filter, as that could cause backward compatibility issues and would be inconsistent with other widget filters, as seen in &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/41685" title="Widgets: Pass `$instance` to widget argument filters:
+* ..."&gt;[41685]&lt;/a&gt;.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+I guess we can pass an empty array as &lt;code&gt;$instance&lt;/code&gt; in &lt;code&gt;render_block_core_latest_comments()&lt;/code&gt;, but that should be done upstream in the Gutenberg repository, per &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/48447#comment:5" title="Comment 5 for #48447: defect (bug): Update WordPress packages with fixes targeted for 5.3 RC3 (closed: fixed)"&gt;comment:5:ticket:48447&lt;/a&gt;.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #48449 (Parameters differ between instances of widget_comments_args filter) updated</title>
+      
+        <dc:creator>fahdi</dc:creator>
+
+      <pubDate>Sat, 30 Nov 2019 08:01:37 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/48449#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/48449#comment:2/1575100897679173</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+I have attached the patch for the solution that I believe is good. The solution is to either add an&lt;code&gt;instance&lt;/code&gt; argument for the filter in the file  &lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+&lt;a href="https://core.trac.wordpress.org/browser/tags/5.2.4/src/wp-includes/blocks/latest-comments.php?marks=46-53#L35"&gt;https://core.trac.wordpress.org/browser/tags/5.2.4/src/wp-includes/blocks/latest-comments.php?marks=46-53#L35&lt;/a&gt;&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+which doesn't make any sense as we don't  have any way to pass an instance. Looking at &lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+&lt;a href="https://core.trac.wordpress.org/browser/tags/5.2.4/src/wp-includes/widgets/class-wp-widget-recent-comments.php?marks=99-107#L86"&gt;https://core.trac.wordpress.org/browser/tags/5.2.4/src/wp-includes/widgets/class-wp-widget-recent-comments.php?marks=99-107#L86&lt;/a&gt; , just removing instance from the parameters should solve and now we have the  same consistent number of  parameters  in both calls.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>48449.diff attached to Ticket #48449</title>
+      
+        <dc:creator>fahdi</dc:creator>
+
+      <pubDate>Sat, 30 Nov 2019 07:55:30 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/48449/48449.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/48449/48449.diff/1575100530330447</guid>
+      <description>&lt;p&gt;
+Wp Recent Comments widget file updated to get rid of  instance which is not needed anymore. This is so that the arguements are consistent
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #36640 (Customize: get_custom_logo should allow the image tag to be filtered ...) updated</title>
+      
+        <dc:creator>dlh</dc:creator>
+
+      <pubDate>Sat, 30 Nov 2019 07:14:59 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/36640#comment:5</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/36640#comment:5/1575098099479277</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #36640 (Customize: get_custom_logo should allow the image tag to be filtered ...) updated</title>
+      
+        <dc:creator>slackbot</dc:creator>
+
+      <pubDate>Sat, 30 Nov 2019 07:12:43 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/36640#comment:4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/36640#comment:4/1575097963577312</guid>
+      <description>&lt;p&gt;
+&lt;em&gt;This ticket was mentioned in &lt;a class="ext-link" href="https://make.wordpress.org/chat/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;Slack&lt;/a&gt; in #core-themes by dlh. &lt;a class="ext-link" href="https://wordpress.slack.com/archives/core-themes/p1575097962172500"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;View the logs&lt;/a&gt;.&lt;/em&gt;&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #36640 (Customize: get_custom_logo should allow the image tag to be filtered ...) updated</title>
+      
+        <dc:creator>dlh</dc:creator>
+
+      <pubDate>Sat, 30 Nov 2019 07:05:41 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/36640#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/36640#comment:3/1575097541879540</guid>
+      <description>&lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+&lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/45028" title="Themes: Remove `itemprop=&amp;#34;url&amp;#34;` from `get_custom_logo()` output.
+ ..."&gt;[45028]&lt;/a&gt; removed &lt;code&gt;itemprop&lt;/code&gt; from the default custom logo attributes. The &lt;code&gt;get_custom_logo&lt;/code&gt; and &lt;code&gt;wp_get_attachment_image_attributes&lt;/code&gt; filters were suggested as options for restoring &lt;code&gt;itemprop&lt;/code&gt;, and while those certainly work, the filter suggested here would arguably make the process a little less cumbersome.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+&lt;a class="attachment" href="http://core.trac.wordpress.org/attachment/ticket/36640/36640.diff" title="Attachment '36640.diff' in Ticket #36640"&gt;36640.diff&lt;/a&gt;&lt;a class="trac-rawlink" href="http://core.trac.wordpress.org/raw-attachment/ticket/36640/36640.diff" title="Download"&gt;​&lt;/a&gt; refreshes the previous patch with a couple changes:&lt;br /&gt;
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;Rename the filter to &lt;code&gt;get_custom_logo_image_attributes&lt;/code&gt; for consistency with &lt;code&gt;wp_get_attachment_image_attributes&lt;/code&gt;.
+&lt;/li&gt;&lt;/ul&gt;&lt;ul&gt;&lt;li&gt;Move the attachment ID to the second filter parameter under the assumption that it'll be more common to need that ID than the current blog ID.
+&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;
+As highlighted in &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/36640#comment:2" title="Comment 2"&gt;comment:2&lt;/a&gt;, the &lt;code&gt;custom-logo-link&lt;/code&gt; class should still be unaffected by the filter.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+I'll check in with #core-themes for other opinions, and maybe there can be a yea or nay on this enhancement during the 5.4 cycle.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>36640.diff attached to Ticket #36640</title>
+      
+        <dc:creator>dlh</dc:creator>
+
+      <pubDate>Sat, 30 Nov 2019 07:02:52 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/36640/36640.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/36640/36640.diff/1575097372416993</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #42140 (Incorrect use of plural in class-wp-customize-themes-section.php) updated</title>
+      
+        <dc:creator>dlh</dc:creator>
+
+      <pubDate>Sat, 30 Nov 2019 01:08:12 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/42140#comment:7</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/42140#comment:7/1575076092299743</guid>
+      <description>&lt;p&gt;
+&lt;a class="attachment" href="http://core.trac.wordpress.org/attachment/ticket/42140/42140.2.diff" title="Attachment '42140.2.diff' in Ticket #42140"&gt;42140.2.diff&lt;/a&gt;&lt;a class="trac-rawlink" href="http://core.trac.wordpress.org/raw-attachment/ticket/42140/42140.2.diff" title="Download"&gt;​&lt;/a&gt; fixes a couple missing spaces and formatting inconsistencies.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>42140.2.diff attached to Ticket #42140</title>
+      
+        <dc:creator>dlh</dc:creator>
+
+      <pubDate>Sat, 30 Nov 2019 01:07:22 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/42140/42140.2.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/42140/42140.2.diff/1575076042922405</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #48799 ("At a Glance" comment count font size is larger than other counts) closed</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Sat, 30 Nov 2019 00:40:26 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/48799#comment:8</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/48799#comment:8/1575074426096969</guid>
+      <description>fixed: &lt;p&gt;
+In &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/46807" title="Administration: Correct font size for comment count in &amp;#34;At a Glance&amp;#34; ..."&gt;46807&lt;/a&gt;:&lt;br /&gt;
+&lt;/p&gt;
+&lt;div class="message"&gt;&lt;p&gt;
+Administration: Correct font size for comment count in "At a Glance" dashboard widget on mobile.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Props donmhico, jeremyfelt.&lt;br /&gt;
+Fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/48799" title="#48799: defect (bug): &amp;#34;At a Glance&amp;#34; comment count font size is larger than other counts (closed: fixed)"&gt;#48799&lt;/a&gt;.&lt;br /&gt;
+&lt;/p&gt;
+&lt;/div&gt;</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Changeset [46807]: Administration: Correct font size for comment count in "At a Glance" ...</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Sat, 30 Nov 2019 00:40:24 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/46807</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/46807/1575074424948717</guid>
+      <description>&lt;p&gt;
+Administration: Correct font size for comment count in "At a Glance" dashboard widget on mobile.
+&lt;/p&gt;
+&lt;p&gt;
+Props donmhico, jeremyfelt.
+Fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/48799" title="#48799: defect (bug): &amp;#34;At a Glance&amp;#34; comment count font size is larger than other counts (closed: fixed)"&gt;#48799&lt;/a&gt;.
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Ticket #48799 ("At a Glance" comment count font size is larger than other counts) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Sat, 30 Nov 2019 00:36:05 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/48799#comment:7</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/48799#comment:7/1575074165555706</guid>
+      <description>&lt;p&gt;
+Replying to &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/48799" title="#48799: defect (bug): &amp;#34;At a Glance&amp;#34; comment count font size is larger than other counts (closed: fixed)"&gt;jeremyfelt&lt;/a&gt;:&lt;br /&gt;
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+&lt;code&gt;.comment-count&lt;/code&gt; itself is confusing because I'm pretty sure its only other use is in the post list table when a post has 0 approved comments and 1 or more pending comments. Even then, the 14px style only applies on mobile and in the mobile view that comment count is hidden.&lt;br /&gt;
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+Right. Not only it's hidden, but the font size is also overridden by a &lt;a class="source" href="http://core.trac.wordpress.org/browser/tags/5.3/src/wp-admin/css/list-tables.css?marks=60#L47"&gt;more specific selector&lt;/a&gt;&lt;a class="trac-rawlink" href="http://core.trac.wordpress.org/export/HEAD/tags/5.3/src/wp-admin/css/list-tables.css#L47" title="Download"&gt;​&lt;/a&gt;, so the style in question has no effect and can be safely removed. &lt;a class="attachment" href="http://core.trac.wordpress.org/attachment/ticket/48799/48799.diff" title="Attachment '48799.diff' in Ticket #48799"&gt;48799.diff&lt;/a&gt;&lt;a class="trac-rawlink" href="http://core.trac.wordpress.org/raw-attachment/ticket/48799/48799.diff" title="Download"&gt;​&lt;/a&gt; should be good to go.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #48799 ("At a Glance" comment count font size is larger than other counts) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Sat, 30 Nov 2019 00:17:50 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/48799#comment:6</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/48799#comment:6/1575073070784953</guid>
+      <description>&lt;i&gt;Status&lt;/i&gt;, &lt;i&gt;Owner&lt;/i&gt;, &lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Introduced in &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/26134" title="Bring in the responsive component of MP6.  See #25858.
+* Makes the ..."&gt;[26134]&lt;/a&gt;.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #42140 (Incorrect use of plural in class-wp-customize-themes-section.php) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Sat, 30 Nov 2019 00:03:03 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/42140#comment:6</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/42140#comment:6/1575072183864524</guid>
+      <description>&lt;i&gt;Status&lt;/i&gt;, &lt;i&gt;Owner&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item>
+   </channel>
+</rss>
