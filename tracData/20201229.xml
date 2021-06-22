@@ -1,0 +1,1795 @@
+<?xml version="1.0"?>
+<rss xmlns:dc="http://purl.org/dc/elements/1.1/" version="2.0">
+  <channel>
+    <title>WordPress Trac</title>
+    <link>http://core.trac.wordpress.org/timeline</link>
+    <description>Trac Timeline</description>
+    <language>en-US</language>
+    <generator>Trac 1.2.2</generator>
+    <image>
+      <title>WordPress Trac</title>
+      <url>http://core.trac.wordpress.org/chrome/site/your_project_logo.png</url>
+      <link>http://core.trac.wordpress.org/timeline</link>
+    </image>
+    <item>
+      <title>Ticket #52192 (REST API: Add batch image editing) updated</title>
+      
+        <dc:creator>prbot</dc:creator>
+
+      <pubDate>Tue, 29 Dec 2020 23:07:48 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/52192#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/52192#comment:1/1609283268001293</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+&lt;em&gt;This ticket was mentioned in &lt;a class="ext-link" href="https://github.com/WordPress/wordpress-develop/pull/845"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;PR #845&lt;/a&gt; on &lt;a class="ext-link" href="https://github.com/WordPress/wordpress-develop/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;WordPress/wordpress-develop&lt;/a&gt; by &lt;a class="ext-link" href="https://github.com/ajlende"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;ajlende&lt;/a&gt;.&lt;/em&gt;&lt;br /&gt;
+Trac ticket: &lt;a href="https://core.trac.wordpress.org/ticket/52192"&gt;https://core.trac.wordpress.org/ticket/52192&lt;/a&gt;&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+See: &lt;a class="ext-link" href="https://github.com/WordPress/gutenberg/pull/23369"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://github.com/WordPress/gutenberg/pull/23369&lt;/a&gt;&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+This proposes a new API for image editing that should be more flexible and extensible than the existing API. The new API takes an array of modifiers that will be applied in the order they appear.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+An example request body looks like this.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+{{{json&lt;br /&gt;
+{&lt;br /&gt;
+&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;
+"modifiers": [&lt;br /&gt;
+&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;
+{&lt;br /&gt;
+&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;
+"type": "crop",&lt;br /&gt;
+"args": {&lt;br /&gt;
+&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;
+"left": 12.875,&lt;br /&gt;
+"top": 0.125,&lt;br /&gt;
+"width": 50,&lt;br /&gt;
+"height": 50&lt;br /&gt;
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+}&lt;br /&gt;
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+},&lt;br /&gt;
+{&lt;br /&gt;
+&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;
+"type": "rotate",&lt;br /&gt;
+"args": {&lt;br /&gt;
+&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;
+"angle": 90&lt;br /&gt;
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+}&lt;br /&gt;
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+}&lt;br /&gt;
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+]&lt;br /&gt;
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+}&lt;br /&gt;
+}}}&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Crop values are as a percentage of the original image and rotation angle is in degrees clockwise.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+The crop values need to be percentages because the image loaded on the frontend may not be a scaled version of the original image, so &lt;code&gt;naturalWidth&lt;/code&gt; and &lt;code&gt;naturalHeight&lt;/code&gt; cannot be trusted as the actual width and height of the original image.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+The rotation value is in degrees to avoid rounding errors for the types of rotations that are most common like 90 degrees. Clockwise versus anticlockwise may be up for debate. When using degrees it seems more natural to me to rotate clockwise, but mathematically, when you've converted to radians, a positive value indicates an anticlockwise rotation.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Different front-end implementations may apply edits in a different order, so passing an array will allow them to use their edits as-is without converting to a fixed order. &lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+One example in the wild that actually uses both orders in different contexts is &lt;a class="ext-link" href="https://www.befunky.com/create/photo-editor/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;BeFunky&lt;/a&gt;. To see the difference, try one of their demo images with a horizon in it so you have a line that you can pay attention to. Then use the 'straighten' option followed by a 'horizontal flip' to see that the angle of the horizon hasn't changed even though you flipped the image. This means that the flip happens before the rotation. If you use the 'rotate' option instead of 'straighten, the rotation happens before the flip.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+The old API continues to work, but when supplying the &lt;code&gt;modifiers&lt;/code&gt; option, the old &lt;code&gt;crop&lt;/code&gt; and &lt;code&gt;rotation&lt;/code&gt; options are ignored.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #52192 (REST API: Add batch image editing) created</title>
+      
+        <dc:creator>ajlende</dc:creator>
+
+      <pubDate>Tue, 29 Dec 2020 22:58:53 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/52192</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/52192/1609282733455662</guid>
+      <description>&lt;p&gt;
+Moving over from &lt;a class="ext-link" href="https://github.com/WordPress/gutenberg/pull/23369"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;WordPress/gutenberg#23369&lt;/a&gt; since changes are now only in core.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+This proposes a new API for image editing that should be more flexible and extensible than the existing API. The new API can take an array of modifiers that will be applied in the order they appear.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>52187.1.diff attached to Ticket #52187</title>
+      
+        <dc:creator>jmdodd</dc:creator>
+
+      <pubDate>Tue, 29 Dec 2020 22:54:14 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/52187/52187.1.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/52187/52187.1.diff/1609282454735406</guid>
+      <description>&lt;p&gt;
+Unit tests demonstrating current wp_insert_post post_date behavior in core.
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #51857 (Add rollback for failed plugin/theme updates) updated</title>
+      
+        <dc:creator>audrasjb</dc:creator>
+
+      <pubDate>Tue, 29 Dec 2020 22:47:38 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/51857#comment:28</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/51857#comment:28/1609282058599804</guid>
+      <description>&lt;p&gt;
+I successfully tested the above patch on the worst server I can access to: 1 vCore, RAM 2Gb, 20 Gb SATA SSD. That's one of the cheapest services provided by big hosting companies here in France.&lt;br /&gt;
+I'll try to find a non-SSD server next week.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+But FWIW: rollback worked :-)&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #52187 (Create function to resolve a post date from post_date and ...) updated</title>
+      
+        <dc:creator>jmdodd</dc:creator>
+
+      <pubDate>Tue, 29 Dec 2020 22:26:29 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/52187#comment:4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/52187#comment:4/1609280789942725</guid>
+      <description>&lt;p&gt;
+While testing this, I found an interesting behavior in wp_insert_post -- an empty post_date and an invalid post_date_gmt (ex. "2020-12-41 10:11:41") will result in an inserted post with a post_date of "1970-01-01 00:00:00" rather than a failure because get_date_from_gmt will always return a date.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+resolve_post_date (soon to be wp_resolve_post_date) doesn't change this behavior, but unit tests surfaced it as one that was already present in 5.6.&lt;br /&gt;
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;
+$ wp shell
+wp&amp;gt; wp_insert_post( array( 'post_date' =&amp;gt; '', 'post_date_gmt' =&amp;gt; '2020-12-41 10:10:10', 'post_title' =&amp;gt; 'Test', 'post_content' =&amp;gt; 'Test content.', 'post_status' =&amp;gt; 'publish' ) );
+=&amp;gt; int(11)
+wp&amp;gt;
+$ wp post get 11
++-----------------------+--------------------------------------+
+| Field                 | Value                                |
++-----------------------+--------------------------------------+
+| ID                    | 11                                   |
+| post_author           | 0                                    |
+| post_date             | 1970-01-01 00:00:00                  |
+| post_date_gmt         | 0000-00-00 00:00:00                  |
+| post_content          | Test content.                        |
+| post_title            | Test                                 |
+| post_excerpt          |                                      |
+| post_status           | publish                              |
+| comment_status        | open                                 |
+| ping_status           | open                                 |
+| post_password         |                                      |
+| post_name             | test                                 |
+| to_ping               |                                      |
+| pinged                |                                      |
+| post_modified         | 1970-01-01 00:00:00                  |
+| post_modified_gmt     | 0000-00-00 00:00:00                  |
+| post_content_filtered |                                      |
+| post_parent           | 0                                    |
+| guid                  | http://wp.localhost/1970/01/01/test/ |
+| menu_order            | 0                                    |
+| post_type             | post                                 |
+| post_mime_type        |                                      |
+| comment_count         | 0                                    |
++-----------------------+--------------------------------------+
+$ wp core version
+5.6
+&lt;/pre&gt;&lt;p&gt;
+Fixing this behavior would be a breaking change, as posts that would previously have been inserted with post_date "1970-01-01 00:00:00" would instead fail because of the invalid passed post_date_gmt.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #52191 (Show plugin update notifications on Plugins screen on WordPress ...) created</title>
+      
+        <dc:creator>DuisterDenHaag</dc:creator>
+
+      <pubDate>Tue, 29 Dec 2020 21:56:17 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/52191</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/52191/1609278977815338</guid>
+      <description>&lt;p&gt;
+The purpose of this request it to make plugin update notification equal for every type of WordPress installation without compromising the current capability checks.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Currently, MultiSite sub blogs do not get an inline plugin update notice in the Plugins Page. They do however get a notification icon in the Admin Menu Bar. This might be confusing for users. On Single Site installs non-admins still see the inline update notice, but without the "Update Now" link. Also, if a third-party plugin is not activated network-wide, the Super Admin is likely to not see the update notice. Installing and updating and deleting plugins on a MultiSite installation can only be sone by a Super Admin in the Network Admin Page.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+WordPress plugin developers tend to use workarounds by using the action hooks &lt;code&gt;in_plugin_update_message-{$plugin_file}&lt;/code&gt; and &lt;code&gt;after_plugin_row_{$plugin_file}&lt;/code&gt; to notify their users, as documented here: &lt;a class="ext-link" href="https://wisdomplugin.com/add-inline-plugin-update-message/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;Wisdom&lt;/a&gt;&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Yet, the MultiSite example already shows a flaw. Doing it this way the Network Admin Plugins Page will be cluttered with two inline notices. To prevent this the check &lt;code&gt;if( ! is_network_admin() )&lt;/code&gt; should be added, because WordPress core already shows the default inline update notice in the network admin.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Also, as a developer it always felt, to me personally, that the &lt;code&gt;after_plugin_row&lt;/code&gt; action seems to be a non-preferred method, due to the many css classes that need to be included, unlike most hooks and filters.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Changing the output check on &lt;strong&gt;line 541&lt;/strong&gt; in &lt;code&gt;/wp-admin/includes/update.php&lt;/code&gt; would solve that. &lt;br /&gt;
+Replacing &lt;code&gt;if ( is_network_admin() || ! is_multisite() )&lt;/code&gt; with &lt;code&gt;if ( is_network_admin() || is_blog_admin() )&lt;/code&gt; would show the in inline update notices exactly like on single installs by using the &lt;code&gt;in_plugin_update_message-{$plugin_file}&lt;/code&gt; action hook. The rest of the code checks the user permissions and will automatically remove the "Update Now" link for non-admins.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+I have tested this change and it seems to work without any safety compromises. It appears to be a simple solution to enhance the user experience and helping developers to be aligned with the WordPress Core. &lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+For my own premium plugins is use the &lt;a class="ext-link" href="https://github.com/YahnisElsts/plugin-update-checker"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;Plugin Update Checker by Yahis Elsts&lt;/a&gt;, which works perfectly, except that it uses admin notices to notify the users of an available update on the sub blogs. I seem to remember a topic some months ago to reduce/limit plugin developers from using over-using admin notices. Perhaps this minor core code change would help with that as well. &lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #52188 (Move Multisite settings page into tabs) updated</title>
+      
+        <dc:creator>audrasjb</dc:creator>
+
+      <pubDate>Tue, 29 Dec 2020 21:53:55 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/52188#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/52188#comment:1/1609278835042971</guid>
+      <description>&lt;p&gt;
+Hi,&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+I started to work on a patch (see screenshot bellow) but I figured out that this is not an easy fix at all! We also have to move all the existing hook (for example to allow developers to add their custom settings)… so on one hand we need to address backward compatibility issues, and in the other hand we need to provide an API so developers can create their own tabs.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+I'm sorry, but unless the Multisite team is interested to dedicate time to work on this, I'm honestly thinking that "maybelater" or "wontfix" are probably the most realistic resolution for this enhancement proposal :\&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Capture d’écran 2020-12-29 à 22.40.08.png attached to Ticket #52188</title>
+      
+        <dc:creator>audrasjb</dc:creator>
+
+      <pubDate>Tue, 29 Dec 2020 21:47:53 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/52188/Capture%20d%E2%80%99%C3%A9cran%202020-12-29%20%C3%A0%2022.40.08.png</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/52188/Capture%20d%E2%80%99%C3%A9cran%202020-12-29%20%C3%A0%2022.40.08.png/1609278473862844</guid>
+      <description>&lt;p&gt;
+workaround
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #52053 (Keyboard Shortcut Not working in code editor make fullscreen mode) closed</title>
+      
+        <dc:creator>sabernhardt</dc:creator>
+
+      <pubDate>Tue, 29 Dec 2020 21:25:38 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/52053#comment:14</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/52053#comment:14/1609277138510267</guid>
+      <description>reported-upstream: &lt;p&gt;
+Now this is moved to the Gutenberg repo for attention there:&lt;br /&gt;
+&lt;a class="ext-link" href="https://github.com/WordPress/gutenberg/issues/27923"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://github.com/WordPress/gutenberg/issues/27923&lt;/a&gt;&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Ticket #51857 (Add rollback for failed plugin/theme updates) updated</title>
+      
+        <dc:creator>afragen</dc:creator>
+
+      <pubDate>Tue, 29 Dec 2020 20:34:17 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/51857#comment:27</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/51857#comment:27/1609274057997381</guid>
+      <description>&lt;p&gt;
+It would be helpful to test this on &lt;em&gt;slow&lt;/em&gt; servers to see if the zipping process introduces any potential timeout issues.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Please post results here.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #48987 (Replace Codex links with their HelpHub counterparts (take 2)) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Tue, 29 Dec 2020 20:12:43 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/48987#comment:13</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/48987#comment:13/1609272763428753</guid>
+      <description>&lt;p&gt;
+In &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/49912" title="Docs: Second pass at replacing Codex URLs with a corresponding HelpHub ..."&gt;49912&lt;/a&gt;:&lt;br /&gt;
+&lt;/p&gt;
+&lt;div class="message"&gt;&lt;p&gt;
+Docs: Second pass at replacing Codex URLs with a corresponding HelpHub or DevHub article.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Follow-up to &lt;a class="source" href="http://core.trac.wordpress.org/log/?revs=45674-45677"&gt;[45674-45677]&lt;/a&gt;.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Props marcio-zebedeu, zodiac1978, netweb.&lt;br /&gt;
+See &lt;a class="accepted ticket" href="http://core.trac.wordpress.org/ticket/48987" title="#48987: enhancement: Replace Codex links with their HelpHub counterparts (take 2) (accepted)"&gt;#48987&lt;/a&gt;.&lt;br /&gt;
+&lt;/p&gt;
+&lt;/div&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Changeset [49912]: Docs: Second pass at replacing Codex URLs with a corresponding HelpHub ...</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Tue, 29 Dec 2020 20:12:42 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/49912</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/49912/1609272762201012</guid>
+      <description>&lt;p&gt;
+Docs: Second pass at replacing Codex URLs with a corresponding HelpHub or DevHub article.
+&lt;/p&gt;
+&lt;p&gt;
+Follow-up to &lt;a class="source" href="http://core.trac.wordpress.org/log/?revs=45674-45677"&gt;[45674-45677]&lt;/a&gt;.
+&lt;/p&gt;
+&lt;p&gt;
+Props marcio-zebedeu, zodiac1978, netweb.
+See &lt;a class="accepted ticket" href="http://core.trac.wordpress.org/ticket/48987" title="#48987: enhancement: Replace Codex links with their HelpHub counterparts (take 2) (accepted)"&gt;#48987&lt;/a&gt;.
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Ticket #47771 (Replace Codex links with their HelpHub counterparts) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Tue, 29 Dec 2020 20:12:04 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/47771#comment:18</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/47771#comment:18/1609272724956467</guid>
+      <description>&lt;p&gt;
+Follow-up: &lt;a class="accepted ticket" href="http://core.trac.wordpress.org/ticket/48987" title="#48987: enhancement: Replace Codex links with their HelpHub counterparts (take 2) (accepted)"&gt;#48987&lt;/a&gt;&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #51928 (Provide plugin/theme update failure data to dot org) updated</title>
+      
+        <dc:creator>slackbot</dc:creator>
+
+      <pubDate>Tue, 29 Dec 2020 19:55:49 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/51928#comment:18</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/51928#comment:18/1609271749653414</guid>
+      <description>&lt;p&gt;
+&lt;em&gt;This ticket was mentioned in &lt;a class="ext-link" href="https://make.wordpress.org/chat/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;Slack&lt;/a&gt; in #core by afragen. &lt;a class="ext-link" href="https://wordpress.slack.com/archives/core/p1609271745151900"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;View the logs&lt;/a&gt;.&lt;/em&gt;&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #51857 (Add rollback for failed plugin/theme updates) updated</title>
+      
+        <dc:creator>slackbot</dc:creator>
+
+      <pubDate>Tue, 29 Dec 2020 19:49:58 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/51857#comment:26</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/51857#comment:26/1609271398678639</guid>
+      <description>&lt;p&gt;
+&lt;em&gt;This ticket was mentioned in &lt;a class="ext-link" href="https://make.wordpress.org/chat/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;Slack&lt;/a&gt; in #core by metalandcoffee. &lt;a class="ext-link" href="https://wordpress.slack.com/archives/core/p1609271394144500"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;View the logs&lt;/a&gt;.&lt;/em&gt;&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #46872 (Marry the Bulk Actions and Change Role controls on list tables via ...) updated</title>
+      
+        <dc:creator>slackbot</dc:creator>
+
+      <pubDate>Tue, 29 Dec 2020 19:43:50 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/46872#comment:33</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/46872#comment:33/1609271030888819</guid>
+      <description>&lt;p&gt;
+&lt;em&gt;This ticket was mentioned in &lt;a class="ext-link" href="https://make.wordpress.org/chat/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;Slack&lt;/a&gt; in #core by metalandcoffee. &lt;a class="ext-link" href="https://wordpress.slack.com/archives/core/p1609271026139100"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;View the logs&lt;/a&gt;.&lt;/em&gt;&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #48987 (Replace Codex links with their HelpHub counterparts (take 2)) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Tue, 29 Dec 2020 19:42:52 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/48987#comment:12</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/48987#comment:12/1609270972918498</guid>
+      <description>&lt;i&gt;Status&lt;/i&gt;, &lt;i&gt;Owner&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Just noting that some of these links were previously considered in &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/47771" title="#47771: enhancement: Replace Codex links with their HelpHub counterparts (closed: fixed)"&gt;#47771&lt;/a&gt; (&lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/47771#comment:8" title="Comment 8 for #47771: enhancement: Replace Codex links with their HelpHub counterparts (closed: fixed)"&gt;comment 8&lt;/a&gt;, &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/47771#comment:11" title="Comment 11 for #47771: enhancement: Replace Codex links with their HelpHub counterparts (closed: fixed)"&gt;comment 11&lt;/a&gt;, &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/47771#comment:12" title="Comment 12 for #47771: enhancement: Replace Codex links with their HelpHub counterparts (closed: fixed)"&gt;comment 12&lt;/a&gt;), but either didn't have a suitable HelpHub or DevHub equivalent at the time, or the Codex pages had significantly more relevant information than the DevHub ones.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+It looks like that is still the case for most links, however a few links have changed since then, so let's address them on a case-by-case basic.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+These can be safely replaced, as they either already redirect or have a full equivalent:&lt;br /&gt;
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;&lt;del&gt;&lt;a class="ext-link" href="https://codex.wordpress.org/Excerpt"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://codex.wordpress.org/Excerpt&lt;/a&gt;&lt;/del&gt; (already replaced in &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/45674" title="General: First pass at replacing Codex URLs with a corresponding ..."&gt;[45674]&lt;/a&gt;)
+&lt;/li&gt;&lt;li&gt;&lt;a class="ext-link" href="https://codex.wordpress.org/IRC"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://codex.wordpress.org/IRC&lt;/a&gt;
+&lt;/li&gt;&lt;li&gt;&lt;a class="ext-link" href="https://codex.wordpress.org/Network_Admin_Settings_Screen"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://codex.wordpress.org/Network_Admin_Settings_Screen&lt;/a&gt;
+&lt;/li&gt;&lt;li&gt;&lt;a class="ext-link" href="https://codex.wordpress.org/Update_Services"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://codex.wordpress.org/Update_Services&lt;/a&gt;
+&lt;/li&gt;&lt;li&gt;&lt;a class="ext-link" href="https://codex.wordpress.org/Function_Reference/is_main_query"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://codex.wordpress.org/Function_Reference/is_main_query&lt;/a&gt;
+&lt;/li&gt;&lt;li&gt;&lt;a class="ext-link" href="https://codex.wordpress.org/Function_Reference/wpdb_Class"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://codex.wordpress.org/Function_Reference/wpdb_Class&lt;/a&gt;
+&lt;/li&gt;&lt;/ul&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #50567 (Set $post filter in update_post_cache()) updated</title>
+      
+        <dc:creator>slackbot</dc:creator>
+
+      <pubDate>Tue, 29 Dec 2020 19:38:49 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/50567#comment:9</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/50567#comment:9/1609270729626442</guid>
+      <description>&lt;p&gt;
+&lt;em&gt;This ticket was mentioned in &lt;a class="ext-link" href="https://make.wordpress.org/chat/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;Slack&lt;/a&gt; in #core by metalandcoffee. &lt;a class="ext-link" href="https://wordpress.slack.com/archives/core/p1609270726137200"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;View the logs&lt;/a&gt;.&lt;/em&gt;&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #37698 (wp_kses_split global variable pollution) updated</title>
+      
+        <dc:creator>metalandcoffee</dc:creator>
+
+      <pubDate>Tue, 29 Dec 2020 19:36:43 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/37698#comment:14</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/37698#comment:14/1609270603674691</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #37698 (wp_kses_split global variable pollution) updated</title>
+      
+        <dc:creator>slackbot</dc:creator>
+
+      <pubDate>Tue, 29 Dec 2020 19:33:43 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/37698#comment:13</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/37698#comment:13/1609270423468537</guid>
+      <description>&lt;p&gt;
+&lt;em&gt;This ticket was mentioned in &lt;a class="ext-link" href="https://make.wordpress.org/chat/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;Slack&lt;/a&gt; in #core by metalandcoffee. &lt;a class="ext-link" href="https://wordpress.slack.com/archives/core/p1609270419131800"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;View the logs&lt;/a&gt;.&lt;/em&gt;&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #50152 (Return all themes into the themes REST API) updated</title>
+      
+        <dc:creator>metalandcoffee</dc:creator>
+
+      <pubDate>Tue, 29 Dec 2020 19:31:56 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/50152#comment:42</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/50152#comment:42/1609270316499471</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #50152 (Return all themes into the themes REST API) updated</title>
+      
+        <dc:creator>slackbot</dc:creator>
+
+      <pubDate>Tue, 29 Dec 2020 19:28:58 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/50152#comment:41</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/50152#comment:41/1609270138360719</guid>
+      <description>&lt;p&gt;
+&lt;em&gt;This ticket was mentioned in &lt;a class="ext-link" href="https://make.wordpress.org/chat/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;Slack&lt;/a&gt; in #core by metalandcoffee. &lt;a class="ext-link" href="https://wordpress.slack.com/archives/core/p1609270134128400"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;View the logs&lt;/a&gt;.&lt;/em&gt;&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #48987 (Replace Codex links with their HelpHub counterparts (take 2)) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Tue, 29 Dec 2020 19:24:39 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/48987#comment:11</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/48987#comment:11/1609269879558850</guid>
+      <description>&lt;i&gt;Summary&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #50568 (Improve WP_Term's sanitization calls) updated</title>
+      
+        <dc:creator>slackbot</dc:creator>
+
+      <pubDate>Tue, 29 Dec 2020 19:24:29 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/50568#comment:6</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/50568#comment:6/1609269869602008</guid>
+      <description>&lt;p&gt;
+&lt;em&gt;This ticket was mentioned in &lt;a class="ext-link" href="https://make.wordpress.org/chat/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;Slack&lt;/a&gt; in #core by metalandcoffee. &lt;a class="ext-link" href="https://wordpress.slack.com/archives/core/p1609269866127800"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;View the logs&lt;/a&gt;.&lt;/em&gt;&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #52187 (Create function to resolve a post date from post_date and ...) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Tue, 29 Dec 2020 19:21:11 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/52187#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/52187#comment:3/1609269671097278</guid>
+      <description>&lt;p&gt;
+Should the new function have a &lt;code&gt;wp_&lt;/code&gt; prefix, e.g. &lt;code&gt;wp_resolve_post_date()&lt;/code&gt;, to avoid any potential conflicts?&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #24160 (ALTERNATE_WP_CRON runs wp_cron() too early) updated</title>
+      
+        <dc:creator>slackbot</dc:creator>
+
+      <pubDate>Tue, 29 Dec 2020 19:19:10 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/24160#comment:21</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/24160#comment:21/1609269550205047</guid>
+      <description>&lt;p&gt;
+&lt;em&gt;This ticket was mentioned in &lt;a class="ext-link" href="https://make.wordpress.org/chat/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;Slack&lt;/a&gt; in #core by metalandcoffee. &lt;a class="ext-link" href="https://wordpress.slack.com/archives/core/p1609269546127200"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;View the logs&lt;/a&gt;.&lt;/em&gt;&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #42762 (rest_{$this-&gt;post_type}_query filter wrong place) updated</title>
+      
+        <dc:creator>metalandcoffee</dc:creator>
+
+      <pubDate>Tue, 29 Dec 2020 19:17:55 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/42762#comment:5</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/42762#comment:5/1609269475146551</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #42762 (rest_{$this-&gt;post_type}_query filter wrong place) updated</title>
+      
+        <dc:creator>metalandcoffee</dc:creator>
+
+      <pubDate>Tue, 29 Dec 2020 19:14:17 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/42762#comment:4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/42762#comment:4/1609269257575604</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #42762 (rest_{$this-&gt;post_type}_query filter wrong place) updated</title>
+      
+        <dc:creator>slackbot</dc:creator>
+
+      <pubDate>Tue, 29 Dec 2020 19:11:00 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/42762#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/42762#comment:3/1609269060922679</guid>
+      <description>&lt;p&gt;
+&lt;em&gt;This ticket was mentioned in &lt;a class="ext-link" href="https://make.wordpress.org/chat/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;Slack&lt;/a&gt; in #core by metalandcoffee. &lt;a class="ext-link" href="https://wordpress.slack.com/archives/core/p1609269056124900"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;View the logs&lt;/a&gt;.&lt;/em&gt;&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #51506 (Add new block widgets editor) updated</title>
+      
+        <dc:creator>slackbot</dc:creator>
+
+      <pubDate>Tue, 29 Dec 2020 19:04:16 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/51506#comment:24</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/51506#comment:24/1609268656196924</guid>
+      <description>&lt;p&gt;
+&lt;em&gt;This ticket was mentioned in &lt;a class="ext-link" href="https://make.wordpress.org/chat/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;Slack&lt;/a&gt; in #core by metalandcoffee. &lt;a class="ext-link" href="https://wordpress.slack.com/archives/core/p1609268652122900"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;View the logs&lt;/a&gt;.&lt;/em&gt;&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #52187 (Create function to resolve a post date from post_date and ...) updated</title>
+      
+        <dc:creator>jmdodd</dc:creator>
+
+      <pubDate>Tue, 29 Dec 2020 18:32:26 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/52187#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/52187#comment:2/1609266746495020</guid>
+      <description>&lt;p&gt;
+I'll work on the function description and add unit tests. Thank you!&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #52190 (Cursor at end of page in edit mode) created</title>
+      
+        <dc:creator>jlc34</dc:creator>
+
+      <pubDate>Tue, 29 Dec 2020 18:14:28 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/52190</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/52190/1609265668407794</guid>
+      <description>&lt;p&gt;
+After upgrading in 5.6, i can't modify text by pointing with the mouse. The cursor is always at the end of the page ! I must move the cursor with arrow up to the object (text or colum or group ...). I don't find this subject in the discussions.&lt;br /&gt;
+I use "Dynamic news" theme.&lt;br /&gt;
+Regards,&lt;br /&gt;
+jean-Luc&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #52187 (Create function to resolve a post date from post_date and ...) updated</title>
+      
+        <dc:creator>jorbin</dc:creator>
+
+      <pubDate>Tue, 29 Dec 2020 18:08:01 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/52187#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/52187#comment:1/1609265281317533</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Love this idea. I think automated tests for the new &lt;code&gt;resolve_post_date&lt;/code&gt; function would be very helpful. It's also not obvious at first glance what is is meant by &lt;code&gt;Resolve the mysql-formatted post date from provided date and date GMT strings.&lt;/code&gt; I wonder if a longer description might help. Perhaps:&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+"Uses &lt;code&gt;wp_checkdate&lt;/code&gt; to verify that the date passed in is a valid Gregorian-calendar date string. If no date is given, first attempt to use date_gmt otherwise fallback to useing the current time."&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>52189.diff attached to Ticket #52189</title>
+      
+        <dc:creator>jmdodd</dc:creator>
+
+      <pubDate>Tue, 29 Dec 2020 17:53:41 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/52189/52189.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/52189/52189.diff/1609264421932480</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #52189 (Enable wp_update_nav_menu_item to use passed values for setting post_date) created</title>
+      
+        <dc:creator>jmdodd</dc:creator>
+
+      <pubDate>Tue, 29 Dec 2020 17:52:45 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/52189</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/52189/1609264365124821</guid>
+      <description>&lt;p&gt;
+When a nav menu item is imported, it is given the post_date "now" rather than the value in the export file. There is currently no simple mechanism for setting the post_date for a nav menu item in wp_update_nav_menu_item, even though this value is useful for post_exists checks.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+This change will allow the WordPress importer to pass the export file post_date value through wp_update_nav_menu_item, improving performance of post_exists for nav menu items.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+This requires the new function resolve_post_date proposed in &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/52187" title="#52187: enhancement: Create function to resolve a post date from post_date and ... (closed: fixed)"&gt;#52187&lt;/a&gt;.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #4328 (Redirect Old Slugs feature needs to redirect slugs for pages, not just ...) updated</title>
+      
+        <dc:creator>estelaris</dc:creator>
+
+      <pubDate>Tue, 29 Dec 2020 17:42:30 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/4328#comment:49</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/4328#comment:49/1609263750801618</guid>
+      <description>&lt;p&gt;
+Can we revive the issue? We are looking into a new classification for end user documentation and we have several pages that will need to be redirected&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>wp-ms-network-setting-en.png attached to Ticket #52188</title>
+      
+        <dc:creator>sebastienserre</dc:creator>
+
+      <pubDate>Tue, 29 Dec 2020 17:34:08 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/52188/wp-ms-network-setting-en.png</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/52188/wp-ms-network-setting-en.png/1609263248244504</guid>
+      <description>&lt;p&gt;
+Add the same screenshot with WP in english
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>wp-ms-network-setting.png attached to Ticket #52188</title>
+      
+        <dc:creator>sebastienserre</dc:creator>
+
+      <pubDate>Tue, 29 Dec 2020 17:28:11 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/52188/wp-ms-network-setting.png</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/52188/wp-ms-network-setting.png/1609262891583161</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #52188 (Move Multisite settings page into tabs) created</title>
+      
+        <dc:creator>sebastienserre</dc:creator>
+
+      <pubDate>Tue, 29 Dec 2020 17:27:55 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/52188</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/52188/1609262875587861</guid>
+      <description>&lt;p&gt;
+Hello all,&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+In a multisite, the network settings page (/wp-admin/network/settings.php) is quiet long as we can see in wp-ms-network-settings.png and may be difficult to find a setting. &lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+My idea should be to split each section into tabs.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>52187.diff attached to Ticket #52187</title>
+      
+        <dc:creator>jmdodd</dc:creator>
+
+      <pubDate>Tue, 29 Dec 2020 17:24:04 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/52187/52187.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/52187/52187.diff/1609262644750860</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #52187 (Create function to resolve a post date from post_date and ...) created</title>
+      
+        <dc:creator>jmdodd</dc:creator>
+
+      <pubDate>Tue, 29 Dec 2020 17:18:12 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/52187</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/52187/1609262292646774</guid>
+      <description>&lt;p&gt;
+This change breaks out the code to resolve a post date from passed post_date and post_date_gmt strings. This will allow use of the new function in other post type-specific inserts, such as found in wp_update_nav_menu_item.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+By doing so, imported nav menu items can start to retain the same post date as found in their export file, improving performance of post_exists checks on existing nav menu items.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #38741 (Introduce the concept of a large site in order to speed up the Users ...) updated</title>
+      
+        <dc:creator>tripflex</dc:creator>
+
+      <pubDate>Tue, 29 Dec 2020 16:22:42 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/38741#comment:58</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/38741#comment:58/1609258962343697</guid>
+      <description>&lt;p&gt;
+4+ Years and this is still a major issue with running any kind of large site single installation WordPress site :(&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #48689 (PHP warnings after updating to WP 5.3: ftp_nlist() and ftp_pwd() ...) closed</title>
+      
+        <dc:creator>SirLouen</dc:creator>
+
+      <pubDate>Tue, 29 Dec 2020 14:41:10 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/48689#comment:16</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/48689#comment:16/1609252870155902</guid>
+      <description>invalid: &lt;p&gt;
+@BearlyDoug this problem happens when it (a plugin most of the time) tries to use an FTP-based FS_METHOD like ftpext wrongly. Considering that you switched to "direct" then, this 2 functions &lt;strong&gt;ftp_nlist&lt;/strong&gt; and &lt;strong&gt;ftp_pwd&lt;/strong&gt; will not be required more.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Some plugins although, disregard the FS_METHOD and they force using an FTP therefore this messages could appear.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+I'm still not 100% sure, but according to my research, operating with FTPext in WP changed some time ago, not sure after which patch, maybe 5.2, 5.3, 5.4 but some plugins have still failed to adapt to the new mechanism. &lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+For example, MainWP did not patch the FTPext method, so now they force using direct to all their clients. If you set ftpext for FS_METHOD you will see these errors. &lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+I don't think this is a bug from WordPress, but a bug from plugin authors so we might close this.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Ticket #51884 (Events Widget: There isn't a UI for clearing the selected city) updated</title>
+      
+        <dc:creator>mabipress</dc:creator>
+
+      <pubDate>Tue, 29 Dec 2020 14:23:12 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/51884#comment:4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/51884#comment:4/1609251792906102</guid>
+      <description>&lt;p&gt;
+OKAY. I figured out how it works.&lt;br /&gt;
+I had to update my dependencies.&lt;br /&gt;
+With npm run watch.&lt;br /&gt;
+Now PHPUnit tests are also included :)&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #48987 (Replace Codex links with their HelpHub counterparts (take 2)) updated</title>
+      
+        <dc:creator>zodiac1978</dc:creator>
+
+      <pubDate>Tue, 29 Dec 2020 13:39:52 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/48987#comment:10</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/48987#comment:10/1609249192949393</guid>
+      <description>&lt;p&gt;
+@marcio-zebedeu I am not sure about &lt;code&gt;&amp;lt;a href="https://codex.wordpress.org/Appearance_Header_Screen"&amp;gt;Documentation on Custom Header&amp;lt;/a&amp;gt;&lt;/code&gt; changing to &lt;code&gt;&amp;lt;a href="https://wordpress.org/support/article/appearance-customize-screen"&amp;gt;Documentation on Custom Header&amp;lt;/a&amp;gt;&lt;/code&gt;&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+As this is only about the header image, wouldn't it be better to link to the correct section?&lt;br /&gt;
+&lt;a class="ext-link" href="https://wordpress.org/support/article/appearance-customize-screen/#header-image"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://wordpress.org/support/article/appearance-customize-screen/#header-image&lt;/a&gt;&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+If there are no decisions made for new helphub pages the patch should at least include this one:&lt;br /&gt;
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+In wp-includes/wp-db.php I found &lt;a class="ext-link" href="https://codex.wordpress.org/Function_Reference/wpdb_Class"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://codex.wordpress.org/Function_Reference/wpdb_Class&lt;/a&gt; (which shows &lt;a class="ext-link" href="https://developer.wordpress.org/reference/classes/wpdb/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://developer.wordpress.org/reference/classes/wpdb/&lt;/a&gt; as new location)&lt;br /&gt;
+&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;
+@SergeyBiryukov I think after these additions the patch could be a starting point and added to 5.7.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #48987 (Replace Codex links with their HelpHub counterparts (take 2)) updated</title>
+      
+        <dc:creator>zodiac1978</dc:creator>
+
+      <pubDate>Tue, 29 Dec 2020 13:26:45 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/48987#comment:9</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/48987#comment:9/1609248405164285</guid>
+      <description>&lt;p&gt;
+Not sure if those pages will be moved too, so I just mention the ones i found additionally: &lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+In the readme.txt files of the default bundled themes there are links to the codex too.&lt;br /&gt;
+&lt;a class="ext-link" href="https://codex.wordpress.org/Twenty_Thirteen"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://codex.wordpress.org/Twenty_Thirteen&lt;/a&gt; (and all the other Twenty* themes)&lt;br /&gt;
+and their changelog pages, like &lt;a class="ext-link" href="https://codex.wordpress.org/Twenty_Fifteen_Theme_Changelog"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://codex.wordpress.org/Twenty_Fifteen_Theme_Changelog&lt;/a&gt;&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+In some of the default themes is a &lt;code&gt;404.php&lt;/code&gt; file linking to &lt;a class="ext-link" href="https://codex.wordpress.org/Creating_an_Error_404_Page"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://codex.wordpress.org/Creating_an_Error_404_Page&lt;/a&gt;&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+In &lt;code&gt;wp-includes/cache-compat.php&lt;/code&gt; and &lt;code&gt;wp-includes/cache.php&lt;/code&gt; is a link to &lt;a class="ext-link" href="https://codex.wordpress.org/Class_Reference/WP_Object_Cache"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://codex.wordpress.org/Class_Reference/WP_Object_Cache&lt;/a&gt;&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+In &lt;code&gt;wp-content/themes/twentyfourteen/inc/customizer.php&lt;/code&gt; I found &lt;a class="ext-link" href="https://codex.wordpress.org/Post_Thumbnails#Setting_a_Post_Thumbnail"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://codex.wordpress.org/Post_Thumbnails#Setting_a_Post_Thumbnail&lt;/a&gt;&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+The &lt;code&gt;readme.html&lt;/code&gt; links to &lt;a class="ext-link" href="https://codex.wordpress.org/IRC"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://codex.wordpress.org/IRC&lt;/a&gt;, although this redirects already to &lt;a class="ext-link" href="https://make.wordpress.org/support/handbook/appendix/other-support-locations/introduction-to-irc/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://make.wordpress.org/support/handbook/appendix/other-support-locations/introduction-to-irc/&lt;/a&gt;&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+In &lt;code&gt;wp-content/themes/twentyseventeen/inc/custom-header.php&lt;/code&gt; (and more) I found &lt;a class="ext-link" href="https://codex.wordpress.org/Custom_Headers"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://codex.wordpress.org/Custom_Headers&lt;/a&gt;&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+In &lt;code&gt;wp-content/themes/twentytwelve/rtl.css&lt;/code&gt; (and more) I found &lt;a class="ext-link" href="https://codex.wordpress.org/Right_to_Left_Language_Support"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://codex.wordpress.org/Right_to_Left_Language_Support&lt;/a&gt;&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+In &lt;code&gt;wp-admin/network/user-new.php&lt;/code&gt; and &lt;code&gt;/wp-settings.php&lt;/code&gt; I found &lt;a class="ext-link" href="https://codex.wordpress.org/AJAX_in_Plugins"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://codex.wordpress.org/AJAX_in_Plugins&lt;/a&gt;&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+In &lt;code&gt;wp-content/themes/twentynineteen/functions.php&lt;/code&gt; (and more) I found &lt;a class="ext-link" href="https://codex.wordpress.org/Theme_Logo"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://codex.wordpress.org/Theme_Logo&lt;/a&gt;&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+In &lt;code&gt;wp-includes/author-template.php&lt;/code&gt; I found &lt;a class="ext-link" href="https://codex.wordpress.org/Author_Templates"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://codex.wordpress.org/Author_Templates&lt;/a&gt;&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+In &lt;code&gt;wp-includes/wp-db.php&lt;/code&gt; I found &lt;a class="ext-link" href="https://codex.wordpress.org/Function_Reference/wpdb_Class"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://codex.wordpress.org/Function_Reference/wpdb_Class&lt;/a&gt; (which shows &lt;a class="ext-link" href="https://developer.wordpress.org/reference/classes/wpdb/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://developer.wordpress.org/reference/classes/wpdb/&lt;/a&gt; as new location)&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+In &lt;code&gt;wp-includes/functions.php&lt;/code&gt; I found &lt;a class="ext-link" href="https://codex.wordpress.org/File_Header"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://codex.wordpress.org/File_Header&lt;/a&gt;&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #51995 (WordPress 5.6: Classic editor menu is not sticky) reopened</title>
+      
+        <dc:creator>azaozz</dc:creator>
+
+      <pubDate>Tue, 29 Dec 2020 13:24:47 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/51995#comment:9</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/51995#comment:9/1609248287490237</guid>
+      <description>&lt;p&gt;
+Reopen for the 5.6 branch.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>reopenedticket</category>
+    </item><item>
+      <title>Ticket #51995 (WordPress 5.6: Classic editor menu is not sticky) closed</title>
+      
+        <dc:creator>azaozz</dc:creator>
+
+      <pubDate>Tue, 29 Dec 2020 13:23:55 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/51995#comment:8</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/51995#comment:8/1609248235493381</guid>
+      <description>fixed: &lt;p&gt;
+Changeset &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/49911" title="Editor: Trigger the `tinymce-editor-init` custom jQuery event on DOM ..."&gt;[49911]&lt;/a&gt;.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Editor: Trigger the tinymce-editor-init custom jQuery event on DOM ready. Otherwise TinyMCE may initialize earlier and handlers attached on DOM ready may not get triggered. Fixes making the editor menu "sticky" and setting/resetting some screen options on the old Edit Post screen.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Fixes 52046, 51995.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Ticket #52046 (The Distraction Free Writing setting on the old Edit Post screen may ...) reopened</title>
+      
+        <dc:creator>azaozz</dc:creator>
+
+      <pubDate>Tue, 29 Dec 2020 13:22:52 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/52046#comment:6</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/52046#comment:6/1609248172897018</guid>
+      <description>&lt;p&gt;
+Reopen for the 5.6 branch.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>reopenedticket</category>
+    </item><item>
+      <title>Ticket #52046 (The Distraction Free Writing setting on the old Edit Post screen may ...) closed</title>
+      
+        <dc:creator>azaozz</dc:creator>
+
+      <pubDate>Tue, 29 Dec 2020 13:22:28 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/52046#comment:5</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/52046#comment:5/1609248148570248</guid>
+      <description>fixed: &lt;p&gt;
+Changeset &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/49911" title="Editor: Trigger the `tinymce-editor-init` custom jQuery event on DOM ..."&gt;[49911]&lt;/a&gt;.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Editor: Trigger the tinymce-editor-init custom jQuery event on DOM ready. Otherwise TinyMCE may initialize earlier and handlers attached on DOM ready may not get triggered. Fixes making the editor menu "sticky" and setting/resetting some screen options on the old Edit Post screen.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Fixes 52046, 51995.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Changeset [49911]: Editor: Trigger the `tinymce-editor-init` custom jQuery event on DOM ...</title>
+      
+        <dc:creator>azaozz</dc:creator>
+
+      <pubDate>Tue, 29 Dec 2020 13:19:14 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/49911</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/49911/1609247954842068</guid>
+      <description>&lt;p&gt;
+Editor: Trigger the &lt;code&gt;tinymce-editor-init&lt;/code&gt; custom jQuery event on DOM ready. Otherwise TinyMCE may initialize earlier and handlers attached on DOM ready may not get triggered. Fixes making the editor menu "sticky" and setting/resetting some screen options on the old Edit Post screen.
+&lt;/p&gt;
+&lt;p&gt;
+Fixes 52046, 51995.
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Doc3.docx attached to Ticket #52186</title>
+      
+        <dc:creator>lashesandeyes</dc:creator>
+
+      <pubDate>Tue, 29 Dec 2020 13:02:07 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/52186/Doc3.docx</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/52186/Doc3.docx/1609246927377681</guid>
+      <description>&lt;p&gt;
+screenshot
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #52186 (Vizualization problem after update 5.6) created</title>
+      
+        <dc:creator>lashesandeyes</dc:creator>
+
+      <pubDate>Tue, 29 Dec 2020 13:00:37 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/52186</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/52186/1609246837966053</guid>
+      <description>&lt;p&gt;
+Hello, after the last update of 5.6, we have a problem with the vizualization of the website. It appears a message Hello World, and text in pink and black. Please advice!&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #47426 (Site Health should check for incompatible plugins and plugins no ...) updated</title>
+      
+        <dc:creator>galbaras</dc:creator>
+
+      <pubDate>Tue, 29 Dec 2020 06:21:04 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/47426#comment:6</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/47426#comment:6/1609222864090659</guid>
+      <description>&lt;p&gt;
+Looks like much code can be borrowed from &lt;a class="ext-link" href="https://wordpress.org/plugins/plugin-compatibility-checker/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;Plugin Compatibility Checker&lt;/a&gt; or from &lt;a class="ext-link" href="https://wordpress.org/plugins/better-plugin-compatibility-control/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;Better Plugin Compatibility Control&lt;/a&gt;. They use different approaches, but once versions are checked, the results can be presented both by Site Health and on the Plugins page, possible with a screen option to disable it.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #52057 (Small bug in pagination function paginate_links()) updated</title>
+      
+        <dc:creator>lukecarbis</dc:creator>
+
+      <pubDate>Tue, 29 Dec 2020 05:58:37 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/52057#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/52057#comment:2/1609221517488642</guid>
+      <description>&lt;p&gt;
+@kaderavek I'd love to help replicate this problem – could you post your template code so I could give it a shot?&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #52057 (Small bug in pagination function paginate_links()) updated</title>
+      
+        <dc:creator>slackbot</dc:creator>
+
+      <pubDate>Tue, 29 Dec 2020 05:53:34 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/52057#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/52057#comment:1/1609221214880780</guid>
+      <description>&lt;p&gt;
+&lt;em&gt;This ticket was mentioned in &lt;a class="ext-link" href="https://make.wordpress.org/chat/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;Slack&lt;/a&gt; in #core by lukecarbis. &lt;a class="ext-link" href="https://wordpress.slack.com/archives/core/p1609221211110200"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;View the logs&lt;/a&gt;.&lt;/em&gt;&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #52053 (Keyboard Shortcut Not working in code editor make fullscreen mode) updated</title>
+      
+        <dc:creator>slackbot</dc:creator>
+
+      <pubDate>Tue, 29 Dec 2020 05:40:06 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/52053#comment:13</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/52053#comment:13/1609220406236906</guid>
+      <description>&lt;p&gt;
+&lt;em&gt;This ticket was mentioned in &lt;a class="ext-link" href="https://make.wordpress.org/chat/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;Slack&lt;/a&gt; in #core by lukecarbis. &lt;a class="ext-link" href="https://wordpress.slack.com/archives/core/p1609220402100600"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;View the logs&lt;/a&gt;.&lt;/em&gt;&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #52036 (update 5.6 won't update) updated</title>
+      
+        <dc:creator>slackbot</dc:creator>
+
+      <pubDate>Tue, 29 Dec 2020 05:32:19 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/52036#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/52036#comment:3/1609219939836106</guid>
+      <description>&lt;p&gt;
+&lt;em&gt;This ticket was mentioned in &lt;a class="ext-link" href="https://make.wordpress.org/chat/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;Slack&lt;/a&gt; in #core by lukecarbis. &lt;a class="ext-link" href="https://wordpress.slack.com/archives/core/p1609219935091100"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;View the logs&lt;/a&gt;.&lt;/em&gt;&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #52032 (delete plugin link not working) updated</title>
+      
+        <dc:creator>slackbot</dc:creator>
+
+      <pubDate>Tue, 29 Dec 2020 05:29:45 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/52032#comment:4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/52032#comment:4/1609219785490680</guid>
+      <description>&lt;p&gt;
+&lt;em&gt;This ticket was mentioned in &lt;a class="ext-link" href="https://make.wordpress.org/chat/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;Slack&lt;/a&gt; in #core by lukecarbis. &lt;a class="ext-link" href="https://wordpress.slack.com/archives/core/p1609219781090000"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;View the logs&lt;/a&gt;.&lt;/em&gt;&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #52031 (Error when clicking Convert to regular blocks) updated</title>
+      
+        <dc:creator>lukecarbis</dc:creator>
+
+      <pubDate>Tue, 29 Dec 2020 05:29:12 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/52031#comment:7</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/52031#comment:7/1609219752854468</guid>
+      <description>&lt;p&gt;
+@jeffabailey Thanks for reporting the problem! I tried replicating the problem, but the "Convert to regular blocks" button worked fine for me. Does the issue still happen with all plugins disabled and a default theme (Twenty Twenty-One) activated?&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+If so, could you share the reusable block that is causing the problem?&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #52031 (Error when clicking Convert to regular blocks) updated</title>
+      
+        <dc:creator>slackbot</dc:creator>
+
+      <pubDate>Tue, 29 Dec 2020 05:24:00 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/52031#comment:6</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/52031#comment:6/1609219440516333</guid>
+      <description>&lt;p&gt;
+&lt;em&gt;This ticket was mentioned in &lt;a class="ext-link" href="https://make.wordpress.org/chat/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;Slack&lt;/a&gt; in #core by lukecarbis. &lt;a class="ext-link" href="https://wordpress.slack.com/archives/core/p1609219437087900"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;View the logs&lt;/a&gt;.&lt;/em&gt;&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #52017 (Customers getting reset password emails) closed</title>
+      
+        <dc:creator>lukecarbis</dc:creator>
+
+      <pubDate>Tue, 29 Dec 2020 05:23:36 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/52017#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/52017#comment:2/1609219416612254</guid>
+      <description>invalid: &lt;p&gt;
+Hi @hoshigetsu, welcome to WordPress Trac! Thanks for the ticket.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+I'm sorry to hear you are having issues with WordPress sending out unexpected reset password emails. We discussed this issue in today's triage session. Since it's not clear what the cause of the issue is, we thought you might get the best help if you try the support forums: &lt;a class="ext-link" href="https://wordpress.org/support/forums/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://wordpress.org/support/forums/&lt;/a&gt;.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Ticket #52017 (Customers getting reset password emails) updated</title>
+      
+        <dc:creator>slackbot</dc:creator>
+
+      <pubDate>Tue, 29 Dec 2020 05:18:03 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/52017#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/52017#comment:1/1609219083219063</guid>
+      <description>&lt;p&gt;
+&lt;em&gt;This ticket was mentioned in &lt;a class="ext-link" href="https://make.wordpress.org/chat/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;Slack&lt;/a&gt; in #core by lukecarbis. &lt;a class="ext-link" href="https://wordpress.slack.com/archives/core/p1609219079086500"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;View the logs&lt;/a&gt;.&lt;/em&gt;&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #52015 (Provide an ID for the author selector on the Block Editor) closed</title>
+      
+        <dc:creator>poena</dc:creator>
+
+      <pubDate>Tue, 29 Dec 2020 05:17:13 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/52015#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/52015#comment:3/1609219033379013</guid>
+      <description>reported-upstream: &lt;p&gt;
+Hi!&lt;br /&gt;
+This has been reported upstream in the Gutenberg GitHub repository, and work can continue on this issue:&lt;br /&gt;
+&lt;a class="ext-link" href="https://github.com/WordPress/gutenberg/issues/12067"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://github.com/WordPress/gutenberg/issues/12067&lt;/a&gt;&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Ticket #52015 (Provide an ID for the author selector on the Block Editor) updated</title>
+      
+        <dc:creator>slackbot</dc:creator>
+
+      <pubDate>Tue, 29 Dec 2020 05:05:42 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/52015#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/52015#comment:2/1609218342298140</guid>
+      <description>&lt;p&gt;
+&lt;em&gt;This ticket was mentioned in &lt;a class="ext-link" href="https://make.wordpress.org/chat/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;Slack&lt;/a&gt; in #core by lukecarbis. &lt;a class="ext-link" href="https://wordpress.slack.com/archives/core/p1609218338079600"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;View the logs&lt;/a&gt;.&lt;/em&gt;&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #47577 (Detect HTTPS support and provide guidance) updated</title>
+      
+        <dc:creator>johnjamesjacoby</dc:creator>
+
+      <pubDate>Tue, 29 Dec 2020 04:57:38 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/47577#comment:31</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/47577#comment:31/1609217858534767</guid>
+      <description>&lt;p&gt;
+A few thoughts.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Some of these new function names do not follow closely the recommended pattern. Relatedly, that means my admittedly aging brain has a harder-than-expected time understanding what they are intended to do without additional study.&lt;br /&gt;
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;wp_update_https_detection_errors - update what errors, from where?
+&lt;/li&gt;&lt;li&gt;wp_schedule_https_detection - schedule how and for what? Cron? Deletion/Addition?
+&lt;/li&gt;&lt;li&gt;wp_is_owned_html_output - Owned by who? Me?
+&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;
+&lt;em&gt;wp_update_https_detection_errors&lt;/em&gt; seems to be named what it is because it calls update_option() internally (which is an assumption on my part) and doesn't provide much benefit to include that detail in the function name, as the storage mechanism is not contextually relevant. It could be: &lt;strong&gt;wp_detect_https_errors&lt;/strong&gt;, which is vague about its storage but assertive about what it does.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+&lt;em&gt;wp_schedule_https_detection&lt;/em&gt; is following the pattern laid out by other wp_schedule_ functions, which are inconsistently named as well. update_network_counts, update_checks, delete_old_privace_export_files. Youch. Maybe &lt;strong&gt;wp_schedule_update_https_detection&lt;/strong&gt; is better, even though it's not great?&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+&lt;em&gt;wp_is_owned_html_output&lt;/em&gt; is introducing a new global term related to content ownership. I'd like this to be reconsidered to avoid any possible future collisions with other APIs like roles &amp;amp; caps, multisite networks, etc... For example, &lt;a class="reopened ticket" href="http://core.trac.wordpress.org/ticket/5942" title="#5942: feature request: Add Owner role (reopened)"&gt;#5942&lt;/a&gt; wants to introduce an "Owner" role. If that happens, this function name would probably be undesirable. &lt;strong&gt;wp_is_local_html_output&lt;/strong&gt; maybe? But "local" has similar connotations with development environments... Not sure about this one.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+These functions are also all marked as &lt;code&gt;@access private&lt;/code&gt; but not prefixed with an underscore. Natch, this is broadly inconsistent, but has been enforced as recently as 5.5.0 with &lt;code&gt;_wp_register_meta_args_allowed_list()&lt;/code&gt;. Just want to make doubly sure this was considered and makes sense for these here.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #22810 (Support for theme changelogs) updated</title>
+      
+        <dc:creator>slackbot</dc:creator>
+
+      <pubDate>Tue, 29 Dec 2020 04:46:43 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/22810#comment:28</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/22810#comment:28/1609217203639145</guid>
+      <description>&lt;p&gt;
+&lt;em&gt;This ticket was mentioned in &lt;a class="ext-link" href="https://make.wordpress.org/chat/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;Slack&lt;/a&gt; in #themereview by poena. &lt;a class="ext-link" href="https://wordpress.slack.com/archives/themereview/p1609217201340800"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;View the logs&lt;/a&gt;.&lt;/em&gt;&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #48689 (PHP warnings after updating to WP 5.3: ftp_nlist() and ftp_pwd() ...) updated</title>
+      
+        <dc:creator>absotively</dc:creator>
+
+      <pubDate>Tue, 29 Dec 2020 03:56:41 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/48689#comment:15</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/48689#comment:15/1609214201997611</guid>
+      <description>&lt;p&gt;
+I see similar warnings, though I've tracked it to a different plugin.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+At least on my site, the warnings appear on the site even if WP_DEBUG is set to false.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Edit: Looking more closely at the plugin in question, I realize this may be due to it calling the relevant functions too early, so it may not be relevant to this bug after all.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #42067 (Language Warning) updated</title>
+      
+        <dc:creator>EatonZ</dc:creator>
+
+      <pubDate>Tue, 29 Dec 2020 03:43:16 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/42067#comment:5</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/42067#comment:5/1609213396792061</guid>
+      <description>&lt;p&gt;
+@hellofromTonya I will check this again soon.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #51965 (About Page: Full stop is added in wrong place) closed</title>
+      
+        <dc:creator>lukecarbis</dc:creator>
+
+      <pubDate>Tue, 29 Dec 2020 02:14:51 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/51965#comment:9</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/51965#comment:9/1609208091131466</guid>
+      <description>wontfix</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Ticket #52185 (Twenty Twenty-One: background image does not work with dark mode) updated</title>
+      
+        <dc:creator>sabernhardt</dc:creator>
+
+      <pubDate>Tue, 29 Dec 2020 00:58:24 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/52185#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/52185#comment:2/1609203504239175</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Hi @WebsThatRock and thanks for the report!&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+The team considered &lt;a class="ext-link" href="https://github.com/WordPress/twentytwentyone/issues/829"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;disabling background images with dark mode active&lt;/a&gt;, as usually the two features do not work well together.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Removing this specific background image in dark mode is likely your best option. You can paste this line within the Additional CSS section in Customizer:&lt;br /&gt;
+&lt;/p&gt;
+&lt;pre class="wiki"&gt; .is-dark-theme.custom-background { background-image: none; }
+&lt;/pre&gt;&lt;p&gt;
+If we want to edit the theme for this, we could adjust the &lt;code&gt;background-position&lt;/code&gt; so it's off screen. That could make it easier for users to override in the event that their background image does work in both modes.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #47900 (Error on update MCE Views in gutenberg block "Classic Editor") updated</title>
+      
+        <dc:creator>webinista</dc:creator>
+
+      <pubDate>Tue, 29 Dec 2020 00:00:27 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/47900#comment:6</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/47900#comment:6/1609200027259408</guid>
+      <description>&lt;p&gt;
+It's still happening for me in 5.6. It seems to originate with the &lt;code&gt;announceSearchResults&lt;/code&gt; function in &lt;code&gt;wp-includes/js/media-views.min.js&lt;/code&gt;.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Changing:&lt;br /&gt;
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;if ( this.collection.mirroring.args.s )
+&lt;/pre&gt;&lt;p&gt;
+to:&lt;br /&gt;
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;if (
+    this.collection.hasOwnProperty('mirroring') &amp;amp;&amp;amp;
+    this.collection.mirroring.args.s
+)
+&lt;/pre&gt;&lt;p&gt;
+resolved my particular issue.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #52185 (Twenty Twenty-One: background image does not work with dark mode) updated</title>
+      
+        <dc:creator>sabernhardt</dc:creator>
+
+      <pubDate>Mon, 28 Dec 2020 23:44:40 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/52185#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/52185#comment:1/1609199080404244</guid>
+      <description>&lt;i&gt;Focuses&lt;/i&gt;, &lt;i&gt;Component&lt;/i&gt;, &lt;i&gt;Summary&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #46110 (IE11: JS "Syntax error" related to wp-polyfill-formdata) updated</title>
+      
+        <dc:creator>webaware</dc:creator>
+
+      <pubDate>Mon, 28 Dec 2020 23:35:22 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/46110#comment:22</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/46110#comment:22/1609198522174612</guid>
+      <description>&lt;p&gt;
+Worth mentioning that this also impacts theme development. I have to disable SCRIPT_DEBUG so that I can test some code on IE11, which is... suboptimal. I'll have to forcibly override loading the unminified script when SCRIPT_DEBUG is set, so that I can properly test / debug theme code on IE11.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Screen Shot 2020-12-28 at 5.28.37 PM.png attached to Ticket #52185</title>
+      
+        <dc:creator>WebsThatRock</dc:creator>
+
+      <pubDate>Mon, 28 Dec 2020 23:30:13 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/52185/Screen%20Shot%202020-12-28%20at%205.28.37%20PM.png</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/52185/Screen%20Shot%202020-12-28%20at%205.28.37%20PM.png/1609198213806303</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #52185 (Twenty Twenty-One: background image does not work with dark mode) created</title>
+      
+        <dc:creator>WebsThatRock</dc:creator>
+
+      <pubDate>Mon, 28 Dec 2020 23:29:48 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/52185</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/52185/1609198188653263</guid>
+      <description>&lt;p&gt;
+I noticed that if I add a background image by going to Appearance &amp;gt; Customize &amp;gt; Background Image &amp;gt; Add image and turn on the dark mode the website changes the text to white but it does not have a dark background. Instead, it shows that background image which is hard to read white text on.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+I was trying to find a workaround where if it is in dark mode then make the background image either disappear or darken.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+I do not see anywhere to attach a file so it may not be with this ticket.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Michael&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #51927 (Twenty Twenty-One: Buttons lose contrast consistency in dark-mode.) updated</title>
+      
+        <dc:creator>prbot</dc:creator>
+
+      <pubDate>Mon, 28 Dec 2020 20:59:55 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/51927#comment:21</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/51927#comment:21/1609189195536410</guid>
+      <description>&lt;p&gt;
+&lt;a class="ext-link" href="https://github.com/allancole"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;allancole&lt;/a&gt; commented on &lt;a class="ext-link" href="https://github.com/WordPress/wordpress-develop/pull/806#issuecomment-751862530"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;PR #806&lt;/a&gt;:&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Just noting that this PR is related and may rely on &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/835" title="#835: defect (bug): Post Slug is sometimes the post number and not the post name (closed: fixed)"&gt;#835&lt;/a&gt; which tries to solve the duplicate CSS in &lt;code&gt;ie.css&lt;/code&gt;.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #52018 (Zip Module 2.8.2 - class-pclzip fatal error with PHP 8.0) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Mon, 28 Dec 2020 20:44:19 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/52018#comment:11</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/52018#comment:11/1609188259754292</guid>
+      <description>&lt;i&gt;Status&lt;/i&gt;, &lt;i&gt;Owner&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #51884 (Events Widget: There isn't a UI for clearing the selected city) updated</title>
+      
+        <dc:creator>mabipress</dc:creator>
+
+      <pubDate>Mon, 28 Dec 2020 19:47:16 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/51884#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/51884#comment:3/1609184836506482</guid>
+      <description>&lt;p&gt;
+Hello :)&lt;br /&gt;
+This is my first contribution to WordPress.&lt;br /&gt;
+I skipped the AJAX PHP Unit test.&lt;br /&gt;
+I tried to write a test with the _handleAjax Method , unfortunately it didn't work as I had imagined. (it only "mimics" the ajax request)&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+How do I test AJAX calls? &lt;sup&gt;&lt;/sup&gt;&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Thanks :)&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #51884 (Events Widget: There isn't a UI for clearing the selected city) updated</title>
+      
+        <dc:creator>prbot</dc:creator>
+
+      <pubDate>Mon, 28 Dec 2020 19:35:38 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/51884#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/51884#comment:2/1609184138007977</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+&lt;em&gt;This ticket was mentioned in &lt;a class="ext-link" href="https://github.com/WordPress/wordpress-develop/pull/844"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;PR #844&lt;/a&gt; on &lt;a class="ext-link" href="https://github.com/WordPress/wordpress-develop/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;WordPress/wordpress-develop&lt;/a&gt; by &lt;a class="ext-link" href="https://github.com/Yeora"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;Yeora&lt;/a&gt;.&lt;/em&gt;&lt;br /&gt;
+Fixed &lt;a class="new ticket" href="http://core.trac.wordpress.org/ticket/51884" title="#51884: enhancement: Events Widget: There isn't a UI for clearing the selected city (new)"&gt;#51884&lt;/a&gt;&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Trac ticket: &lt;a href="https://core.trac.wordpress.org/ticket/51884"&gt;https://core.trac.wordpress.org/ticket/51884&lt;/a&gt;&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>french-users-admin-table-using-proper-hyphenation.png attached to Ticket #52184</title>
+      
+        <dc:creator>audrasjb</dc:creator>
+
+      <pubDate>Mon, 28 Dec 2020 16:41:26 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/52184/french-users-admin-table-using-proper-hyphenation.png</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/52184/french-users-admin-table-using-proper-hyphenation.png/1609173686865982</guid>
+      <description>&lt;p&gt;
+it's looking better with proper hyphenation :-)
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>french-users-admin-table-without-any-hyphenation.png attached to Ticket #52184</title>
+      
+        <dc:creator>audrasjb</dc:creator>
+
+      <pubDate>Mon, 28 Dec 2020 16:40:49 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/52184/french-users-admin-table-without-any-hyphenation.png</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/52184/french-users-admin-table-without-any-hyphenation.png/1609173649309082</guid>
+      <description>&lt;p&gt;
+showing issues with long words
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #52184 (Generalize the use of CSS hyphenation on WP Admin list tables) created</title>
+      
+        <dc:creator>audrasjb</dc:creator>
+
+      <pubDate>Mon, 28 Dec 2020 16:36:21 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/52184</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/52184/1609173381677317</guid>
+      <description>&lt;p&gt;
+In &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/50838" title="#50838: defect (bug): Width issue on user list table post column (closed: fixed)"&gt;#50838&lt;/a&gt;, we fixed some WP Admin list table headings issue by adding &lt;code&gt;hyphens: auto&lt;/code&gt; to &lt;code&gt;.fixed .column-posts&lt;/code&gt; CSS selector. It fixed the issue pretty well, but only for &lt;code&gt;&amp;lt;th&amp;gt;&lt;/code&gt; cells. However, this is also needed for all table cells.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Use case: In WP 5.6, the French translation team made some translation changes to user roles so I think it would be nice to use the same CSS rule for all cells (&lt;code&gt;th&lt;/code&gt;, &lt;code&gt;td&lt;/code&gt;) of all WordPress Admin Tables.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+For reference, see: &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/50838" title="#50838: defect (bug): Width issue on user list table post column (closed: fixed)"&gt;#50838&lt;/a&gt;&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #52180 (Add post modified fields to WXR export format) closed</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Mon, 28 Dec 2020 15:24:38 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/52180#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/52180#comment:3/1609169078270410</guid>
+      <description>fixed: &lt;p&gt;
+In &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/49910" title="Export: Add `post_modified` and `post_modified_gmt` fields to the ..."&gt;49910&lt;/a&gt;:&lt;br /&gt;
+&lt;/p&gt;
+&lt;div class="message"&gt;&lt;p&gt;
+Export: Add &lt;code&gt;post_modified&lt;/code&gt; and &lt;code&gt;post_modified_gmt&lt;/code&gt; fields to the generated WXR export file.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+This allows for more flexibility when determining which version of a post is the latest one, and makes it possible to implement import logic involving updating and adding revisions to existing posts or pages.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Props jmdodd.&lt;br /&gt;
+Fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/52180" title="#52180: enhancement: Add post modified fields to WXR export format (closed: fixed)"&gt;#52180&lt;/a&gt;.&lt;br /&gt;
+&lt;/p&gt;
+&lt;/div&gt;</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Changeset [49910]: Export: Add `post_modified` and `post_modified_gmt` fields to the ...</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Mon, 28 Dec 2020 15:24:37 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/49910</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/49910/1609169077169740</guid>
+      <description>&lt;p&gt;
+Export: Add &lt;code&gt;post_modified&lt;/code&gt; and &lt;code&gt;post_modified_gmt&lt;/code&gt; fields to the generated WXR export file.
+&lt;/p&gt;
+&lt;p&gt;
+This allows for more flexibility when determining which version of a post is the latest one, and makes it possible to implement import logic involving updating and adding revisions to existing posts or pages.
+&lt;/p&gt;
+&lt;p&gt;
+Props jmdodd.
+Fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/52180" title="#52180: enhancement: Add post modified fields to WXR export format (closed: fixed)"&gt;#52180&lt;/a&gt;.
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Ticket #52176 (Twenty Twenty-One: style.css has errors in PhpStorm IDE) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Mon, 28 Dec 2020 15:10:17 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/52176#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/52176#comment:3/1609168217169918</guid>
+      <description>&lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #52182 (Option to activate that plugin or goto installed plugin list) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Mon, 28 Dec 2020 15:07:52 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/52182#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/52182#comment:2/1609168072074889</guid>
+      <description>&lt;i&gt;Component&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #52183 (get_the_post_thumbnail_url  function returns original url if the size ...) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Mon, 28 Dec 2020 15:07:43 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/52183#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/52183#comment:2/1609168063922241</guid>
+      <description>&lt;i&gt;Focuses&lt;/i&gt;, &lt;i&gt;Component&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #51995 (WordPress 5.6: Classic editor menu is not sticky) updated</title>
+      
+        <dc:creator>azaozz</dc:creator>
+
+      <pubDate>Mon, 28 Dec 2020 12:22:39 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/51995#comment:7</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/51995#comment:7/1609158159606747</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Hi @majhajob, thanks for the bug report. Seems this is another "side effect" of the same bug as in &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/52046" title="#52046: defect (bug): The Distraction Free Writing setting on the old Edit Post screen may ... (closed: fixed)"&gt;#52046&lt;/a&gt;. Please test the patch there if you can: &lt;a href="https://core.trac.wordpress.org/attachment/ticket/52046/52046.diff"&gt;https://core.trac.wordpress.org/attachment/ticket/52046/52046.diff&lt;/a&gt;.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Related, possibly duplicate: &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/52046" title="#52046: defect (bug): The Distraction Free Writing setting on the old Edit Post screen may ... (closed: fixed)"&gt;#52046&lt;/a&gt;.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #52046 (The Distraction Free Writing setting on the old Edit Post screen may ...) updated</title>
+      
+        <dc:creator>azaozz</dc:creator>
+
+      <pubDate>Mon, 28 Dec 2020 12:20:30 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/52046#comment:4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/52046#comment:4/1609158030651957</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+In 52046.diff: Trigger the &lt;code&gt;tinymce-editor-init&lt;/code&gt; custom jQuery event on DOM ready. Otherwise TinyMCE may initialize earlier and handlers attached on DOM ready may not get triggered.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Please test!&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>52046.diff attached to Ticket #52046</title>
+      
+        <dc:creator>azaozz</dc:creator>
+
+      <pubDate>Mon, 28 Dec 2020 12:17:37 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/52046/52046.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/52046/52046.diff/1609157857962977</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #52046 (The Distraction Free Writing setting on the old Edit Post screen may ...) updated</title>
+      
+        <dc:creator>azaozz</dc:creator>
+
+      <pubDate>Mon, 28 Dec 2020 11:55:30 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/52046#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/52046#comment:3/1609156530718155</guid>
+      <description>&lt;p&gt;
+Think I (finally) got to the bottom of it. Looks like it is a timing issue (no surprise) of the &lt;code&gt;'tinymce-editor-init'&lt;/code&gt; custom jQuery event. Not sure why it only happens in Firefox but potentially can happen in any browser.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Problem is that event is triggered asynchronously/independently of the DOM loading, but several of the callbacks are attached on DOM ready. For some reason after the TinyMCE and jQuery updates the order there has changed a bit and now &lt;code&gt;'tinymce-editor-init'&lt;/code&gt; for the main editor on the old Edit Post screen may fire before DOM ready so several callbacks don't get executed. One of these callbacks is for making the toolbar "sticky" and setting/resetting "dfw mode". Patch coming up.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #52183 (get_the_post_thumbnail_url  function returns original url if the size ...) updated</title>
+      
+        <dc:creator>naveen17797</dc:creator>
+
+      <pubDate>Mon, 28 Dec 2020 09:15:27 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/52183#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/52183#comment:1/1609146927558185</guid>
+      <description>&lt;p&gt;
+Additional information:&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+I disabled the medium size by going to settings &amp;gt; Media &amp;gt; setting the dimensions to 0x0&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+It wont be generated for any image, After featured image upload, the medium size image is not generated&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #52183 (get_the_post_thumbnail_url  function returns original url if the size ...) created</title>
+      
+        <dc:creator>naveen17797</dc:creator>
+
+      <pubDate>Mon, 28 Dec 2020 09:04:17 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/52183</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/52183/1609146257007176</guid>
+      <description>&lt;p&gt;
+From the function description it should return false if the size does not exist.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Steps to replicate the issue&lt;br /&gt;
+&lt;/p&gt;
+&lt;ol&gt;&lt;li&gt;I uploaded a image via featured image field on the post edit screen.
+&lt;/li&gt;&lt;/ol&gt;&lt;ol start="2"&gt;&lt;li&gt;I am calling this function inside the theme file like this
+&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;
+$medium_thumbnail_url = get_the_post_thumbnail_url( $post_id, 'medium');&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+But this function returns original url instead of returning false.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #52182 (Option to activate that plugin or goto installed plugin list) updated</title>
+      
+        <dc:creator>abhayvishwakarma</dc:creator>
+
+      <pubDate>Mon, 28 Dec 2020 08:12:03 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/52182#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/52182#comment:1/1609143123739964</guid>
+      <description>&lt;p&gt;
+It will reduce the number of clicks.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>screenshot-ld.com-2020.12.28-13_31_51.png attached to Ticket #52182</title>
+      
+        <dc:creator>abhayvishwakarma</dc:creator>
+
+      <pubDate>Mon, 28 Dec 2020 08:08:29 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/52182/screenshot-ld.com-2020.12.28-13_31_51.png</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/52182/screenshot-ld.com-2020.12.28-13_31_51.png/1609142909932759</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #52182 (Option to activate that plugin or goto installed plugin list) created</title>
+      
+        <dc:creator>abhayvishwakarma</dc:creator>
+
+      <pubDate>Mon, 28 Dec 2020 08:08:07 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/52182</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/52182/1609142887395815</guid>
+      <description>&lt;p&gt;
+I was uploading one plugin which was already present and informed me that it is already available but gave only one option to go back to the installer.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+It would be great if we can provide one more option called 'activate this plugin' or a link to go to installed pluigns.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #52176 (Twenty Twenty-One: style.css has errors in PhpStorm IDE) updated</title>
+      
+        <dc:creator>mukesh27</dc:creator>
+
+      <pubDate>Mon, 28 Dec 2020 08:07:07 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/52176#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/52176#comment:2/1609142827336640</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #52181 (wrong mimetime for gzip files) updated</title>
+      
+        <dc:creator>ayeshrajans</dc:creator>
+
+      <pubDate>Mon, 28 Dec 2020 05:22:08 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/52181#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/52181#comment:3/1609132928007371</guid>
+      <description>&lt;p&gt;
+Linking to relevant RFC: &lt;a class="ext-link" href="https://tools.ietf.org/html/rfc6713"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://tools.ietf.org/html/rfc6713&lt;/a&gt;&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #52181 (wrong mimetime for gzip files) updated</title>
+      
+        <dc:creator>mukesh27</dc:creator>
+
+      <pubDate>Mon, 28 Dec 2020 05:13:53 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/52181#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/52181#comment:2/1609132433194625</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Hi there! Thanks for the ticket.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+As per this thread &lt;a class="ext-link" href="https://superuser.com/questions/901962/what-is-the-correct-mime-type-for-a-tar-gz-file"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://superuser.com/questions/901962/what-is-the-correct-mime-type-for-a-tar-gz-file&lt;/a&gt; tgz in &lt;code&gt;application/gzip&lt;/code&gt; mime type.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Please check the handbook page for creating the patch from src/ &lt;a class="ext-link" href="https://make.wordpress.org/core/handbook/tutorials/trac/submitting-a-patch/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://make.wordpress.org/core/handbook/tutorials/trac/submitting-a-patch/&lt;/a&gt;&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>52181.diff attached to Ticket #52181</title>
+      
+        <dc:creator>mukesh27</dc:creator>
+
+      <pubDate>Mon, 28 Dec 2020 05:12:58 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/52181/52181.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/52181/52181.diff/1609132378505896</guid>
+      <description>&lt;p&gt;
+Patch.
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>52176.diff attached to Ticket #52176</title>
+      
+        <dc:creator>munyagu</dc:creator>
+
+      <pubDate>Mon, 28 Dec 2020 02:03:28 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/52176/52176.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/52176/52176.diff/1609121008010023</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #47577 (Detect HTTPS support and provide guidance) updated</title>
+      
+        <dc:creator>pento</dc:creator>
+
+      <pubDate>Mon, 28 Dec 2020 01:43:19 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/47577#comment:30</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/47577#comment:30/1609119799822004</guid>
+      <description>&lt;p&gt;
+In &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/49909" title="Site Health: Check that WordPress is installed before scheduling the ..."&gt;49909&lt;/a&gt;:&lt;br /&gt;
+&lt;/p&gt;
+&lt;div class="message"&gt;&lt;p&gt;
+Site Health: Check that WordPress is installed before scheduling the HTTPS cron.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Trying to schedule cron jobs before WordPress is installed results in DB errors, which is suboptimal.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+See &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/47577" title="#47577: enhancement: Detect HTTPS support and provide guidance (closed: fixed)"&gt;#47577&lt;/a&gt;.&lt;br /&gt;
+&lt;/p&gt;
+&lt;/div&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Changeset [49909]: Site Health: Check that WordPress is installed before scheduling the ...</title>
+      
+        <dc:creator>pento</dc:creator>
+
+      <pubDate>Mon, 28 Dec 2020 01:43:18 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/49909</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/49909/1609119798576348</guid>
+      <description>&lt;p&gt;
+Site Health: Check that WordPress is installed before scheduling the HTTPS cron.
+&lt;/p&gt;
+&lt;p&gt;
+Trying to schedule cron jobs before WordPress is installed results in DB errors, which is suboptimal.
+&lt;/p&gt;
+&lt;p&gt;
+See &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/47577" title="#47577: enhancement: Detect HTTPS support and provide guidance (closed: fixed)"&gt;#47577&lt;/a&gt;.
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Ticket #52180 (Add post modified fields to WXR export format) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Mon, 28 Dec 2020 00:58:57 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/52180#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/52180#comment:2/1609117137147514</guid>
+      <description>&lt;i&gt;Status&lt;/i&gt;, &lt;i&gt;Owner&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #52180 (Add post modified fields to WXR export format) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Mon, 28 Dec 2020 00:58:49 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/52180#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/52180#comment:1/1609117129571264</guid>
+      <description>&lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #52181 (wrong mimetime for gzip files) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Mon, 28 Dec 2020 00:58:01 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/52181#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/52181#comment:1/1609117081427976</guid>
+      <description>&lt;i&gt;Component&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item>
+   </channel>
+</rss>

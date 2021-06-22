@@ -1,0 +1,1763 @@
+<?xml version="1.0"?>
+<rss xmlns:dc="http://purl.org/dc/elements/1.1/" version="2.0">
+  <channel>
+    <title>WordPress Trac</title>
+    <link>http://core.trac.wordpress.org/timeline</link>
+    <description>Trac Timeline</description>
+    <language>en-US</language>
+    <generator>Trac 1.2.2</generator>
+    <image>
+      <title>WordPress Trac</title>
+      <url>http://core.trac.wordpress.org/chrome/site/your_project_logo.png</url>
+      <link>http://core.trac.wordpress.org/timeline</link>
+    </image>
+    <item>
+      <title>Ticket #53295 (Serialized data should be handled as an opaque value) updated</title>
+      
+        <dc:creator>siliconforks</dc:creator>
+
+      <pubDate>Sun, 30 May 2021 23:00:55 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/53295#comment:8</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/53295#comment:8/1622415655581244</guid>
+      <description>&lt;p&gt;
+I see at least two potential security vulnerabilities with &lt;a class="ext-link" href="https://github.com/WordPress/wordpress-develop/pull/1312"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;PR #1312&lt;/a&gt;.&lt;br /&gt;
+&lt;/p&gt;
+&lt;h2 id="ObjectinjectionwithPHP5.6"&gt;Object injection with PHP 5.6&lt;/h2&gt;
+&lt;p&gt;
+On PHP 5.6, object injection and code execution could occur inside the new implementation of &lt;code&gt;is_serialized()&lt;/code&gt; because it is calling &lt;code&gt;unserialize()&lt;/code&gt;.  For example, consider a WordPress site running PHP 5.6 that has a plugin containing the &lt;code&gt;Example1&lt;/code&gt; class from &lt;a class="ext-link" href="https://owasp.org/www-community/vulnerabilities/PHP_Object_Injection"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://owasp.org/www-community/vulnerabilities/PHP_Object_Injection&lt;/a&gt; ...&lt;br /&gt;
+&lt;/p&gt;
+&lt;div class="wiki-code"&gt;&lt;div class="code"&gt;&lt;pre&gt;&lt;span class="cp"&gt;&amp;lt;?php&lt;/span&gt;
+&lt;span class="k"&gt;class&lt;/span&gt; &lt;span class="nc"&gt;Example1&lt;/span&gt;
+&lt;span class="p"&gt;{&lt;/span&gt;
+   &lt;span class="k"&gt;public&lt;/span&gt; &lt;span class="nv"&gt;$cache_file&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+   &lt;span class="k"&gt;function&lt;/span&gt; &lt;span class="nf"&gt;__construct&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+   &lt;span class="p"&gt;{&lt;/span&gt;
+      &lt;span class="c1"&gt;// some PHP code...
+&lt;/span&gt;   &lt;span class="p"&gt;}&lt;/span&gt;
+   &lt;span class="k"&gt;function&lt;/span&gt; &lt;span class="nf"&gt;__destruct&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+   &lt;span class="p"&gt;{&lt;/span&gt;
+      &lt;span class="nv"&gt;$file&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;"/var/www/cache/tmp/&lt;/span&gt;&lt;span class="si"&gt;{&lt;/span&gt;&lt;span class="nv"&gt;$this&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="na"&gt;cache_file&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="s2"&gt;"&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+      &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;file_exists&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;$file&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt; &lt;span class="o"&gt;@&lt;/span&gt;&lt;span class="nb"&gt;unlink&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;$file&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+   &lt;span class="p"&gt;}&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;p&gt;
+An attacker could simply do the following:&lt;br /&gt;
+&lt;/p&gt;
+&lt;ol&gt;&lt;li&gt;Register as an ordinary (subscriber) user on the site.
+&lt;/li&gt;&lt;li&gt;Log in and go to the "Profile" page.
+&lt;/li&gt;&lt;li&gt;Enter serialized data in a profile field - e.g., in the first name field enter &lt;code&gt;O:8:"Example1":1:{s:10:"cache_file";s:15:"../../index.php";}&lt;/code&gt;.
+&lt;/li&gt;&lt;li&gt;Click "Update Profile" and WordPress will call &lt;code&gt;is_serialized()&lt;/code&gt; on the malicious user input.  An instance of the &lt;code&gt;Example1&lt;/code&gt; class will be created and its destructor will be called.  This will delete the file &lt;code&gt;/var/www/index.php&lt;/code&gt;.
+&lt;/li&gt;&lt;/ol&gt;&lt;h2 id="ObjectinjectionfromdatastoredinthedatabasebyolderWordPressversions"&gt;Object injection from data stored in the database by older WordPress versions&lt;/h2&gt;
+&lt;p&gt;
+The PHP 5.6 vulnerability above might not seem like too much of a problem because WordPress will likely be dropping support for PHP 5.6 soon, and this PR could be merged after that happens.  However, there is still another, more subtle vulnerability, which is what @nacin described in &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/17375" title="#17375: defect (bug): Serialized option values broken for classes with Serializable interface (closed: wontfix)"&gt;#17375&lt;/a&gt; - it is not possible to safely change the behavior of &lt;code&gt;is_serialized()&lt;/code&gt;.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Suppose this PR were to be accepted into a future WordPress version, say, WordPress 5.8.  Then a malicious user could do the following:&lt;br /&gt;
+&lt;/p&gt;
+&lt;ol&gt;&lt;li&gt;Find a WordPress site running a version of WordPress earlier than version 5.8.
+&lt;/li&gt;&lt;li&gt;Register as a user on that site.
+&lt;/li&gt;&lt;li&gt;Log in and go to the "Profile" page.
+&lt;/li&gt;&lt;li&gt;Enter a serialized &lt;code&gt;C:...&lt;/code&gt; value the first name field.
+&lt;/li&gt;&lt;li&gt;Click "Update Profile" and this &lt;code&gt;C:...&lt;/code&gt; value will be stored in the database.
+&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;
+Note: at this point you may be thinking, "Wait, what does this have to do with the PR in question?  If this attack requires an older version of WordPress without the PR, then it must be a vulnerability in that version of WordPress.  It has nothing to do with this PR."  But there isn't actually any vulnerability at this point - the &lt;code&gt;C:...&lt;/code&gt; value will never be unserialized by WordPress.  If WordPress runs &lt;code&gt;is_serialized()&lt;/code&gt; on this value, the function will return false, so WordPress will never actually consider it to be serialized data at all, and it will never try to unserialize it.  WordPress just thinks that the attacker is a user whose first name happens to be &lt;code&gt;C:...&lt;/code&gt; and it will simply display that string on the user's profile page.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+The vulnerability will arise in the future if the site ever upgrades to WordPress 5.8 (with the new &lt;code&gt;is_serialized()&lt;/code&gt; implementation).  Then, if WordPress ever attempts to retrieve the attacker's first name from the database, the &lt;code&gt;is_serialized()&lt;/code&gt; function will return true for this value, so WordPress will then attempt to unserialize it, potentially resulting in code execution.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+I suspect that a fix for &lt;a class="new ticket" href="http://core.trac.wordpress.org/ticket/53299" title="#53299: enhancement: [PHP 8.1] Update `is_serialized` function to accept Enums (new)"&gt;#53299&lt;/a&gt; might result in the same vulnerability.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #39553 (Use REST API endpoints for Plupload backend) updated</title>
+      
+        <dc:creator>prbot</dc:creator>
+
+      <pubDate>Sun, 30 May 2021 22:55:36 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/39553#comment:15</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/39553#comment:15/1622415336227954</guid>
+      <description>&lt;p&gt;
+&lt;em&gt;This ticket was mentioned in &lt;a class="ext-link" href="https://github.com/WordPress/wordpress-develop/pull/1316"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;PR #1316&lt;/a&gt; on &lt;a class="ext-link" href="https://github.com/WordPress/wordpress-develop/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;WordPress/wordpress-develop&lt;/a&gt; by &lt;a class="ext-link" href="https://github.com/spacedmonkey"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;spacedmonkey&lt;/a&gt;.&lt;/em&gt;&lt;br /&gt;
+Trac ticket: &lt;a href="https://core.trac.wordpress.org/ticket/39553"&gt;https://core.trac.wordpress.org/ticket/39553&lt;/a&gt;&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #53302 (Widget type REST API endpoint return multiples of the same widget type.) updated</title>
+      
+        <dc:creator>prbot</dc:creator>
+
+      <pubDate>Sun, 30 May 2021 22:46:12 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/53302#comment:4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/53302#comment:4/1622414772945485</guid>
+      <description>&lt;p&gt;
+&lt;a class="ext-link" href="https://github.com/TimothyBJacobs"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;TimothyBJacobs&lt;/a&gt; commented on &lt;a class="ext-link" href="https://github.com/WordPress/wordpress-develop/pull/1315#issuecomment-851072740"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;PR #1315&lt;/a&gt;:&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Can we unique by the widget id instead?&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #49277 (Implement email sanitize in REST API) updated</title>
+      
+        <dc:creator>spacedmonkey</dc:creator>
+
+      <pubDate>Sun, 30 May 2021 22:23:08 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/49277#comment:10</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/49277#comment:10/1622413388423249</guid>
+      <description>&lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #52321 (Add site icon to rest index) updated</title>
+      
+        <dc:creator>spacedmonkey</dc:creator>
+
+      <pubDate>Sun, 30 May 2021 22:22:43 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/52321#comment:10</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/52321#comment:10/1622413363473959</guid>
+      <description>&lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #52321 (Add site icon to rest index) updated</title>
+      
+        <dc:creator>TimothyBlynJacobs</dc:creator>
+
+      <pubDate>Sun, 30 May 2021 22:21:34 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/52321#comment:9</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/52321#comment:9/1622413294001353</guid>
+      <description>&lt;p&gt;
+Feature freeze for 5.8 has already &lt;a class="ext-link" href="https://make.wordpress.org/core/5-8/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;passed&lt;/a&gt;. Feel free to milestone for 5.9 though.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #49277 (Implement email sanitize in REST API) updated</title>
+      
+        <dc:creator>spacedmonkey</dc:creator>
+
+      <pubDate>Sun, 30 May 2021 22:19:09 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/49277#comment:9</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/49277#comment:9/1622413149852561</guid>
+      <description>&lt;p&gt;
+@TimothyBlynJacobs I think the provided patch seems good. Any chance of getting this in 5.8?&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #52321 (Add site icon to rest index) updated</title>
+      
+        <dc:creator>spacedmonkey</dc:creator>
+
+      <pubDate>Sun, 30 May 2021 22:12:18 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/52321#comment:8</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/52321#comment:8/1622412738914136</guid>
+      <description>&lt;p&gt;
+@TimothyBlynJacobs I feel like we can get this into WP 5.8. It is a simple change.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #52840 (Include filesize information in REST API response for all media types) updated</title>
+      
+        <dc:creator>spacedmonkey</dc:creator>
+
+      <pubDate>Sun, 30 May 2021 22:10:55 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/52840#comment:4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/52840#comment:4/1622412655801094</guid>
+      <description>&lt;p&gt;
+Related: &lt;a class="assigned ticket" href="http://core.trac.wordpress.org/ticket/49412" title="#49412: feature request: Store filesize media metadata (assigned)"&gt;#49412&lt;/a&gt;&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #49412 (Store filesize media metadata) updated</title>
+      
+        <dc:creator>spacedmonkey</dc:creator>
+
+      <pubDate>Sun, 30 May 2021 22:10:36 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/49412#comment:30</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/49412#comment:30/1622412636411081</guid>
+      <description>&lt;p&gt;
+Related: &lt;a class="accepted ticket" href="http://core.trac.wordpress.org/ticket/52840" title="#52840: enhancement: Include filesize information in REST API response for all media types (accepted)"&gt;#52840&lt;/a&gt;&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #53302 (Widget type REST API endpoint return multiples of the same widget type.) updated</title>
+      
+        <dc:creator>spacedmonkey</dc:creator>
+
+      <pubDate>Sun, 30 May 2021 21:58:43 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/53302#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/53302#comment:3/1622411923910103</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Related &lt;a class="new ticket" href="http://core.trac.wordpress.org/ticket/53303" title="#53303: enhancement: Widget type REST API endpoint should be sorted by id (new)"&gt;#53303&lt;/a&gt;&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #53303 (Widget type REST API endpoint should be sorted by id) created</title>
+      
+        <dc:creator>spacedmonkey</dc:creator>
+
+      <pubDate>Sun, 30 May 2021 21:58:17 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/53303</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/53303/1622411897662745</guid>
+      <description>&lt;p&gt;
+The results of Widget type REST API endpoint should be sorted by widget type id to make the output more readable. &lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #53302 (Widget type REST API endpoint return multiples of the same widget type.) updated</title>
+      
+        <dc:creator>prbot</dc:creator>
+
+      <pubDate>Sun, 30 May 2021 21:35:45 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/53302#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/53302#comment:2/1622410545541689</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+&lt;em&gt;This ticket was mentioned in &lt;a class="ext-link" href="https://github.com/WordPress/wordpress-develop/pull/1315"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;PR #1315&lt;/a&gt; on &lt;a class="ext-link" href="https://github.com/WordPress/wordpress-develop/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;WordPress/wordpress-develop&lt;/a&gt; by &lt;a class="ext-link" href="https://github.com/spacedmonkey"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;spacedmonkey&lt;/a&gt;.&lt;/em&gt;&lt;br /&gt;
+Trac ticket: &lt;a href="https://core.trac.wordpress.org/ticket/53302"&gt;https://core.trac.wordpress.org/ticket/53302&lt;/a&gt;&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #53302 (Widget type REST API endpoint return multiples of the same widget type.) updated</title>
+      
+        <dc:creator>spacedmonkey</dc:creator>
+
+      <pubDate>Sun, 30 May 2021 21:26:41 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/53302#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/53302#comment:1/1622410001661800</guid>
+      <description>&lt;i&gt;Description&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Screenshot 2021-05-30 at 22.23.39.png attached to Ticket #53302</title>
+      
+        <dc:creator>spacedmonkey</dc:creator>
+
+      <pubDate>Sun, 30 May 2021 21:25:57 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/53302/Screenshot%202021-05-30%20at%2022.23.39.png</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/53302/Screenshot%202021-05-30%20at%2022.23.39.png/1622409957048071</guid>
+      <description></description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #53302 (Widget type REST API endpoint return multiples of the same widget type.) created</title>
+      
+        <dc:creator>spacedmonkey</dc:creator>
+
+      <pubDate>Sun, 30 May 2021 21:25:34 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/53302</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/53302/1622409934316949</guid>
+      <description>&lt;p&gt;
+For some reason the widget type REST API is returning the multiples same widget type. See screenshot attached.  &lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+&lt;a style="padding:0; border:none" href="https://core.trac.wordpress.org/raw-attachment/ticket/53302/Screenshot%202021-05-30%20at%2022.23.39.png"&gt;&lt;img src="https://core.trac.wordpress.org/raw-attachment/ticket/53302/Screenshot%202021-05-30%20at%2022.23.39.png" alt="https://core.trac.wordpress.org/raw-attachment/ticket/53302/Screenshot%202021-05-30%20at%2022.23.39.png" crossorigin="anonymous" title="https://core.trac.wordpress.org/raw-attachment/ticket/53302/Screenshot%202021-05-30%20at%2022.23.39.png" /&gt;&lt;/a&gt;&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #52867 (Add capability to set default format for image sub-sizes.) updated</title>
+      
+        <dc:creator>milana_cap</dc:creator>
+
+      <pubDate>Sun, 30 May 2021 20:22:23 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/52867#comment:48</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/52867#comment:48/1622406143751014</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #21603 (Add ability to delete multiple menu items) updated</title>
+      
+        <dc:creator>milana_cap</dc:creator>
+
+      <pubDate>Sun, 30 May 2021 20:16:16 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/21603#comment:56</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/21603#comment:56/1622405776086217</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #52867 (Add capability to set default format for image sub-sizes.) updated</title>
+      
+        <dc:creator>milana_cap</dc:creator>
+
+      <pubDate>Sun, 30 May 2021 20:13:08 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/52867#comment:47</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/52867#comment:47/1622405588611503</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #46969 (During customize theme - preview body/icons get cuts on left side) updated</title>
+      
+        <dc:creator>celloexpressions</dc:creator>
+
+      <pubDate>Sun, 30 May 2021 19:53:46 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/46969#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/46969#comment:2/1622404426378497</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt;, &lt;i&gt;Focuses&lt;/i&gt;, &lt;i&gt;Version&lt;/i&gt;, &lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+This is currently intentional behavior for the edit shortcuts. The goal is to prevent them from overlapping content, potentially at the expense of making them partially hidden on some screen sizes. This results from the small margins for this particular theme. &lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Does anyone want to revisit the logic used for positioning these edit shortcut icons?&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #46540 (Admin bar CSS shouldn't be added in the customizer) updated</title>
+      
+        <dc:creator>celloexpressions</dc:creator>
+
+      <pubDate>Sun, 30 May 2021 19:49:09 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/46540#comment:11</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/46540#comment:11/1622404149542781</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+As noted previously, it's generally not a good idea to set the entire &lt;code&gt;wp_head()&lt;/code&gt; as a partial. I haven't seen any use cases noted that would require that approach instead of more-targeted partials. &lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+It sounds like &lt;a class="attachment" href="http://core.trac.wordpress.org/attachment/ticket/46540/46540.diff" title="Attachment '46540.diff' in Ticket #46540"&gt;46540.diff&lt;/a&gt;&lt;a class="trac-rawlink" href="http://core.trac.wordpress.org/raw-attachment/ticket/46540/46540.diff" title="Download"&gt;​&lt;/a&gt; may fix this issue, but it's not clear whether that's a necessary change.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #51754 (Add a copy-link button at the media upload page) updated</title>
+      
+        <dc:creator>milana_cap</dc:creator>
+
+      <pubDate>Sun, 30 May 2021 19:46:35 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/51754#comment:37</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/51754#comment:37/1622403995467837</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #46301 (Customizer iframe warning) updated</title>
+      
+        <dc:creator>celloexpressions</dc:creator>
+
+      <pubDate>Sun, 30 May 2021 19:44:25 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/46301#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/46301#comment:1/1622403865832316</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+I cannot reproduce this warning testing in Chrome with a local site, on a site with SSL, and on a multisite without SSL. Can anyone else identify situations that appear to trigger this warning?&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #45168 (Additional CSS complains of markup inside CSS comments) updated</title>
+      
+        <dc:creator>celloexpressions</dc:creator>
+
+      <pubDate>Sun, 30 May 2021 19:36:39 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/45168#comment:4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/45168#comment:4/1622403399245671</guid>
+      <description>&lt;p&gt;
+The HTML validation is in place for security reasons (at least originally). I believe the primary  It might be possible to allow it when specifically scoped within comments, as long as there's a secure way to enforce that check.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #52627 (Coding Standards fixes for WP 5.8) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Sun, 30 May 2021 19:16:31 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/52627#comment:43</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/52627#comment:43/1622402191399480</guid>
+      <description>&lt;p&gt;
+In &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/51047" title="Coding Standards: Use strict comparison in ..."&gt;51047&lt;/a&gt;:&lt;br /&gt;
+&lt;/p&gt;
+&lt;div class="message"&gt;&lt;p&gt;
+Coding Standards: Use strict comparison in &lt;code&gt;wp-includes/class-wp-customize-nav-menus.php&lt;/code&gt;.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+See &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/52627" title="#52627: task (blessed): Coding Standards fixes for WP 5.8 (closed: fixed)"&gt;#52627&lt;/a&gt;.&lt;br /&gt;
+&lt;/p&gt;
+&lt;/div&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Changeset [51047]: Coding Standards: Use strict comparison in ...</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Sun, 30 May 2021 19:16:30 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/51047</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/51047/1622402190445892</guid>
+      <description>&lt;p&gt;
+Coding Standards: Use strict comparison in &lt;code&gt;wp-includes/class-wp-customize-nav-menus.php&lt;/code&gt;.
+&lt;/p&gt;
+&lt;p&gt;
+See &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/52627" title="#52627: task (blessed): Coding Standards fixes for WP 5.8 (closed: fixed)"&gt;#52627&lt;/a&gt;.
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Ticket #40844 (Customize: Bulk delete widgets) updated</title>
+      
+        <dc:creator>milana_cap</dc:creator>
+
+      <pubDate>Sun, 30 May 2021 18:17:15 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/40844#comment:4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/40844#comment:4/1622398635766151</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #53301 (Navigation Menu Widget missing from the block inserter for ...) created</title>
+      
+        <dc:creator>celloexpressions</dc:creator>
+
+      <pubDate>Sun, 30 May 2021 18:11:30 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/53301</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/53301/1622398290766586</guid>
+      <description>&lt;p&gt;
+The legacy "Navigation Menu" widget is missing from the block-widget inserter in trunk. This widget allows users to select a menu, managing the menu contents on the menus screen or with the menus panel in the customizer. See several related open tickets for this widget such as &lt;a class="new ticket" href="http://core.trac.wordpress.org/ticket/44665" title="#44665: enhancement: Add a &amp;#34;Create New Menu&amp;#34; button to the menu widget (new)"&gt;#44665&lt;/a&gt;.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Presumably this can eventually be replaced with a navigation block. But for 5.8, and until the old menu system is completely replaced with blocks, the legacy menu widget needs to continue to work and be available to add to widget areas.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #44598 (Main logo won't update when deleted and reuploaded with the same file name) updated</title>
+      
+        <dc:creator>celloexpressions</dc:creator>
+
+      <pubDate>Sun, 30 May 2021 18:03:37 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44598#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44598#comment:3/1622397817411868</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+This sounds like either a caching issue or confusion stemming from the duplicated attachment posts created during the crop step. Can anyone reproduce the reported behavior ruling out those possibilities?&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #44511 (Widgets generated by wp_register_sidebar_widget can not be add via ...) updated</title>
+      
+        <dc:creator>celloexpressions</dc:creator>
+
+      <pubDate>Sun, 30 May 2021 18:01:54 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/44511#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/44511#comment:1/1622397714946334</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt;, &lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+There is some logic in the old customize widgets class to address "single" (as opposed to "multi") widgets. However, it sounds like that may have broken at some point.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Now that widgets are replaced with blocks in 5.8, we need to confirm that "single" widgets "still" work. If they do, then this can likely be closed as fixed in 5.8. If they don't but we can confirm they were broken on 5.7 also, then this can maybe move to Future Release. &lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Given that the block inserter replaces the add-widgets panel in the customizer, this would probably need to be fixed with 5.8 as the widgets screen would also be broken now. Another option would be to formally deprecate "single" widgets.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #51105 (Twenty Twelve: Add Block Patterns) updated</title>
+      
+        <dc:creator>milana_cap</dc:creator>
+
+      <pubDate>Sun, 30 May 2021 17:58:31 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/51105#comment:13</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/51105#comment:13/1622397511854822</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #51104 (Twenty Thirteen: Add Block Patterns) updated</title>
+      
+        <dc:creator>milana_cap</dc:creator>
+
+      <pubDate>Sun, 30 May 2021 17:56:48 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/51104#comment:26</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/51104#comment:26/1622397408641360</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #51103 (Twenty Fourteen: Add Block Patterns) updated</title>
+      
+        <dc:creator>milana_cap</dc:creator>
+
+      <pubDate>Sun, 30 May 2021 17:54:59 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/51103#comment:25</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/51103#comment:25/1622397299056955</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #43896 (Several flex and grid CSS properties listed as Unknown property in ...) updated</title>
+      
+        <dc:creator>celloexpressions</dc:creator>
+
+      <pubDate>Sun, 30 May 2021 17:53:57 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43896#comment:6</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43896#comment:6/1622397237865359</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt;, &lt;i&gt;Focuses&lt;/i&gt;, &lt;i&gt;Version&lt;/i&gt;, &lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+This appears to be the same general issue as described in &lt;a class="new ticket" href="http://core.trac.wordpress.org/ticket/43197" title="#43197: defect (bug): Nesting @media rule inside @supports rule fails CSS validation (new)"&gt;#43197&lt;/a&gt;. The fix here is likely a good approach for that ticket as well.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Can those actively working on the latest innovations in CSS please review &lt;a class="attachment" href="http://core.trac.wordpress.org/attachment/ticket/43896/43896-2.diff" title="Attachment '43896-2.diff' in Ticket #43896"&gt;43896-2.diff&lt;/a&gt;&lt;a class="trac-rawlink" href="http://core.trac.wordpress.org/raw-attachment/ticket/43896/43896-2.diff" title="Download"&gt;​&lt;/a&gt; and confirm any other properties that should be added to the core list?&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Tickets #36733,​43777 batch updated</title>
+      
+        <dc:creator>celloexpressions</dc:creator>
+
+      <pubDate>Sun, 30 May 2021 17:50:53 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/query?id=36733%2C43777</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/query?id=36733%2C43777/1622397053123966</guid>
+      <description>duplicate: &lt;p&gt;
+This is a duplicate of &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/36733" title="#36733: enhancement: Use a custom customizer section for add-widgets and add-menu-items ... (closed: maybelater)"&gt;#36733&lt;/a&gt;, and the decision there is to not address this in core for now, since the widgets version is now using the block editor inserter.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+It would be great to see someone create a reusable section class for this, that could be reused in various plugins as needed.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>batchmodify</category>
+    </item><item>
+      <title>Ticket #51102 (Twenty Fifteen: Add Block Patterns) updated</title>
+      
+        <dc:creator>milana_cap</dc:creator>
+
+      <pubDate>Sun, 30 May 2021 17:50:44 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/51102#comment:14</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/51102#comment:14/1622397044476429</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #43469 (Native Site Icon feature in Customizer is outdated) updated</title>
+      
+        <dc:creator>celloexpressions</dc:creator>
+
+      <pubDate>Sun, 30 May 2021 17:43:35 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43469#comment:10</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43469#comment:10/1622396615110591</guid>
+      <description>&lt;p&gt;
+Also noting that any site identity color &lt;code&gt;option&lt;/code&gt; could become a good way for themes and plugins to react to this site-wide setting rather than always integrating their own color/design options. Something to explore with the Gutenberg global styles project.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #43469 (Native Site Icon feature in Customizer is outdated) updated</title>
+      
+        <dc:creator>celloexpressions</dc:creator>
+
+      <pubDate>Sun, 30 May 2021 17:42:04 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43469#comment:9</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43469#comment:9/1622396524565390</guid>
+      <description>&lt;p&gt;
+If we add a color option, it could be applied for the windows tiles as noted above and also for browsers supporting:&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+&lt;code&gt;&amp;lt;meta name="theme-color" content="#f7f7ec"&amp;gt;&lt;/code&gt;&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+There is limited browser support for that currently, but it works for the chunk of people using Chrome on Andriod. See &lt;a class="ext-link" href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta/name/theme-color"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta/name/theme-color&lt;/a&gt;.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+The "live" part of the Window tiles would ideally use the RSS feeds built into WordPress instead of requiring something separate. Might be worth a suggestion for that coming from the WordPress team. And in general, it seems like WordPress as a project is in a position now (40%) to work with browsers and operating systems to standardize on unified image sizes and APIs across the web, rather than reacting to the periodic changes that they make.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #43464 (Search Options in Customizer) updated</title>
+      
+        <dc:creator>celloexpressions</dc:creator>
+
+      <pubDate>Sun, 30 May 2021 17:34:24 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43464#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43464#comment:3/1622396064708857</guid>
+      <description>&lt;p&gt;
+There does seem to be enough interest in the plugin linked above to warrant further study as a potential core feature. &lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+I would personally prefer more liberal use of visible edit shortcuts in the preview as a way to find settings. This feature seems most necessary for themes and plugins that add a large number of customizer settings. Since that's not necessarily the best user experience, I'm not sure if we should encourage that approach by bringing setting search into core.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #43197 (Nesting @media rule inside @supports rule fails CSS validation) updated</title>
+      
+        <dc:creator>celloexpressions</dc:creator>
+
+      <pubDate>Sun, 30 May 2021 17:30:28 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43197#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43197#comment:3/1622395828449173</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt;, &lt;i&gt;Focuses&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Is there a Code Mirror update that includes validation for newer CSS features? Or is this something that can be fixed directly in core? &lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #43122 (customize.php fails to load with default changeset_uuid) updated</title>
+      
+        <dc:creator>celloexpressions</dc:creator>
+
+      <pubDate>Sun, 30 May 2021 17:26:42 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43122#comment:6</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43122#comment:6/1622395602875438</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Is anyone able to reproduce this issue outside of the WordPress.com environment? It sounds like something may be happening there that allows duplicate changeset &lt;code&gt;post_name&lt;/code&gt;s. &lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Core could do a couple of things to attempt to address this possibility:&lt;br /&gt;
+&lt;/p&gt;
+&lt;ol&gt;&lt;li&gt;Add additional validation when saving/changing changeset post statuses to avoid creating duplicates.
+&lt;/li&gt;&lt;li&gt;Attempt to locate and remove duplicated changeset posts with different statuses on load.
+&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;
+Those strategies may not fix the WP.com issues, though.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #43074 (Custom site identity Crop Image function does not work for images ...) updated</title>
+      
+        <dc:creator>celloexpressions</dc:creator>
+
+      <pubDate>Sun, 30 May 2021 17:20:37 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/43074#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/43074#comment:3/1622395237215521</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt;, &lt;i&gt;Focuses&lt;/i&gt;, &lt;i&gt;Summary&lt;/i&gt;, &lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Cropping is not "allowed" if either image is less than 512px, but the image will be cropped to square in this scenario. It sounds like the help text could be updated and/or additional checks put in place to require large enough base images to be uploaded. There could also be improvements to allow adjusting the crop extents (but not overall size) for smaller non-square images.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #53294 (Adding filter hook to current_time() function) updated</title>
+      
+        <dc:creator>Rarst</dc:creator>
+
+      <pubDate>Sun, 30 May 2021 17:11:53 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/53294#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/53294#comment:3/1622394713225161</guid>
+      <description>&lt;p&gt;
+Your plugin doesn't have a readme in English, so I can't read that unfortunately.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+So far this still looks to me like it belongs to the localization layer. If the third party plugins output time directly to user bypassing the localization, that's probably on them to improve.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+To be honest I have trouble even thinking through how many things might break if you start changing up &lt;code&gt;current_time()&lt;/code&gt;. And you are still not giving me &lt;em&gt;actual example&lt;/em&gt; of what you want to achieve there.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #52852 (Update Twemoji for 5.8) updated</title>
+      
+        <dc:creator>kraftbj</dc:creator>
+
+      <pubDate>Sun, 30 May 2021 16:40:09 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/52852#comment:10</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/52852#comment:10/1622392809088045</guid>
+      <description>&lt;p&gt;
+Aside: I'm not sure if this counts as a feature change (and thus too late for 5.8) or not. If it's too late for 5.8, just let me know and I'll re-open a 5.9 Twemoji ticket.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #52852 (Update Twemoji for 5.8) updated</title>
+      
+        <dc:creator>prbot</dc:creator>
+
+      <pubDate>Sun, 30 May 2021 16:36:44 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/52852#comment:9</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/52852#comment:9/1622392604503896</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+&lt;em&gt;This ticket was mentioned in &lt;a class="ext-link" href="https://github.com/WordPress/wordpress-develop/pull/1314"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;PR #1314&lt;/a&gt; on &lt;a class="ext-link" href="https://github.com/WordPress/wordpress-develop/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;WordPress/wordpress-develop&lt;/a&gt; by &lt;a class="ext-link" href="https://github.com/kraftbj"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;kraftbj&lt;/a&gt;.&lt;/em&gt;&lt;br /&gt;
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;Update to Twemoji 13.1.0
+&lt;/li&gt;&lt;li&gt;Update detection script
+&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;
+Twitter has released a new version of Twemoji. Let's update our version.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Trac ticket: &lt;a href="https://core.trac.wordpress.org/ticket/52852"&gt;https://core.trac.wordpress.org/ticket/52852&lt;/a&gt;&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #52852 (Update Twemoji for 5.8) reopened</title>
+      
+        <dc:creator>kraftbj</dc:creator>
+
+      <pubDate>Sun, 30 May 2021 16:35:11 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/52852#comment:8</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/52852#comment:8/1622392511994494</guid>
+      <description>&lt;p&gt;
+Twemoji has released version 13.1.0, which has a few new emoji. See &lt;a class="ext-link" href="https://github.com/twitter/twemoji/releases/tag/v13.1.0"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://github.com/twitter/twemoji/releases/tag/v13.1.0&lt;/a&gt;&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+tl;dr: Various bearded figure modifications (neutral, man, woman bearded options), a lot of variations of skin tones + people kissing, with five totally new emoji (heart on fire, bandaged heart, face with spiral eyes, face in clouds, face exhaling.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+What do y'all think about continuing to use the 13.0.1 folder or switching to a new 13.1.0? In 13.0.2, we kept the same dir even though the syringe emoji changed a fair amount (blood vs empty, to align with what the other vendors are doing to make the emoji character work for vaccines too).&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+With that change, I would think a new folder (and the patch acts as such).&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>reopenedticket</category>
+    </item><item>
+      <title>Ticket #53295 (Serialized data should be handled as an opaque value) updated</title>
+      
+        <dc:creator>prbot</dc:creator>
+
+      <pubDate>Sun, 30 May 2021 15:40:01 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/53295#comment:7</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/53295#comment:7/1622389201351495</guid>
+      <description>&lt;p&gt;
+&lt;a class="ext-link" href="https://github.com/WhiteWinterWolf"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;WhiteWinterWolf&lt;/a&gt; commented on &lt;a class="ext-link" href="https://github.com/WordPress/wordpress-develop/pull/1312#issuecomment-851019079"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;PR #1312&lt;/a&gt;:&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+I expect that when a caller checks if a string contains serialized data he already intends to unserialize it, so serialized data reaching this point _will_ be unserialized anyway, sooner or later.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+For this reason, the allow list is not really here as a security measure, but merely for performance reasons to avoid unnecessary calls and work to wakeup an object we will immediately destruct.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Nevertheless, I can imagine keeping the legacy code for legacy users and relying on &lt;code&gt;unserialize()&lt;/code&gt; with an empty list for new ones (maybe those additional calls for legacy users _might_ trigger hidden bugs?). For legacy users, by definition there won't be PHP changes to apply, so it should still solve the maintainability issue, and up-to-date users would still benefit from a more robust and compatible code.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+But this leaves us with this odd behavior, enforced by WordPress test, chosen by design and formally "frozen in time", that &lt;code&gt;is_serialize()&lt;/code&gt; must return &lt;code&gt;false&lt;/code&gt; for objects implementing the &lt;code&gt;Serializable&lt;/code&gt; when they are directly serialized, while return &lt;code&gt;true&lt;/code&gt; for other kind of serialized objects or when objects implementing the &lt;code&gt;Serializable&lt;/code&gt; interface are embedded inside other data structures.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Wouldn't there be a unit test specifically made for this I would have called it a bug, but it is not, and therefore I wonder if we are meant to keep this behavior or if we are allowed to just do as the documentation says: return "False if not serialized and true if it was".&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #53300 (Select and Crop for header images, crop area is entire image) created</title>
+      
+        <dc:creator>TylerTork</dc:creator>
+
+      <pubDate>Sun, 30 May 2021 15:31:24 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/53300</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/53300/1622388684022974</guid>
+      <description>&lt;p&gt;
+Using latest Firefox on Windows 10, Twenty Sixteen theme and no plugins. Test site &lt;a class="ext-link" href="https://z1.torknado.com"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://z1.torknado.com&lt;/a&gt; displays the result of selecting a header of the wrong aspect ratio and "cropping" it in Customize. I uploaded a photo 2560 by 1920 and am trying to use this as the header image. So from Customize I go to &lt;strong&gt;Header Image&lt;/strong&gt;, &lt;strong&gt;Add new image&lt;/strong&gt;, select my image already in the library, and click &lt;strong&gt;Select and crop&lt;/strong&gt;. The cropping screen opens but there is not a cropping rectangle of the suggested dimensions (1200x280) or of any dimensions. The &lt;strong&gt;Crop image&lt;/strong&gt; button is active, and if I click it, produces a "cropped" copy the same dimensions as the original image.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Oddly, if I repeat the same steps but this time select the "cropped" copy instead of the original (actually "scaled") image, I do get the correct cropping rectangle on the cropped image. It's notable that while the original and so-called cropped version have the same dimensions, the cropped one is a much smaller file size.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Original image: &lt;a class="ext-link" href="https://z1.torknado.com/wp-content/uploads/2021/05/IMG_0373.jpg"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://z1.torknado.com/wp-content/uploads/2021/05/IMG_0373.jpg&lt;/a&gt; doesn't appear in the media library screen.&lt;br /&gt;
+Image as "scaled" by the uploader: &lt;a class="ext-link" href="https://z1.torknado.com/wp-content/uploads/2021/05/IMG_0373-scaled.jpg"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://z1.torknado.com/wp-content/uploads/2021/05/IMG_0373-scaled.jpg&lt;/a&gt;&lt;br /&gt;
+"Cropped" image: &lt;a class="ext-link" href="https://z1.torknado.com/wp-content/uploads/2021/05/cropped-IMG_0373-scaled-2.jpg"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://z1.torknado.com/wp-content/uploads/2021/05/cropped-IMG_0373-scaled-2.jpg&lt;/a&gt;&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+I observed a similar problem with a different theme (Graphene). In that case the image was scaled to their required dimensions, so it was distorted to show the whole picture. Oddly, this occurred with the cropping step, not just with display. The thumbnail in the media library was wrong, not just the display on the page.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #53294 (Adding filter hook to current_time() function) updated</title>
+      
+        <dc:creator>wpvar</dc:creator>
+
+      <pubDate>Sun, 30 May 2021 14:42:20 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/53294#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/53294#comment:2/1622385740179955</guid>
+      <description>&lt;p&gt;
+Problem is many theme and plugin developers are still using &lt;code&gt;current_time()&lt;/code&gt;, Just few examples:&lt;br /&gt;
+&lt;a class="ext-link" href="https://github.com/elementor/elementor/search?q=current_time%28"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://github.com/elementor/elementor/search?q=current_time%28&lt;/a&gt;&lt;br /&gt;
+&lt;a class="ext-link" href="https://github.com/rankmath/seo-by-rank-math/search?q=current_time%28"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://github.com/rankmath/seo-by-rank-math/search?q=current_time%28&lt;/a&gt;&lt;br /&gt;
+&lt;a class="ext-link" href="https://github.com/wp-media/wp-rocket/search?q=current_time%28"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://github.com/wp-media/wp-rocket/search?q=current_time%28&lt;/a&gt;&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Without hooks we cannot convert gregorian date or stamp generated by datetime class to other forms of dates e.g. &lt;a class="ext-link" href="https://en.wikipedia.org/wiki/Solar_Hijri_calendar"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;Solar calendar&lt;/a&gt;. Currently we are developing shamsi calendar plugin called &lt;a class="ext-link" href="https://wordpress.org/plugins/wp-shamsi/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;WP Shamsi&lt;/a&gt; which has more than 10,000 installs. There are many more date system plugins with hundreds of thousands installations as well, now for example there is a plugin that prints or stores date like this example:&lt;br /&gt;
+&lt;/p&gt;
+&lt;div class="wiki-code"&gt;&lt;div class="code"&gt;&lt;pre&gt;&lt;span class="cp"&gt;&amp;lt;?php&lt;/span&gt;
+&lt;span class="nv"&gt;$date&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nx"&gt;wp_date&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'Y-m-d H:i:s'&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;span class="k"&gt;echo&lt;/span&gt; &lt;span class="nv"&gt;$date&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;p&gt;
+by using &lt;code&gt;wp_date&lt;/code&gt; We can convert gregorian date to other date systems like:&lt;br /&gt;
+&lt;/p&gt;
+&lt;div class="wiki-code"&gt;&lt;div class="code"&gt;&lt;pre&gt;&lt;span class="cp"&gt;&amp;lt;?php&lt;/span&gt;
+&lt;span class="k"&gt;public&lt;/span&gt; &lt;span class="k"&gt;function&lt;/span&gt; &lt;span class="nf"&gt;shamsi_date&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;$date&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nv"&gt;$format&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nv"&gt;$timestamp&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nv"&gt;$timezone&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="nv"&gt;$this&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="na"&gt;convert&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;$date&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nv"&gt;$format&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;span class="nx"&gt;add_filter&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'wp_date'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="k"&gt;array&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;$this&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;'shamsi_date'&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt; &lt;span class="mi"&gt;10&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;4&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;p&gt;
+but for &lt;code&gt;current_time()&lt;/code&gt;:&lt;br /&gt;
+&lt;/p&gt;
+&lt;div class="wiki-code"&gt;&lt;div class="code"&gt;&lt;pre&gt;&lt;span class="cp"&gt;&amp;lt;?php&lt;/span&gt;
+&lt;span class="nv"&gt;$date&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nx"&gt;current_time&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="s1"&gt;'mysql'&lt;/span&gt; &lt;span class="p"&gt;);&lt;/span&gt;
+&lt;span class="k"&gt;echo&lt;/span&gt; &lt;span class="nv"&gt;$date&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;p&gt;
+There isnt such a functionality and there is no way to alter returned values.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+To summarize what the topic is about, i think its fair to say there are many plugins, themes and core as well that are using &lt;code&gt;current_time()&lt;/code&gt; function and it will return always uneditable values without existing of hook. This applies to many WordPress users. applying filter can help lots of local users. &lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Replying to &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/53294#comment:1" title="Comment 1"&gt;Rarst&lt;/a&gt;:&lt;br /&gt;
+&lt;/p&gt;
+&lt;blockquote class="citation"&gt;
+&lt;p&gt;
+&lt;code&gt;current_time()&lt;/code&gt; is only retained for backwards compatibility, by now it's just a thin wrapper around native PHP with unfortunate logic branch producing the problematic "WordPress timestamp" (summed with a time zone offset) case.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+In current WordPress code this function &lt;em&gt;shouldn't even be used&lt;/em&gt;, so introducing new functionality to it is not on the table.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Adjustments to date output in WordPress are usually handled on localization level, such as &lt;code&gt;wp_date()&lt;/code&gt; function/filter.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+However I am not sure what you want counts as localization or more fundamental adjustment to whole date calculation?&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Open to see some example to understand the needs better, please. :)&lt;br /&gt;
+&lt;/p&gt;
+&lt;/blockquote&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #53295 (Serialized data should be handled as an opaque value) updated</title>
+      
+        <dc:creator>prbot</dc:creator>
+
+      <pubDate>Sun, 30 May 2021 14:32:07 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/53295#comment:6</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/53295#comment:6/1622385127720797</guid>
+      <description>&lt;p&gt;
+&lt;a class="ext-link" href="https://github.com/Ayesh"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;Ayesh&lt;/a&gt; commented on &lt;a class="ext-link" href="https://github.com/WordPress/wordpress-develop/pull/1312#issuecomment-851009658"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;PR #1312&lt;/a&gt;:&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Thank you - I agree with you that it hardly makes sense to check serialized data like this. &lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+That said, I doubt calling &lt;code&gt;unserialize&lt;/code&gt; ourselves is a safer alternative - We got rid of the &lt;a class="ext-link" href="https://php.watch/versions/8.0/phar-stream-wrapper-unserialize"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;`file_exists('phar://')` ugliness&lt;/a&gt; exactly with the same reason.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+I see that you have an empty allow-list for PHP &amp;gt;=7.3, but unfortunately there is a sizeable WordPress usage for older PHP versions, no matter how much we dislike it.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #53295 (Serialized data should be handled as an opaque value) updated</title>
+      
+        <dc:creator>prbot</dc:creator>
+
+      <pubDate>Sun, 30 May 2021 14:24:16 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/53295#comment:5</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/53295#comment:5/1622384656260134</guid>
+      <description>&lt;p&gt;
+&lt;a class="ext-link" href="https://github.com/WhiteWinterWolf"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;WhiteWinterWolf&lt;/a&gt; commented on &lt;a class="ext-link" href="https://github.com/WordPress/wordpress-develop/pull/1312#issuecomment-851008601"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;PR #1312&lt;/a&gt;:&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Hi @Ayesh,&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Thanks for the information.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+The goal of this PR is precisely to migrate from the current set of heuristics, which cause more harm than good IMHO, toward a cleaner approach relying on standard PHP code. This would avoid the need to update the heuristics based on PHP internal code changes, as in your request, and would provide a more stable behavior as it would be guarantee, no matter the PHP version used, enabled plugins or external tools installed, that the return value of &lt;code&gt;is_serialized()&lt;/code&gt; would accurately reflect the fact that a given string can or cannot be unserialized.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+FYI, for historical reason dating to &lt;a href="https://core.trac.wordpress.org/ticket/17375"&gt;Trac-17375&lt;/a&gt; &lt;code&gt;is_serialized()&lt;/code&gt; also returns &lt;code&gt;false&lt;/code&gt; for some valid serialized objects by design. I've opened &lt;a class="ext-link" href="https://wordpress.org/support/topic/is_serialized-behavior-with-serialized-objects/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;a forum thread&lt;/a&gt; to discuss if we really want to keep this (undocumented) behavior.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #53295 (Serialized data should be handled as an opaque value) updated</title>
+      
+        <dc:creator>whitewinterwolf</dc:creator>
+
+      <pubDate>Sun, 30 May 2021 13:39:14 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/53295#comment:4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/53295#comment:4/1622381954182909</guid>
+      <description>&lt;p&gt;
+Hi @nacin,&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+You added for &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/17375" title="#17375: defect (bug): Serialized option values broken for classes with Serializable interface (closed: wontfix)"&gt;#17375&lt;/a&gt; a unit test to assert that &lt;a href="https://core.trac.wordpress.org/ticket/17375#comment:38"&gt;serializable objects will never pass is_serialized()&lt;/a&gt;.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+I exposed the details for discussion &lt;a class="ext-link" href="https://wordpress.org/support/topic/is_serialized-behavior-with-serialized-objects/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;on the forum&lt;/a&gt;, but the point is that this fails to prevent objects to pass &lt;code&gt;is_serialized()&lt;/code&gt;, but even worse it prevents the use of security products efficiently protecting against unserialize-related vulnerabilities, thus actually weakening WordPress against such attacks instead of hardening it.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+So, if by any chance you are nearby, I would be glad to have your opinion whether this unit test can be reverted?&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Thank you!&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #52842 (No way to adjust attributes in wp_resource_hints()) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Sun, 30 May 2021 12:08:14 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/52842#comment:10</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/52842#comment:10/1622376494772569</guid>
+      <description>&lt;i&gt;Status&lt;/i&gt;, &lt;i&gt;Owner&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #53299 ([PHP 8.1] Update `is_serialized` function to accept Enums) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Sun, 30 May 2021 10:08:22 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/53299#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/53299#comment:1/1622369302312596</guid>
+      <description>&lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #53295 (Serialized data should be handled as an opaque value) updated</title>
+      
+        <dc:creator>prbot</dc:creator>
+
+      <pubDate>Sun, 30 May 2021 08:25:28 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/53295#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/53295#comment:3/1622363128874929</guid>
+      <description>&lt;p&gt;
+&lt;a class="ext-link" href="https://github.com/Ayesh"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;Ayesh&lt;/a&gt; commented on &lt;a class="ext-link" href="https://github.com/WordPress/wordpress-develop/pull/1312#issuecomment-850962241"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;PR #1312&lt;/a&gt;:&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Hi @WhiteWinterWolf - Thank you for opening this PR.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+On a somewhat related ticket, I created &lt;a href="https://core.trac.wordpress.org/ticket/53299"&gt;Trac-53299&lt;/a&gt; because the current &lt;code&gt;is_serialized&lt;/code&gt; function is insufficient for upcoming Enums symbols.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #53299 ([PHP 8.1] Update `is_serialized` function to accept Enums) created</title>
+      
+        <dc:creator>ayeshrajans</dc:creator>
+
+      <pubDate>Sun, 30 May 2021 08:23:18 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/53299</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/53299/1622362998122350</guid>
+      <description>&lt;p&gt;
+PHP 8.1 finally brings Enums! It is not backwards compatible with older PHP versions, so it will be a long time before we can make a meaningful use of it with WordPress. &lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+While reading &lt;a class="new ticket" href="http://core.trac.wordpress.org/ticket/53295" title="#53295: defect (bug): Serialized data should be handled as an opaque value (new)"&gt;#53295&lt;/a&gt; , I had a concern with the WordPress's &lt;a class="ext-link" href="https://developer.wordpress.org/reference/functions/is_serialized/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;`is_serialized`&lt;/a&gt; function. It tries to meticulously validate a serialized string. At the same time, Enums can be serialized, and uses its own &lt;a class="ext-link" href="https://php.watch/versions/8.1/enums#serialize"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;Serialized text representation for Enums&lt;/a&gt;. I think we should update the function to account for the new &lt;code&gt;E&lt;/code&gt; identifier.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Ticket &lt;a class="new ticket" href="http://core.trac.wordpress.org/ticket/53295" title="#53295: defect (bug): Serialized data should be handled as an opaque value (new)"&gt;#53295&lt;/a&gt; suggests to not make a precise validation in the first place if it deems safer, but this ticket is more about updating the existing rules to accommodate the new symbol.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Thank you.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #53294 (Adding filter hook to current_time() function) updated</title>
+      
+        <dc:creator>Rarst</dc:creator>
+
+      <pubDate>Sun, 30 May 2021 08:12:50 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/53294#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/53294#comment:1/1622362370098805</guid>
+      <description>&lt;p&gt;
+&lt;code&gt;current_time()&lt;/code&gt; is only retained for backwards compatibility, by now it's just a thin wrapper around native PHP with unfortunate logic branch producing the problematic "WordPress timestamp" (summed with a time zone offset) case.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+In current WordPress code this function &lt;em&gt;shouldn't even be used&lt;/em&gt;, so introducing new functionality to it is not on the table.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Adjustments to date output in WordPress are usually handled on localization level, such as &lt;code&gt;wp_date()&lt;/code&gt; function/filter.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+However I am not sure what you want counts as localization or more fundamental adjustment to whole date calculation?&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Open to see some example to understand the needs better, please. :)&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #53298 (Checking if wp-config-sample.php file exists before checking if ...) updated</title>
+      
+        <dc:creator>machineitsvcs</dc:creator>
+
+      <pubDate>Sat, 29 May 2021 21:48:43 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/53298#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/53298#comment:2/1622324923399103</guid>
+      <description>&lt;p&gt;
+It may also be worth prefacing the elseif condition &lt;code&gt;file_exists( dirname( ABSPATH ) . '/wp-config-sample.php' )&lt;/code&gt; with a &lt;code&gt;@&lt;/code&gt; to avoid any error should both the wp-config.php and wp-config-sample.php not exist and the parent directory be inaccessible, similar to what is already done for the wp-config.php when looking in parent directory.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+i.e. using &lt;code&gt;@file_exists( dirname( ABSPATH ) . '/wp-config-sample.php' )&lt;/code&gt; instead&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #53297 (Bug in wpdb update) updated</title>
+      
+        <dc:creator>pbiron</dc:creator>
+
+      <pubDate>Sat, 29 May 2021 21:41:29 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/53297#comment:4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/53297#comment:4/1622324489476683</guid>
+      <description>&lt;p&gt;
+For anyone finding this ticket in the future, let me correct one thing in my answer above.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+The reason columns named &lt;code&gt;parent&lt;/code&gt; are treated as integers is because &lt;code&gt;wp_term_taxonomy&lt;/code&gt; has a column named &lt;code&gt;parent&lt;/code&gt; which is an integer (and not because &lt;code&gt;parent&lt;/code&gt; is an "alias" of the &lt;code&gt;post_parent&lt;/code&gt; column in &lt;code&gt;wp_posts&lt;/code&gt;).  My bad.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+The rest of the answer (about using the &lt;code&gt;$format&lt;/code&gt; parameter) is correct :-)&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #53297 (Bug in wpdb update) closed</title>
+      
+        <dc:creator>pbiron</dc:creator>
+
+      <pubDate>Sat, 29 May 2021 21:30:07 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/53297#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/53297#comment:3/1622323807921421</guid>
+      <description>invalid: &lt;p&gt;
+My pleasure.  I'm going to close this ticket.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Ticket #53297 (Bug in wpdb update) updated</title>
+      
+        <dc:creator>ttodua</dc:creator>
+
+      <pubDate>Sat, 29 May 2021 21:26:27 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/53297#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/53297#comment:2/1622323587536047</guid>
+      <description>&lt;p&gt;
+Thanks for excellent answer!&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #53297 (Bug in wpdb update) updated</title>
+      
+        <dc:creator>pbiron</dc:creator>
+
+      <pubDate>Sat, 29 May 2021 21:23:05 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/53297#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/53297#comment:1/1622323385232371</guid>
+      <description>&lt;p&gt;
+Hi @ttodua.  In your case, you need to use the 4th parameter (&lt;code&gt;$format&lt;/code&gt;) of &lt;a class="ext-link" href="https://developer.wordpress.org/reference/classes/wpdb/update/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;wpdb:update()&lt;/a&gt; to specify the "format" of the data.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+For example:&lt;br /&gt;
+&lt;/p&gt;
+&lt;div class="wiki-code"&gt;&lt;div class="code"&gt;&lt;pre&gt;&lt;span class="x"&gt;$wpdb-&amp;gt;update(
+   'any_custom_table',
+   array(
+      'parent' =&amp;gt; 'hellow world',
+      'other'  =&amp;gt; 'xyz',
+   ),
+   array(
+      '%s',
+      '%s',
+   )
+);
+&lt;/span&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;p&gt;
+Why?  Because &lt;code&gt;wp_posts&lt;/code&gt; has a column named &lt;code&gt;post_parent&lt;/code&gt; (with an "alias" of &lt;code&gt;parent&lt;/code&gt;). &lt;code&gt;wpdb&lt;/code&gt;, by default, treats &lt;strong&gt;any&lt;/strong&gt; column named &lt;code&gt;parent&lt;/code&gt; as being an integer (even in custom tables).&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+For details of all column names whose values are not treated as strings, see &lt;a class="ext-link" href="https://developer.wordpress.org/reference/functions/wp_set_wpdb_vars/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;wp_set_wpdb_vars()&lt;/a&gt;.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #53298 (Checking if wp-config-sample.php file exists before checking if ...) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Sat, 29 May 2021 21:09:54 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/53298#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/53298#comment:1/1622322594305153</guid>
+      <description>&lt;i&gt;Component&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #53203 (UI issue on Mobile devices.) updated</title>
+      
+        <dc:creator>tobifjellner</dc:creator>
+
+      <pubDate>Sat, 29 May 2021 21:03:41 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/53203#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/53203#comment:2/1622322221152786</guid>
+      <description>&lt;p&gt;
+Hi @sumitsingh &lt;br /&gt;
+Core Trac (where we are now) is for bugs and enhancements of WordPress itself.&lt;br /&gt;
+Bugs and improvements for the various websites on wordpress.org, however, belong in Meta Trac, over at &lt;a class="ext-link" href="https://meta.trac.wordpress.org/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;https://meta.trac.wordpress.org/&lt;/a&gt;&lt;br /&gt;
+Would it be OK for you to open a Meta ticket with this (and then close this one)?&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+@sabernhardt This should be a new ticket in Meta, and not a comment to some other ticket that was closed long ago.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #53203 (UI issue on Mobile devices.) updated</title>
+      
+        <dc:creator>sabernhardt</dc:creator>
+
+      <pubDate>Sat, 29 May 2021 20:58:27 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/53203#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/53203#comment:1/1622321907414209</guid>
+      <description>&lt;p&gt;
+I commented on the &lt;a class="ext-link" href="https://meta.trac.wordpress.org/ticket/4509#comment:11"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;meta ticket&lt;/a&gt; that involved adding &lt;code&gt;float: left&lt;/code&gt; to all &lt;code&gt;span&lt;/code&gt; elements in the contributor name table cell.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #53298 (Checking if wp-config-sample.php file exists before checking if ...) created</title>
+      
+        <dc:creator>machineitsvcs</dc:creator>
+
+      <pubDate>Sat, 29 May 2021 20:34:43 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/53298</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/53298/1622320483933015</guid>
+      <description>&lt;p&gt;
+Currently in WordPress core, wp-admin/setup-config.php checks if wp-config-sample.php file exists before checking if wp-config.php exists. If the sample file exists, it then checks if the wp-config.php file exists, and if so, suggests deletion if necessary. For security, some WordPress users may delete the sample file, and restrict open_basedir for directory above that of the web root directory. Because of these two cases, the current order produces the follow error:&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+&lt;code&gt;PHP message: PHP Warning:  file_exists(): open_basedir restriction in effect. File(/var/www/example/wp-config-sample.php) is not within the allowed path(s): (/var/www/example/web:/var/www/example/private:/var/www/example/tmp:/tmp:...) in /var/www/example/web/wp-admin/setup-config.php on line 46&lt;/code&gt;&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+If the check for existence of sample file could be moved after checking if wp-config.php exists, we could avoid this error and avoid checking if sample file exists if wp-config.php does and not checking both if they both do.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+i.e. Moving the section commented &lt;code&gt;Support wp-config-sample.php one level up, for the develop repo.&lt;/code&gt; to after the section commented &lt;code&gt;Check if wp-config.php exists above the root directory but is not part of another installation.&lt;/code&gt; in &lt;code&gt;wp-admin/setup-config.php&lt;/code&gt;&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #52842 (No way to adjust attributes in wp_resource_hints()) updated</title>
+      
+        <dc:creator>Rahmohn</dc:creator>
+
+      <pubDate>Sat, 29 May 2021 19:29:10 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/52842#comment:9</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/52842#comment:9/1622316550085466</guid>
+      <description>&lt;p&gt;
+Thanks for the feedback @vanyukov. I've updated the PR to:&lt;br /&gt;
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;/**
+* ...
+* @param array  $urls Resources to be hinted {
+*     String of URLs or array of resources and their attributes.
+*
+*     @type string $as          How the browser should treat the asset (CSS, JavaScript, etc).
+*     @type string $crossorigin How the element handles crossorigin requests.
+*     @type string $href        URL to include in resource hints.
+*     @type float  $pr          Expected probability that the resource will be used.
+*     @type string $rel         Relationship between the resource and the current document.
+*     @type string $type        Type of the resource (text/html, text/css, etc).
+*
+* }
+&lt;/pre&gt;&lt;p&gt;
+ &lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #53295 (Serialized data should be handled as an opaque value) updated</title>
+      
+        <dc:creator>prbot</dc:creator>
+
+      <pubDate>Sat, 29 May 2021 18:54:30 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/53295#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/53295#comment:2/1622314470545507</guid>
+      <description>&lt;p&gt;
+&lt;a class="ext-link" href="https://github.com/WhiteWinterWolf"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;WhiteWinterWolf&lt;/a&gt; commented on &lt;a class="ext-link" href="https://github.com/WordPress/wordpress-develop/pull/1312#issuecomment-850882593"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;PR #1312&lt;/a&gt;:&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Currently checking &lt;a href="https://core.trac.wordpress.org/ticket/17375"&gt;#17375&lt;/a&gt; and understanding when to return &lt;code&gt;true&lt;/code&gt; or &lt;code&gt;false&lt;/code&gt; for serialized objects, new commit on its way.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #34061 (customizer search widgets input text is not verticaly aligned and dont ...) closed</title>
+      
+        <dc:creator>celloexpressions</dc:creator>
+
+      <pubDate>Sat, 29 May 2021 18:47:47 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/34061#comment:6</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/34061#comment:6/1622314067751194</guid>
+      <description>invalid: &lt;p&gt;
+Invalidated (or fixed) by &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/50996" title="Adds the widgets block editor to widgets.php and customize.php
+Moves ..."&gt;[50996]&lt;/a&gt;.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Ticket #53140 (State clearly that has_block() doesn't work in reusable blocks) closed</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Sat, 29 May 2021 18:41:10 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/53140#comment:7</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/53140#comment:7/1622313670011713</guid>
+      <description>fixed: &lt;p&gt;
+In &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/51046" title="Docs: Document that `has_block()` does not check reusable blocks.
+ ..."&gt;51046&lt;/a&gt;:&lt;br /&gt;
+&lt;/p&gt;
+&lt;div class="message"&gt;&lt;p&gt;
+Docs: Document that &lt;code&gt;has_block()&lt;/code&gt; does not check reusable blocks.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Since the function only checks the raw, non-parsed post content, reusable blocks are just a &lt;code&gt;core/block&lt;/code&gt; type and nothing more at that point.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+In order to also check reusable blocks, the content needs to be parsed using &lt;code&gt;parse_blocks()&lt;/code&gt; first.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Props vyskoczilova, peterwilsoncc.&lt;br /&gt;
+Fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/53140" title="#53140: enhancement: State clearly that has_block() doesn't work in reusable blocks (closed: fixed)"&gt;#53140&lt;/a&gt;.&lt;br /&gt;
+&lt;/p&gt;
+&lt;/div&gt;</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Changeset [51046]: Docs: Document that `has_block()` does not check reusable blocks.  ...</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Sat, 29 May 2021 18:41:09 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/changeset/51046</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/changeset/51046/1622313669050673</guid>
+      <description>&lt;p&gt;
+Docs: Document that &lt;code&gt;has_block()&lt;/code&gt; does not check reusable blocks.
+&lt;/p&gt;
+&lt;p&gt;
+Since the function only checks the raw, non-parsed post content, reusable blocks are just a &lt;code&gt;core/block&lt;/code&gt; type and nothing more at that point.
+&lt;/p&gt;
+&lt;p&gt;
+In order to also check reusable blocks, the content needs to be parsed using &lt;code&gt;parse_blocks()&lt;/code&gt; first.
+&lt;/p&gt;
+&lt;p&gt;
+Props vyskoczilova, peterwilsoncc.
+Fixes &lt;a class="closed ticket" href="http://core.trac.wordpress.org/ticket/53140" title="#53140: enhancement: State clearly that has_block() doesn't work in reusable blocks (closed: fixed)"&gt;#53140&lt;/a&gt;.
+&lt;/p&gt;
+</description>
+      <category>changeset</category>
+    </item><item>
+      <title>Ticket #42533 (New pages scheduled via Customizer viewable as admin, 404 as visitor) updated</title>
+      
+        <dc:creator>celloexpressions</dc:creator>
+
+      <pubDate>Sat, 29 May 2021 18:38:36 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/42533#comment:14</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/42533#comment:14/1622313516089777</guid>
+      <description>&lt;p&gt;
+This is currently a low-impact issue. It would become critical to fix if it becomes possible to edit the drafted/scheduled pages within the scheduled customize changeset.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #42354 (Changing Add New theme link in wp-admin/themes.php) updated</title>
+      
+        <dc:creator>celloexpressions</dc:creator>
+
+      <pubDate>Sat, 29 May 2021 18:35:49 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/42354#comment:11</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/42354#comment:11/1622313349628427</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt;, &lt;i&gt;Component&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+I generally support migrating wp-admin screens to use the customize version only. Once you're in the customizer, everything is managed in a unified interface with contextual live preview.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+I'm moving this ticket to the themes component so that a decision can be made there on whether or not to replace the wp-admin them browser with the customize version. &lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #42329 (Customizer: interacting with text fields in a "wide" widget shifts ...) updated</title>
+      
+        <dc:creator>celloexpressions</dc:creator>
+
+      <pubDate>Sat, 29 May 2021 18:32:02 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/42329#comment:5</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/42329#comment:5/1622313122624530</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt;, &lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Moving to 5.8 for investigation:&lt;br /&gt;
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;Do "wide" (legacy) widgets display correctly in the new (5.8) block-based widget editor?
+&lt;/li&gt;&lt;li&gt;Can the issue described in this ticket be otherwise reproduced by anyone in the most recent version of Safari?
+&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;
+This ticket can likely be closed as either fixed or worksforme.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #42191 (Customize: Selectively merge settings from autosave revisions) updated</title>
+      
+        <dc:creator>celloexpressions</dc:creator>
+
+      <pubDate>Sat, 29 May 2021 18:26:08 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/42191#comment:4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/42191#comment:4/1622312768413746</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #42115 (Customize Menus: Add "Your theme already has a basic menu" view) updated</title>
+      
+        <dc:creator>celloexpressions</dc:creator>
+
+      <pubDate>Sat, 29 May 2021 18:22:01 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/42115#comment:6</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/42115#comment:6/1622312521596580</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #42075 (Do not show default image on using WP_Customize_Cropped_Image_Control.) updated</title>
+      
+        <dc:creator>celloexpressions</dc:creator>
+
+      <pubDate>Sat, 29 May 2021 18:19:17 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/42075#comment:8</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/42075#comment:8/1622312357456499</guid>
+      <description>&lt;p&gt;
+&lt;code&gt;WP_Customize_Media_Control&lt;/code&gt; and its child controls are specifically designed to work with attachment IDs. This does create complexities for specifying default values. But I'm not sure that it would ever be appropriate to use setting values other than an attachment post ID with these controls.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Is there any reason that themes and plugins can't default to a fallback value in their output of settings when the media control values are empty? Rather than assigning the default value to the setting, I would expect &lt;em&gt;empty&lt;/em&gt; settings to be interpreted as applying the default/fallback value.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #41992 (Multiple items in WP_Customize_Media_Control) closed</title>
+      
+        <dc:creator>celloexpressions</dc:creator>
+
+      <pubDate>Sat, 29 May 2021 18:11:53 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/41992#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/41992#comment:1/1622311913452757</guid>
+      <description>maybelater: &lt;p&gt;
+Multiple-instance media settings like galleries and playlists are possible in widgets now. Moving forward, block-based themes would allow these to be used anywhere. There doesn't seem to be much demand for core customize controls that facilitate these types of settings.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+For now I would suggest extending the core media control to create custom controls with this functionality in plugins and themes. If anyone wants to propose bringing a specific implementation of this into core, please reopen this ticket.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Ticket #41611 (Customizer: Make "Add a Widget" button easier to find) closed</title>
+      
+        <dc:creator>celloexpressions</dc:creator>
+
+      <pubDate>Sat, 29 May 2021 18:01:56 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/41611#comment:12</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/41611#comment:12/1622311316581055</guid>
+      <description>fixed: &lt;p&gt;
+Widget areas in 5.8 are now block canvases with several different add-widget/block buttons available. While there is still potentially room for improvement, this now matches the post (block) editor and should be further refined with a unified approach for all block editors.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Closing as fixed by &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/50996" title="Adds the widgets block editor to widgets.php and customize.php
+Moves ..."&gt;[50996]&lt;/a&gt;.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Ticket #41271 (Customizer sanitize_callback gets called multiple times on setting change) closed</title>
+      
+        <dc:creator>celloexpressions</dc:creator>
+
+      <pubDate>Sat, 29 May 2021 17:55:47 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/41271#comment:8</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/41271#comment:8/1622310947562942</guid>
+      <description>maybelater: &lt;p&gt;
+Closing for now given lack of interest/movement. This issue seems to only cause issues with relatively unique use cases. If anyone wants to investigate potential solutions further, please reopen.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Ticket #40844 (Customize: Bulk delete widgets) closed</title>
+      
+        <dc:creator>celloexpressions</dc:creator>
+
+      <pubDate>Sat, 29 May 2021 17:44:42 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/40844#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/40844#comment:3/1622310282887616</guid>
+      <description>fixed: &lt;p&gt;
+The block-based widget editor enables bulk delete through ctrl/shift-click and through techniques such as repeated backspace-ing in the editor canvas. This ticket is fixed by &lt;a class="changeset" href="http://core.trac.wordpress.org/changeset/50996" title="Adds the widgets block editor to widgets.php and customize.php
+Moves ..."&gt;[50996]&lt;/a&gt;.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Ticket #40243 (Allow Manual Hue input for the HSL Color Picker) updated</title>
+      
+        <dc:creator>celloexpressions</dc:creator>
+
+      <pubDate>Sat, 29 May 2021 17:23:19 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/40243#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/40243#comment:3/1622308999981986</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #40183 (Customizer strange slide out) updated</title>
+      
+        <dc:creator>celloexpressions</dc:creator>
+
+      <pubDate>Sat, 29 May 2021 17:18:28 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/40183#comment:4</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/40183#comment:4/1622308708389508</guid>
+      <description>&lt;p&gt;
+I also see similar behavior occasionally, also on Chrome. But have never been able to identify specific steps to reproduce. This likely needs more targeted testing to dial in the issue and potential fix.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #39913 (Customize: Disable auto-trashing of published changesets in ...) updated</title>
+      
+        <dc:creator>celloexpressions</dc:creator>
+
+      <pubDate>Sat, 29 May 2021 17:10:47 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/39913#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/39913#comment:1/1622308247535158</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt;, &lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Noting that this will need to happen alongside/before &lt;a class="assigned ticket" href="http://core.trac.wordpress.org/ticket/21666" title="#21666: feature request: Customizer Revisions (previously reset/undo/revert) (assigned)"&gt;#21666&lt;/a&gt;. Ideally this ticket would land at least one major release before the revisions UI to allow that UI to launch showing some revision history.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+In addition to disabling auto-trashing, a patch for this ticket should alter the settings captured in changesets as described in the description.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #39910 (Customizer: Add ability to drag &amp; drop widgets and menu items) updated</title>
+      
+        <dc:creator>celloexpressions</dc:creator>
+
+      <pubDate>Sat, 29 May 2021 17:06:55 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/39910#comment:25</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/39910#comment:25/1622308015433918</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Is drag and drop still a need with the block inserter replacing the widget inserter in 5.8? There is some discussion specific to the block (editor) inserter above. It could still be applied to menus unless/until menus are also replaced with a block version.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #39907 (Add "Remove all widgets" button for themes with multiple widget areas) updated</title>
+      
+        <dc:creator>celloexpressions</dc:creator>
+
+      <pubDate>Sat, 29 May 2021 17:01:57 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/39907#comment:5</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/39907#comment:5/1622307717621780</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Would this still be useful with widgets being replaced with blocks in 5.8? Within a widget area, you can now bulk-select and delete or even backspace to delete, instead of the previous workflow to open each widget separately to delete. &lt;a class="assigned ticket" href="http://core.trac.wordpress.org/ticket/21666" title="#21666: feature request: Customizer Revisions (previously reset/undo/revert) (assigned)"&gt;#21666&lt;/a&gt; has further discussion on the idea of broader resetting.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+This could be considered (partially) fixed in 5.8 or potentially closed as wontfix or maybelater - does anyone else have thoughts?&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #39891 (Chrome rendering issue with Customizer, widgets, and checked radios) updated</title>
+      
+        <dc:creator>celloexpressions</dc:creator>
+
+      <pubDate>Sat, 29 May 2021 16:56:54 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/39891#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/39891#comment:3/1622307414514399</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Can anyone still reproduce this? I cannot reproduce with Chrome 90 on Windows.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+This will also probably no longer be relevant with widgets being replaced with blocks in 5.8. &lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #53297 (Bug in wpdb update) created</title>
+      
+        <dc:creator>ttodua</dc:creator>
+
+      <pubDate>Sat, 29 May 2021 16:45:08 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/53297</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/53297/1622306708355490</guid>
+      <description>&lt;p&gt;
+To test a simple example:&lt;br /&gt;
+&lt;/p&gt;
+&lt;pre class="wiki"&gt; $wpdb-&amp;gt;update('any_custom_table', ['parent'=&amp;gt;"hello world", "other"=&amp;gt;"xyz"], $WhereArray );
+&lt;/pre&gt;&lt;p&gt;
+Even though, in the table, the "parent" column is "text" type (non numeric), wordpress still converts the value and instead of "hello world" the numeric value is being inserted (i.e. 0 in that case, however, if you pass "123456_hello", it inserts 123456. &lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #53295 (Serialized data should be handled as an opaque value) updated</title>
+      
+        <dc:creator>prbot</dc:creator>
+
+      <pubDate>Sat, 29 May 2021 14:32:43 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/53295#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/53295#comment:1/1622298763121279</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+&lt;em&gt;This ticket was mentioned in &lt;a class="ext-link" href="https://github.com/WordPress/wordpress-develop/pull/1312"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;PR #1312&lt;/a&gt; on &lt;a class="ext-link" href="https://github.com/WordPress/wordpress-develop/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;WordPress/wordpress-develop&lt;/a&gt; by &lt;a class="ext-link" href="https://github.com/WhiteWinterWolf"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;WhiteWinterWolf&lt;/a&gt;.&lt;/em&gt;&lt;br /&gt;
+Rely on PHP proper unserliaze() return value to check whether a string contains serialized data instead of implementing a custom heuristic and break third-party software.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Trac ticket: &lt;a href="https://core.trac.wordpress.org/ticket/53295"&gt;https://core.trac.wordpress.org/ticket/53295&lt;/a&gt;&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>53296.patch attached to Ticket #53296</title>
+      
+        <dc:creator>xmic</dc:creator>
+
+      <pubDate>Sat, 29 May 2021 14:31:31 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/53296/53296.patch</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/53296/53296.patch/1622298691813318</guid>
+      <description>&lt;p&gt;
+Add trim to add_filter() function param 1
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #53296 (Do trim $hook_name within add_action() and add_filter() function) created</title>
+      
+        <dc:creator>xmic</dc:creator>
+
+      <pubDate>Sat, 29 May 2021 14:24:40 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/53296</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/53296/1622298280623294</guid>
+      <description>&lt;p&gt;
+To reduce human error within inputting strings in &lt;code&gt;add_action()&lt;/code&gt; thus &lt;code&gt;add_filter()&lt;/code&gt; hook, a trim must be introduced.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Patch is available, please see attached file.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #53295 (Serialized data should be handled as an opaque value) created</title>
+      
+        <dc:creator>whitewinterwolf</dc:creator>
+
+      <pubDate>Sat, 29 May 2021 14:20:15 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/53295</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/53295/1622298015325156</guid>
+      <description>&lt;p&gt;
+The &lt;a class="ext-link" href="https://github.com/WordPress/wordpress-develop/blob/24a70204db8d9ca5c6ddfc2c22247418fa0af5a1/src/wp-includes/functions.php#L642"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;`is_serialized()`&lt;/a&gt; function makes strong assumptions on the serialized data format and layout.&lt;br /&gt;
+&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;This seems wrong and unreliable as there is no commitment in PHP documentation over this formatting: serialized data should be handled as an opaque binary string instead.
+&lt;/li&gt;&lt;li&gt;This breaks third-party software customizing serialized data format, for instance &lt;a class="ext-link" href="https://github.com/jvoisin/snuffleupagus/issues/384"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;Snuffleupagus&lt;/a&gt;, a security software which adds an HMAC to serialized data to prevent malicious injections.
+&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;
+The correct way provided by the PHP language to determine whether a string contains a valid serialized data is to simply check the return value of the &lt;a class="ext-link" href="https://www.php.net/manual/en/function.unserialize.php"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;`unserialize()`&lt;/a&gt; function instead of relying on a dozen of various comparisons to implement a self-made heuristic.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #53293 (add_query_arg returning a bad character) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Sat, 29 May 2021 11:52:57 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/53293#comment:3</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/53293#comment:3/1622289177814038</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt;, &lt;i&gt;Milestone&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Thanks for the follow-up!&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #53293 (add_query_arg returning a bad character) closed</title>
+      
+        <dc:creator>rafasashi</dc:creator>
+
+      <pubDate>Sat, 29 May 2021 10:34:33 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/53293#comment:2</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/53293#comment:2/1622284473373792</guid>
+      <description>worksforme: &lt;p&gt;
+Replying to &lt;a class="ticket" href="http://core.trac.wordpress.org/ticket/53293#comment:1" title="Comment 1"&gt;SergeyBiryukov&lt;/a&gt;&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Hello Sergey,&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Thank you for taking the time to test this issue.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+I confirm that it works ok after using esc_url().&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+So it was not a major issue after all, lesson learned. &lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>closedticket</category>
+    </item><item>
+      <title>Ticket #53293 (add_query_arg returning a bad character) updated</title>
+      
+        <dc:creator>SergeyBiryukov</dc:creator>
+
+      <pubDate>Sat, 29 May 2021 09:58:42 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/53293#comment:1</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/53293#comment:1/1622282322383174</guid>
+      <description>&lt;i&gt;Keywords&lt;/i&gt;, &lt;i&gt;Component&lt;/i&gt; changed&lt;br/&gt;&lt;p&gt;
+Hi there, welcome back to WordPress Trac! Thanks for the report.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+I could not reproduce the issue on a clean install. This code:&lt;br /&gt;
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;var_dump(
+	add_query_arg(
+		array(
+			'note1' =&amp;gt; 'test',
+			'note2' =&amp;gt; 'test',
+			'note3' =&amp;gt; 'test',
+		),
+		'example.com'
+	)
+);
+&lt;/pre&gt;&lt;p&gt;
+Returns the correct result in the page source:&lt;br /&gt;
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;string(44) "example.com?note1=test&amp;amp;note2=test&amp;amp;note3=test"
+&lt;/pre&gt;&lt;p&gt;
+That said, the browser does indeed convert &lt;code&gt;&amp;amp;not&lt;/code&gt; to the &lt;code&gt;¬&lt;/code&gt; character, also known as the "not sign" and represented as &lt;code&gt;&amp;amp;not;&lt;/code&gt; or &lt;code&gt;&amp;amp;#172;&lt;/code&gt; or &lt;code&gt;&amp;amp;#xAC;&lt;/code&gt;.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+To avoid that, you should run the result throught the &lt;code&gt;esc_url()&lt;/code&gt; function:&lt;br /&gt;
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;var_dump(
+	esc_url(
+		add_query_arg(
+			array(
+				'note1' =&amp;gt; 'test',
+				'note2' =&amp;gt; 'test',
+				'note3' =&amp;gt; 'test',
+			),
+			'example.com'
+		)
+	)
+);
+&lt;/pre&gt;&lt;p&gt;
+That would escape the ampersand and would be correctly displayed in the browser:&lt;br /&gt;
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;string(61) "http://example.com?note1=test&amp;amp;#038;note2=test&amp;amp;#038;note3=test"
+&lt;/pre&gt;</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>Ticket #14691 (Allow commas in tag names) updated</title>
+      
+        <dc:creator>danielbuth</dc:creator>
+
+      <pubDate>Sat, 29 May 2021 09:57:47 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/14691#comment:28</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/14691#comment:28/1622282267982761</guid>
+      <description>&lt;p&gt;
+I can't tend to this issue, and nobody else did so in the meantime. But, I suppose, 13 months after the last Slack mention, it's not too crazy to bump it up once more.&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+Can someone, who understands this part of WP, &lt;em&gt;please&lt;/em&gt; deal with this ancient ticket?&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item><item>
+      <title>functions.diff attached to Ticket #53294</title>
+      
+        <dc:creator>wpvar</dc:creator>
+
+      <pubDate>Sat, 29 May 2021 06:23:46 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/attachment/ticket/53294/functions.diff</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/attachment/ticket/53294/functions.diff/1622269426577750</guid>
+      <description>&lt;p&gt;
+Patch
+&lt;/p&gt;
+</description>
+      <category>attachment</category>
+    </item><item>
+      <title>Ticket #53294 (Adding filter hook to current_time() function) created</title>
+      
+        <dc:creator>wpvar</dc:creator>
+
+      <pubDate>Sat, 29 May 2021 06:22:47 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/53294</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/53294/1622269367395974</guid>
+      <description>&lt;p&gt;
+current_time function uses default PHP class DateTime to generate dates or stamp, For local developers there is no option to modify dates that current_time returns, Therefore returned strings or stamps will always be according to gregorian calendar.&lt;br /&gt;
+&lt;/p&gt;
+&lt;div class="wiki-code"&gt;&lt;div class="code"&gt;&lt;pre&gt;&lt;span class="cp"&gt;&amp;lt;?php&lt;/span&gt;
+&lt;span class="k"&gt;function&lt;/span&gt; &lt;span class="nf"&gt;current_time&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="nv"&gt;$type&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nv"&gt;$gmt&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="c1"&gt;// Don't use non-GMT timestamp, unless you know the difference and really need to.
+&lt;/span&gt;    &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="s1"&gt;'timestamp'&lt;/span&gt; &lt;span class="o"&gt;===&lt;/span&gt; &lt;span class="nv"&gt;$type&lt;/span&gt; &lt;span class="o"&gt;||&lt;/span&gt; &lt;span class="s1"&gt;'U'&lt;/span&gt; &lt;span class="o"&gt;===&lt;/span&gt; &lt;span class="nv"&gt;$type&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+        &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="nv"&gt;$gmt&lt;/span&gt; &lt;span class="o"&gt;?&lt;/span&gt; &lt;span class="nb"&gt;time&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="nb"&gt;time&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;int&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="nx"&gt;get_option&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="s1"&gt;'gmt_offset'&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="nx"&gt;HOUR_IN_SECONDS&lt;/span&gt; &lt;span class="p"&gt;);&lt;/span&gt;
+    &lt;span class="p"&gt;}&lt;/span&gt;
+    &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="s1"&gt;'mysql'&lt;/span&gt; &lt;span class="o"&gt;===&lt;/span&gt; &lt;span class="nv"&gt;$type&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+        &lt;span class="nv"&gt;$type&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s1"&gt;'Y-m-d H:i:s'&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="p"&gt;}&lt;/span&gt;
+    &lt;span class="nv"&gt;$timezone&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nv"&gt;$gmt&lt;/span&gt; &lt;span class="o"&gt;?&lt;/span&gt; &lt;span class="k"&gt;new&lt;/span&gt; &lt;span class="nx"&gt;DateTimeZone&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="s1"&gt;'UTC'&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="nx"&gt;wp_timezone&lt;/span&gt;&lt;span class="p"&gt;();&lt;/span&gt;
+    &lt;span class="nv"&gt;$datetime&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="k"&gt;new&lt;/span&gt; &lt;span class="nx"&gt;DateTime&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="s1"&gt;'now'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nv"&gt;$timezone&lt;/span&gt; &lt;span class="p"&gt;);&lt;/span&gt;
+    &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="nv"&gt;$datetime&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="na"&gt;format&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="nv"&gt;$type&lt;/span&gt; &lt;span class="p"&gt;);&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;p&gt;
+By adding new filter hook, it will help local developers to convert gregorian dates to other calendar types as well:&lt;br /&gt;
+&lt;/p&gt;
+&lt;div class="wiki-code"&gt;&lt;div class="code"&gt;&lt;pre&gt;&lt;span class="cp"&gt;&amp;lt;?php&lt;/span&gt;
+&lt;span class="k"&gt;function&lt;/span&gt; &lt;span class="nf"&gt;current_time&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="nv"&gt;$type&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nv"&gt;$gmt&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+        &lt;span class="c1"&gt;// Don't use non-GMT timestamp, unless you know the difference and really need to.
+&lt;/span&gt;        &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="s1"&gt;'timestamp'&lt;/span&gt; &lt;span class="o"&gt;===&lt;/span&gt; &lt;span class="nv"&gt;$type&lt;/span&gt; &lt;span class="o"&gt;||&lt;/span&gt; &lt;span class="s1"&gt;'U'&lt;/span&gt; &lt;span class="o"&gt;===&lt;/span&gt; &lt;span class="nv"&gt;$type&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+                &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="nv"&gt;$gmt&lt;/span&gt; &lt;span class="o"&gt;?&lt;/span&gt; &lt;span class="nb"&gt;time&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="nb"&gt;time&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;int&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="nx"&gt;get_option&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="s1"&gt;'gmt_offset'&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="nx"&gt;HOUR_IN_SECONDS&lt;/span&gt; &lt;span class="p"&gt;);&lt;/span&gt;
+        &lt;span class="p"&gt;}&lt;/span&gt;
+        &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="s1"&gt;'mysql'&lt;/span&gt; &lt;span class="o"&gt;===&lt;/span&gt; &lt;span class="nv"&gt;$type&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+                &lt;span class="nv"&gt;$type&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s1"&gt;'Y-m-d H:i:s'&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+        &lt;span class="p"&gt;}&lt;/span&gt;
+        &lt;span class="nv"&gt;$timezone&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nv"&gt;$gmt&lt;/span&gt; &lt;span class="o"&gt;?&lt;/span&gt; &lt;span class="k"&gt;new&lt;/span&gt; &lt;span class="nx"&gt;DateTimeZone&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="s1"&gt;'UTC'&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="nx"&gt;wp_timezone&lt;/span&gt;&lt;span class="p"&gt;();&lt;/span&gt;
+        &lt;span class="nv"&gt;$datetime&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="k"&gt;new&lt;/span&gt; &lt;span class="nx"&gt;DateTime&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="s1"&gt;'now'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nv"&gt;$timezone&lt;/span&gt; &lt;span class="p"&gt;);&lt;/span&gt;
+        &lt;span class="nv"&gt;$datetime&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nv"&gt;$datetime&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="na"&gt;format&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="nv"&gt;$type&lt;/span&gt; &lt;span class="p"&gt;);&lt;/span&gt;
+        &lt;span class="sd"&gt;/**
+         * Filters current datetime based on the type.
+         *
+         * @since 5.8.0
+         *
+         * @param int|string   $datetime Integer if $type is 'timestamp', string otherwise.
+         * @param int          $type     Type of time to retrieve.
+         * @param int|bool     $gmt      Whether to use GMT timezone.
+         * @param DateTimeZone $timezone Timezone.
+         */&lt;/span&gt;
+        &lt;span class="nv"&gt;$datetime&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nx"&gt;apply_filters&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="s1"&gt;'current_time'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nv"&gt;$datetime&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nv"&gt;$type&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nv"&gt;$gmt&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nv"&gt;$timezone&lt;/span&gt; &lt;span class="p"&gt;);&lt;/span&gt;
+        &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="nv"&gt;$datetime&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;p&gt;
+Since many plugin and theme developers use current_time directly to generate current dates, It will enhance alternative calendars usability in WordPress for local and non-gregorian territories users. I think best approach here could be for local developers to ignore mysql and timestamp fields and only convert other formats based on different scenarios and values that hook will return.&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #53293 (add_query_arg returning a bad character) created</title>
+      
+        <dc:creator>rafasashi</dc:creator>
+
+      <pubDate>Sat, 29 May 2021 03:49:20 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/53293</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/53293/1622260160388199</guid>
+      <description>&lt;p&gt;
+When add_query_arg is used with "not" at the beginning of a key (excluding the first parameter), the function seems to replace "&amp;amp;not" by "¬".&lt;br /&gt;
+&lt;/p&gt;
+&lt;p&gt;
+For example:&lt;br /&gt;
+&lt;/p&gt;
+&lt;pre class="wiki"&gt;add_query_arg( array(
+	'note1'=&amp;gt;'test',
+	'note2'=&amp;gt;'test',
+	'note3'=&amp;gt;'test',
+),'example.com');
+&lt;/pre&gt;&lt;p&gt;
+returns "example.com?note1=test¬e2=test¬e3=test"&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>newticket</category>
+    </item><item>
+      <title>Ticket #52046 (The Distraction Free Writing setting on the old Edit Post screen may ...) updated</title>
+      
+        <dc:creator>slackbot</dc:creator>
+
+      <pubDate>Sat, 29 May 2021 01:35:30 GMT</pubDate>
+      <link>http://core.trac.wordpress.org/ticket/52046#comment:11</link>
+      <guid isPermaLink="false">http://core.trac.wordpress.org/ticket/52046#comment:11/1622252130505388</guid>
+      <description>&lt;p&gt;
+&lt;em&gt;This ticket was mentioned in &lt;a class="ext-link" href="https://make.wordpress.org/chat/"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;Slack&lt;/a&gt; in #core-test by azaozz. &lt;a class="ext-link" href="https://wordpress.slack.com/archives/core-test/p1622252128151400"&gt;&lt;span class="icon"&gt;​&lt;/span&gt;View the logs&lt;/a&gt;.&lt;/em&gt;&lt;br /&gt;
+&lt;/p&gt;
+</description>
+      <category>editedticket</category>
+    </item>
+   </channel>
+</rss>
